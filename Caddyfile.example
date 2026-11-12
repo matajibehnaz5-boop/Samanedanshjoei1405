@@ -1,0 +1,42 @@
+# =========================================================================
+# Caddyfile Example for Vazir University Student Portal
+# =========================================================================
+#
+# Production Reverse Proxy Configuration
+# - Automatically provisions and renews TLS/HTTPS via Let's Encrypt / ZeroSSL
+# - Sends client real IP and protocol headers (X-Forwarded-For, X-Forwarded-Proto)
+# - Enables HTTP/2, HTTP/3, and modern compression (zstd, gzip)
+#
+# Usage:
+# 1. Replace "portal.vazir.ac.ir" with your actual domain or VPS public IP
+# 2. Place this file in /etc/caddy/Caddyfile or run with: caddy run --config Caddyfile
+# =========================================================================
+
+portal.vazir.ac.ir {
+    # Automatic HTTP to HTTPS redirection is active by default in Caddy
+
+    # Compression for text, assets, and JSON responses
+    encode zstd gzip
+
+    # Production Security Headers
+    header {
+        # Strict Transport Security (HSTS)
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        # Prevent MIME type sniffing
+        X-Content-Type-Options "nosniff"
+        # Clickjacking defense
+        X-Frame-Options "SAMEORIGIN"
+        # Referrer Policy
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    # Reverse proxy upstream to the local Node.js application container
+    # Set TRUST_PROXY=1 in the application's .env so Express reads X-Forwarded-For
+    reverse_proxy 127.0.0.1:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+    }
+}

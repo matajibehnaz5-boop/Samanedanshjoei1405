@@ -1,0 +1,39 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vazir-student-portal:latest
+    container_name: vazir-app
+    restart: unless-stopped
+    ports:
+      # Exposes the server on the configured host port (default 3000)
+      - "${PORT:-3000}:${PORT:-3000}"
+    env_file:
+      # Reads environment variables from the host's .env file
+      - .env
+    environment:
+      - NODE_ENV=production
+      - DATA_DIR=/data
+      - PORT=${PORT:-3000}
+    volumes:
+      # Persistent Docker named volume or host directory mounted at DATA_DIR
+      - vazir_data:/data
+      # Optional host mount for backups created by the backup script
+      - ./backups:/app/backups
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/api/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  vazir_data:
+    driver: local

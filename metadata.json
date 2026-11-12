@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Remix Remix Remix Remix: Vazir Student Dashboard",
+  "description": "A premium, dark-themed Flutter student panel featuring RTL support, Material 3 design, glassmorphism, and responsive Persian UI components.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
