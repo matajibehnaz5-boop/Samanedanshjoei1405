@@ -17,10 +17,11 @@ function validateProductionSecurity(): void {
   const isProd = process.env.NODE_ENV === "production";
   if (!isProd) return;
 
-  const sessionSecret = process.env.SESSION_SECRET?.trim();
+  const sessionSecret = (process.env.SESSION_SECRET || process.env.JWT_SECRET)?.trim();
   const weakSessionSecrets = [
     "secret",
     "session_secret",
+    "jwt_secret",
     "changeme",
     "password",
     "12345678",
@@ -35,7 +36,7 @@ function validateProductionSecurity(): void {
 
   if (!sessionSecret) {
     console.error(
-      "[FATAL SECURITY ERROR] In production mode (NODE_ENV=production), SESSION_SECRET must be explicitly set in environment variables."
+      "[FATAL SECURITY ERROR] In production mode (NODE_ENV=production), SESSION_SECRET or JWT_SECRET must be explicitly set in environment variables."
     );
     process.exit(1);
   }
@@ -217,7 +218,11 @@ Tone & Style:
   if (process.env.NODE_ENV === "production") {
     const distPath = path.resolve(rootDir, "dist");
     app.use(express.static(distPath));
-    app.get("*", (_req, res) => {
+    app.get("*", (req, res) => {
+      if (req.path.startsWith("/api/")) {
+        res.status(404).json({ message: "API route not found" });
+        return;
+      }
       res.sendFile(path.resolve(distPath, "index.html"));
     });
   } else {

@@ -71,13 +71,27 @@ export async function verifyPassword(password: string, storedHash: string): Prom
     return true;
   }
 
+  // 4. Case variation for first character (mobile keyboard auto-capitalization or manual lowercase)
+  const toggledFirst =
+    (trimmed.charAt(0) === trimmed.charAt(0).toUpperCase()
+      ? trimmed.charAt(0).toLowerCase()
+      : trimmed.charAt(0).toUpperCase()) + trimmed.slice(1);
+  if (toggledFirst !== trimmed && (await verifySinglePassword(toggledFirst, storedHash))) {
+    return true;
+  }
+  const normalizedToggled = normalizeDigits(toggledFirst);
+  if (normalizedToggled !== toggledFirst && (await verifySinglePassword(normalizedToggled, storedHash))) {
+    return true;
+  }
+
   return false;
 }
 
 // Session Secret Management
 export function getSessionSecret(): string {
-  if (process.env.SESSION_SECRET && process.env.SESSION_SECRET.trim()) {
-    return process.env.SESSION_SECRET.trim();
+  const secret = (process.env.SESSION_SECRET || process.env.JWT_SECRET)?.trim();
+  if (secret) {
+    return secret;
   }
 
   const dataDir = getDataDir();
