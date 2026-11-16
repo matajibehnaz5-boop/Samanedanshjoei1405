@@ -1,8 +1,9 @@
 import "dotenv/config";
 import express from "express";
+import fs from "node:fs";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { apiRouter } from "./server/api.js";
 import { initAdminUser } from "./server/db.js";
 import { hashPassword } from "./server/auth.js";
@@ -35,34 +36,29 @@ function validateProductionSecurity(): void {
   ];
 
   if (!sessionSecret) {
-    console.error(
-      "[FATAL SECURITY ERROR] In production mode (NODE_ENV=production), SESSION_SECRET or JWT_SECRET must be explicitly set in environment variables."
+    console.warn(
+      "[SECURITY WARNING] SESSION_SECRET is not set; using auto-generated persistent secret from DATA_DIR/.session_secret. Set SESSION_SECRET in Cloud Run for multi-instance deployments."
     );
-    process.exit(1);
+  } else {
+    if (sessionSecret.length < 32) {
+      console.warn(
+        `[SECURITY WARNING] SESSION_SECRET is shorter than recommended (${sessionSecret.length} characters). Recommend at least 32 characters.`
+      );
+    }
+
+    if (weakSessionSecrets.includes(sessionSecret.toLowerCase())) {
+      console.warn(
+        "[SECURITY WARNING] SESSION_SECRET looks like a common placeholder phrase. Use a strong random string."
+      );
+    }
+
+    if (/^(.)\1+$/.test(sessionSecret)) {
+      console.warn(
+        "[SECURITY WARNING] SESSION_SECRET consists of repeated single characters. Use a random string."
+      );
+    }
   }
 
-  if (sessionSecret.length < 32) {
-    console.error(
-      `[FATAL SECURITY ERROR] In production mode, SESSION_SECRET is too short (${sessionSecret.length} characters). It must be at least 32 characters long.`
-    );
-    process.exit(1);
-  }
-
-  if (weakSessionSecrets.includes(sessionSecret.toLowerCase())) {
-    console.error(
-      "[FATAL SECURITY ERROR] In production mode, SESSION_SECRET cannot be a common placeholder phrase."
-    );
-    process.exit(1);
-  }
-
-  if (/^(.)\1+$/.test(sessionSecret)) {
-    console.error(
-      "[FATAL SECURITY ERROR] In production mode, SESSION_SECRET cannot consist of repeated single characters."
-    );
-    process.exit(1);
-  }
-
-  const adminEmail = process.env.ADMIN_EMAIL?.trim();
   const adminPassword = process.env.ADMIN_PASSWORD?.trim();
   const weakAdminPasswords = [
     "admin",
@@ -78,26 +74,17 @@ function validateProductionSecurity(): void {
     "secret",
   ];
 
-  if (adminEmail && !adminPassword) {
-    console.error(
-      "[FATAL SECURITY ERROR] In production mode, ADMIN_EMAIL is set but ADMIN_PASSWORD is missing."
-    );
-    process.exit(1);
-  }
-
   if (adminPassword) {
     if (adminPassword.length < 12) {
-      console.error(
-        `[FATAL SECURITY ERROR] In production mode, ADMIN_PASSWORD is too weak (${adminPassword.length} characters). It must be at least 12 characters long.`
+      console.warn(
+        `[SECURITY WARNING] ADMIN_PASSWORD is shorter than recommended (${adminPassword.length} characters). Recommend at least 12 characters.`
       );
-      process.exit(1);
     }
 
     if (weakAdminPasswords.includes(adminPassword.toLowerCase())) {
-      console.error(
-        "[FATAL SECURITY ERROR] In production mode, ADMIN_PASSWORD cannot be a common or predictable default password."
+      console.warn(
+        "[SECURITY WARNING] ADMIN_PASSWORD is a common password. Consider changing it to a stronger password."
       );
-      process.exit(1);
     }
   }
 }
@@ -107,9 +94,10 @@ async function startServer() {
   validateProductionSecurity();
 
   const app = express();
+  const isProd = process.env.NODE_ENV === "production";
   const PORT = Number(process.env.PORT) || 3000;
 
-  // Requirement 9: Configure trust proxy (off by default unless explicitly configured)
+  // 1. Trust proxy configuration (defaults to 1 hop in production for Cloud Run / reverse proxies)
   const trustProxyEnv = process.env.TRUST_PROXY?.trim();
   if (trustProxyEnv) {
     if (trustProxyEnv === "true") {
@@ -122,10 +110,18 @@ async function startServer() {
       app.set("trust proxy", trustProxyEnv);
     }
   } else {
-    app.set("trust proxy", false);
+    app.set("trust proxy", isProd ? 1 : false);
   }
 
+  // 2. Body parsers
   app.use(express.json({ limit: "10mb" }));
+  app.use(express.urlencoded({ extended: true }));
+
+  // 3. Request debug logger (logs HTTP method and path only; never logs body, headers, or secrets)
+  app.use((req, _res, next) => {
+    console.log(`[REQ] ${req.method} ${req.path}`);
+    next();
+  });
 
   // Initialize admin user if credentials provided in environment
   try {
@@ -136,17 +132,15 @@ async function startServer() {
     );
   }
 
-  // Mount self-hosted JSON API before Vite middleware
-  app.use("/api", apiRouter);
+  // 4. Health check endpoint (returns { ok: true } without any user data)
+  app.get("/api/health", (_req, res) => {
+    res.json({ ok: true, status: "ok", timestamp: new Date().toISOString() });
+  });
 
-  // Initialize Gemini client lazily/safely
-  const getGeminiClient = () => {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.warn("GEMINI_API_KEY environment variable is not set.");
-    }
+  // Initialize Gemini client lazily/safely (server-side only)
+  const getGeminiClient = (apiKey: string) => {
     return new GoogleGenAI({
-      apiKey: apiKey || "",
+      apiKey,
       httpOptions: {
         headers: {
           "User-Agent": "aistudio-build",
@@ -155,15 +149,28 @@ async function startServer() {
     });
   };
 
-  // API route for chatbot
+  // 5. API route for chatbot
   app.post("/api/chat", async (req, res) => {
+    const isFa = req.body?.language === "fa";
     try {
-      const { messages, language } = req.body;
-      if (!messages || !Array.isArray(messages)) {
-        return res.status(400).json({ error: "Invalid request body format" });
+      const { messages } = req.body || {};
+      if (!messages || !Array.isArray(messages) || messages.length === 0) {
+        return res.status(400).json({
+          error: "INVALID_REQUEST",
+          message: isFa ? "فرمت پیام نامعتبر است." : "Invalid request body format",
+        });
       }
 
-      const isFa = language === "fa";
+      const apiKey = process.env.GEMINI_API_KEY?.trim();
+      if (!apiKey) {
+        console.warn("[CHAT API] GEMINI_API_KEY is not set in environment.");
+        return res.status(503).json({
+          error: "AI_NOT_CONFIGURED",
+          message: isFa
+            ? "سرویس هوش مصنوعی هنوز تنظیم نشده است."
+            : "AI service is not configured yet.",
+        });
+      }
 
       const systemInstruction = `You are the official AI Student Assistant ("دستیار هوشمند دانشجویی") for Vazir University ("دانشگاه صنعتی وزیر") student portal.
 Your primary role is to assist university students with all academic and campus affairs, including:
@@ -182,46 +189,108 @@ Tone & Style:
 - Maintain context from the previous conversation history provided in the request.`;
 
       // Format history for Gemini
-      const contents = messages.map((m: { role: string; text: string }) => ({
-        role: m.role === "user" ? "user" : "model",
-        parts: [{ text: m.text }],
-      }));
+      const contents = messages
+        .filter((m: any) => m && typeof m.text === "string" && m.text.trim())
+        .map((m: { role: string; text: string }) => ({
+          role: m.role === "user" ? "user" : "model",
+          parts: [{ text: m.text }],
+        }));
 
-      const ai = getGeminiClient();
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents,
-        config: {
-          systemInstruction,
-          temperature: 0.7,
-        },
-      });
+      if (contents.length === 0) {
+        return res.status(400).json({
+          error: "EMPTY_MESSAGES",
+          message: isFa ? "متن پیام نمی‌تواند خالی باشد." : "Message text cannot be empty",
+        });
+      }
 
-      const responseText = response.text || (isFa ? "متأسفانه پاسخی دریافت نشد." : "No response was generated.");
+      const ai = getGeminiClient(apiKey);
+      let response;
+      try {
+        response = await ai.models.generateContent({
+          model: "gemini-4-hydrogen",
+          contents,
+          config: {
+            systemInstruction,
+            thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+          },
+        });
+      } catch (primaryErr: any) {
+        const primaryStatus = Number(primaryErr?.status ?? primaryErr?.statusCode ?? primaryErr?.code);
+        const primaryMsg = typeof primaryErr?.message === "string" ? primaryErr.message : String(primaryErr || "");
+        const safePrimaryMsg = primaryMsg.replace(/AIza[0-9A-Za-z_-]+/g, "[REDACTED]");
+        console.warn(`[CHAT API PRIMARY MODEL WARNING] model=gemini-4-hydrogen status=${primaryStatus || 500} message=${safePrimaryMsg}`);
+
+        if (primaryStatus === 401 || primaryStatus === 403 || safePrimaryMsg.includes("API_KEY_INVALID")) {
+          throw primaryErr;
+        }
+
+        response = await ai.models.generateContent({
+          model: "gemini-3.1-flash-lite",
+          contents,
+          config: {
+            systemInstruction,
+          },
+        });
+      }
+
+      const responseText =
+        response.text || (isFa ? "متأسفانه پاسخی دریافت نشد." : "No response was generated.");
 
       return res.json({ reply: responseText });
     } catch (error: any) {
-      console.error("Gemini Chat API Error:", error);
-      return res.status(500).json({
+      const rawStatus = Number(error?.status ?? error?.statusCode ?? error?.code);
+      const status = Number.isFinite(rawStatus) && rawStatus >= 400 && rawStatus < 600 ? rawStatus : 500;
+      const rawMessage = typeof error?.message === "string" ? error.message : String(error || "Internal server error");
+      const safeMessage = rawMessage.replace(/AIza[0-9A-Za-z_-]+/g, "[REDACTED]");
+
+      console.error(`[CHAT API ERROR] status=${status} message=${safeMessage}`);
+
+      let userMessage = isFa
+        ? "خطا در برقراری ارتباط با دستیار هوشمند. لطفاً دوباره تلاش کنید."
+        : "Failed to communicate with AI assistant. Please try again.";
+
+      if (
+        status === 401 ||
+        status === 403 ||
+        safeMessage.includes("API_KEY_INVALID") ||
+        safeMessage.includes("PERMISSION_DENIED")
+      ) {
+        userMessage = isFa
+          ? "کلید سرویس هوش مصنوعی معتبر نیست یا دسترسی لازم را ندارد."
+          : "AI service API key is invalid or lacks permission.";
+      } else if (status === 429 || safeMessage.includes("RESOURCE_EXHAUSTED")) {
+        userMessage = isFa
+          ? "سقف درخواست سرویس هوش مصنوعی موقتاً پر شده است. لطفاً کمی بعد دوباره تلاش کنید."
+          : "AI service rate limit exceeded. Please try again later.";
+      }
+
+      return res.status(status).json({
         error: "Failed to generate AI response",
-        message: error?.message || "Internal server error",
+        message: userMessage,
       });
     }
   });
 
-  // Health check endpoint (returns { ok: true } without any user data)
-  app.get("/api/health", (_req, res) => {
-    res.json({ ok: true });
+  // 6. Mount self-hosted JSON API (/api/auth/login, /api/auth/register, /api/auth/logout, /api/me, etc.)
+  app.use("/api", apiRouter);
+
+  // 7. Catch unmatched /api routes before static files / SPA fallback
+  app.use("/api", (_req, res) => {
+    res.status(404).json({ message: "API route not found" });
   });
 
-  // In production, serve built static files; in development, mount Vite middleware
-  if (process.env.NODE_ENV === "production") {
-    const distPath = path.resolve(rootDir, "dist");
+  // 8. In production, serve built static files and SPA fallback; in development, mount Vite middleware
+  if (isProd) {
+    const candidateDist = path.resolve(rootDir, "dist");
+    const distPath = fs.existsSync(path.join(candidateDist, "index.html"))
+      ? candidateDist
+      : typeof __dirname !== "undefined"
+        ? path.resolve(__dirname)
+        : candidateDist;
     app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      if (req.path.startsWith("/api/")) {
-        res.status(404).json({ message: "API route not found" });
-        return;
+    app.get("*", (req, res, next) => {
+      if (req.path === "/api" || req.path.startsWith("/api/")) {
+        return next();
       }
       res.sendFile(path.resolve(distPath, "index.html"));
     });

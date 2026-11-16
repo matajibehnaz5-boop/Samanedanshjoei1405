@@ -332,7 +332,11 @@ apiRouter.post("/auth/logout", (req: Request, res: Response): void => {
   res.json({ message: "Logged out successfully" });
 });
 
-// GET /api/me (User can strictly read only their own profile)
+// GET /api/auth/me & GET /api/me (User can strictly read only their own profile)
+apiRouter.get("/auth/me", (req: AuthenticatedRequest, res: Response): void => {
+  res.json({ user: formatUser(req.user!) });
+});
+
 apiRouter.get("/me", (req: AuthenticatedRequest, res: Response): void => {
   res.json({ user: formatUser(req.user!) });
 });
@@ -629,4 +633,490 @@ apiRouter.post("/admin/restore", requireAdmin, async (req: AuthenticatedRequest,
     console.error("[CRITICAL RESTORE ERROR] Failed to restore database backup:", err);
     res.status(500).json({ message: "Failed to restore database backup: " + errorMsg });
   }
+});
+
+// --- EDUCATIONAL AFFAIRS ADMIN ROUTES (Protected by requireAdmin) ---
+
+function normalizeDigitsOnly(value: string): string {
+  return value
+    .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+}
+
+// GET /api/admin/edu-groups
+apiRouter.get("/admin/edu-groups", requireAdmin, (_req: AuthenticatedRequest, res: Response): void => {
+  const db = getDb();
+  const rows = db
+    .prepare(`
+      SELECT
+        g.id,
+        g.name,
+        g.head,
+        g.created_at,
+        COUNT(e.id) AS employee_count
+      FROM edu_groups g
+      LEFT JOIN employees e ON e.group_id = g.id
+      GROUP BY g.id
+      ORDER BY g.created_at DESC
+    `)
+    .all() as Array<{
+      id: string;
+      name: string;
+      head: string | null;
+      created_at: string;
+      employee_count: number;
+    }>;
+
+  const groups = rows.map((g) => ({
+    id: g.id,
+    name: g.name,
+    head: g.head || "",
+    employeeCount: Number(g.employee_count || 0),
+    createdAt: g.created_at,
+  }));
+
+  res.json({ groups });
+});
+
+// POST /api/admin/edu-groups
+apiRouter.post("/admin/edu-groups", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const { name, head } = req.body || {};
+
+  if (!name || typeof name !== "string" || !name.trim()) {
+    res.status(400).json({ message: "نام گروه آموزشی الزامی است." });
+    return;
+  }
+
+  const cleanName = name.trim();
+  if (cleanName.length > 100) {
+    res.status(400).json({ message: "نام گروه آموزشی نباید بیشتر از ۱۰۰ کاراکتر باشد." });
+    return;
+  }
+
+  let cleanHead: string | null = null;
+  if (head !== undefined && head !== null) {
+    if (typeof head !== "string") {
+      res.status(400).json({ message: "نام مدیر گروه نامعتبر است." });
+      return;
+    }
+    const trimmedHead = head.trim();
+    if (trimmedHead.length > 100) {
+      res.status(400).json({ message: "نام مدیر گروه نباید بیشتر از ۱۰۰ کاراکتر باشد." });
+      return;
+    }
+    cleanHead = trimmedHead || null;
+  }
+
+  const db = getDb();
+  const duplicate = db
+    .prepare("SELECT id FROM edu_groups WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))")
+    .get(cleanName) as { id: string } | undefined;
+
+  if (duplicate) {
+    res.status(409).json({ message: "گروه آموزشی با این نام قبلاً ثبت شده است." });
+    return;
+  }
+
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+
+  db.prepare(`
+    INSERT INTO edu_groups (id, name, head, created_at)
+    VALUES (?, ?, ?, ?)
+  `).run(id, cleanName, cleanHead, createdAt);
+
+  res.status(201).json({
+    group: {
+      id,
+      name: cleanName,
+      head: cleanHead || "",
+      employeeCount: 0,
+      createdAt,
+    },
+  });
+});
+
+// DELETE /api/admin/edu-groups/:id
+apiRouter.delete("/admin/edu-groups/:id", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const groupId = typeof req.params.id === "string" ? req.params.id.trim() : "";
+  if (!groupId) {
+    res.status(400).json({ message: "شناسه گروه آموزشی نامعتبر است." });
+    return;
+  }
+
+  const db = getDb();
+  const existing = db
+    .prepare("SELECT id FROM edu_groups WHERE id = ?")
+    .get(groupId) as { id: string } | undefined;
+
+  if (!existing) {
+    res.status(404).json({ message: "گروه آموزشی مورد نظر یافت نشد." });
+    return;
+  }
+
+  db.exec("BEGIN IMMEDIATE;");
+  try {
+    // Preserve employees and unlink their group_id before deleting the group
+    db.prepare("UPDATE employees SET group_id = NULL WHERE group_id = ?").run(groupId);
+    db.prepare("DELETE FROM edu_groups WHERE id = ?").run(groupId);
+    db.exec("COMMIT;");
+  } catch (err) {
+    try {
+      db.exec("ROLLBACK;");
+    } catch {
+      // ignore
+    }
+    throw err;
+  }
+
+  res.json({ message: "گروه آموزشی با موفقیت حذف شد." });
+});
+
+// GET /api/admin/edu-fields
+apiRouter.get("/admin/edu-fields", requireAdmin, (_req: AuthenticatedRequest, res: Response): void => {
+  const db = getDb();
+  const rows = db
+    .prepare(`
+      SELECT
+        f.id,
+        f.name,
+        f.created_at,
+        COUNT(e.id) AS employee_count
+      FROM edu_fields f
+      LEFT JOIN employees e ON e.field_id = f.id
+      GROUP BY f.id
+      ORDER BY f.created_at DESC
+    `)
+    .all() as Array<{
+      id: string;
+      name: string;
+      created_at: string;
+      employee_count: number;
+    }>;
+
+  const fields = rows.map((f) => ({
+    id: f.id,
+    name: f.name,
+    employeeCount: Number(f.employee_count || 0),
+    createdAt: f.created_at,
+  }));
+
+  res.json({ fields });
+});
+
+// POST /api/admin/edu-fields
+apiRouter.post("/admin/edu-fields", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const { name } = req.body || {};
+
+  if (!name || typeof name !== "string" || !name.trim()) {
+    res.status(400).json({ message: "نام رشته تحصیلی الزامی است." });
+    return;
+  }
+
+  const cleanName = name.trim();
+  if (cleanName.length > 100) {
+    res.status(400).json({ message: "نام رشته تحصیلی نباید بیشتر از ۱۰۰ کاراکتر باشد." });
+    return;
+  }
+
+  const db = getDb();
+  const duplicate = db
+    .prepare("SELECT id FROM edu_fields WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))")
+    .get(cleanName) as { id: string } | undefined;
+
+  if (duplicate) {
+    res.status(409).json({ message: "رشته تحصیلی با این نام قبلاً ثبت شده است." });
+    return;
+  }
+
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+
+  db.prepare(`
+    INSERT INTO edu_fields (id, name, created_at)
+    VALUES (?, ?, ?)
+  `).run(id, cleanName, createdAt);
+
+  res.status(201).json({
+    field: {
+      id,
+      name: cleanName,
+      employeeCount: 0,
+      createdAt,
+    },
+  });
+});
+
+// DELETE /api/admin/edu-fields/:id
+apiRouter.delete("/admin/edu-fields/:id", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const fieldId = typeof req.params.id === "string" ? req.params.id.trim() : "";
+  if (!fieldId) {
+    res.status(400).json({ message: "شناسه رشته تحصیلی نامعتبر است." });
+    return;
+  }
+
+  const db = getDb();
+  const existing = db
+    .prepare("SELECT id FROM edu_fields WHERE id = ?")
+    .get(fieldId) as { id: string } | undefined;
+
+  if (!existing) {
+    res.status(404).json({ message: "رشته تحصیلی مورد نظر یافت نشد." });
+    return;
+  }
+
+  db.exec("BEGIN IMMEDIATE;");
+  try {
+    // Preserve employees and unlink their field_id before deleting the field
+    db.prepare("UPDATE employees SET field_id = NULL WHERE field_id = ?").run(fieldId);
+    db.prepare("DELETE FROM edu_fields WHERE id = ?").run(fieldId);
+    db.exec("COMMIT;");
+  } catch (err) {
+    try {
+      db.exec("ROLLBACK;");
+    } catch {
+      // ignore
+    }
+    throw err;
+  }
+
+  res.json({ message: "رشته تحصیلی با موفقیت حذف شد." });
+});
+
+// GET /api/admin/employees
+apiRouter.get("/admin/employees", requireAdmin, (_req: AuthenticatedRequest, res: Response): void => {
+  const db = getDb();
+  const rows = db
+    .prepare(`
+      SELECT
+        e.id,
+        e.first_name,
+        e.last_name,
+        e.national_id,
+        e.personnel_code,
+        e.phone,
+        e.position,
+        e.group_id,
+        g.name AS group_name,
+        e.field_id,
+        f.name AS field_name,
+        e.created_at
+      FROM employees e
+      LEFT JOIN edu_groups g ON g.id = e.group_id
+      LEFT JOIN edu_fields f ON f.id = e.field_id
+      ORDER BY e.created_at DESC
+    `)
+    .all() as Array<{
+      id: string;
+      first_name: string;
+      last_name: string;
+      national_id: string;
+      personnel_code: string | null;
+      phone: string | null;
+      position: string | null;
+      group_id: string | null;
+      group_name: string | null;
+      field_id: string | null;
+      field_name: string | null;
+      created_at: string;
+    }>;
+
+  const employees = rows.map((e) => ({
+    id: e.id,
+    firstName: e.first_name,
+    lastName: e.last_name,
+    nationalId: e.national_id,
+    personnelCode: e.personnel_code || "",
+    phone: e.phone || "",
+    position: e.position || "",
+    groupId: e.group_id || null,
+    groupName: e.group_name || "",
+    fieldId: e.field_id || null,
+    fieldName: e.field_name || "",
+    createdAt: e.created_at,
+  }));
+
+  res.json({ employees });
+});
+
+// POST /api/admin/employees
+apiRouter.post("/admin/employees", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const { firstName, lastName, nationalId, personnelCode, phone, position, groupId, fieldId } = req.body || {};
+
+  if (!firstName || typeof firstName !== "string" || !firstName.trim()) {
+    res.status(400).json({ message: "نام کارمند الزامی است." });
+    return;
+  }
+  const cleanFirstName = firstName.trim();
+  if (cleanFirstName.length > 100) {
+    res.status(400).json({ message: "نام کارمند نباید بیشتر از ۱۰۰ کاراکتر باشد." });
+    return;
+  }
+
+  if (!lastName || typeof lastName !== "string" || !lastName.trim()) {
+    res.status(400).json({ message: "نام خانوادگی کارمند الزامی است." });
+    return;
+  }
+  const cleanLastName = lastName.trim();
+  if (cleanLastName.length > 100) {
+    res.status(400).json({ message: "نام خانوادگی کارمند نباید بیشتر از ۱۰۰ کاراکتر باشد." });
+    return;
+  }
+
+  if (!nationalId || typeof nationalId !== "string") {
+    res.status(400).json({ message: "کد ملی باید دقیقاً ۱۰ رقم باشد." });
+    return;
+  }
+  const cleanNationalId = normalizeDigitsOnly(nationalId.trim());
+  if (!/^\d{10}$/.test(cleanNationalId)) {
+    res.status(400).json({ message: "کد ملی باید دقیقاً ۱۰ رقم باشد." });
+    return;
+  }
+
+  let cleanPersonnelCode: string | null = null;
+  if (personnelCode !== undefined && personnelCode !== null) {
+    if (typeof personnelCode !== "string") {
+      res.status(400).json({ message: "کد پرسنلی نامعتبر است." });
+      return;
+    }
+    const trimmed = normalizeDigitsOnly(personnelCode.trim());
+    if (trimmed.length > 50) {
+      res.status(400).json({ message: "کد پرسنلی نباید بیشتر از ۵۰ کاراکتر باشد." });
+      return;
+    }
+    cleanPersonnelCode = trimmed || null;
+  }
+
+  let cleanPhone: string | null = null;
+  if (phone !== undefined && phone !== null) {
+    if (typeof phone !== "string") {
+      res.status(400).json({ message: "شماره تماس نامعتبر است." });
+      return;
+    }
+    const trimmed = normalizeDigitsOnly(phone.trim());
+    if (trimmed.length > 30) {
+      res.status(400).json({ message: "شماره تماس نباید بیشتر از ۳۰ کاراکتر باشد." });
+      return;
+    }
+    cleanPhone = trimmed || null;
+  }
+
+  let cleanPosition: string | null = null;
+  if (position !== undefined && position !== null) {
+    if (typeof position !== "string") {
+      res.status(400).json({ message: "سمت کارمند نامعتبر است." });
+      return;
+    }
+    const trimmed = position.trim();
+    if (trimmed.length > 100) {
+      res.status(400).json({ message: "سمت کارمند نباید بیشتر از ۱۰۰ کاراکتر باشد." });
+      return;
+    }
+    cleanPosition = trimmed || null;
+  }
+
+  const db = getDb();
+
+  let cleanGroupId: string | null = null;
+  let groupName = "";
+  if (groupId !== undefined && groupId !== null && String(groupId).trim() !== "") {
+    if (typeof groupId !== "string") {
+      res.status(400).json({ message: "گروه آموزشی انتخاب‌شده نامعتبر است." });
+      return;
+    }
+    const trimmedGroupId = groupId.trim();
+    const groupRow = db
+      .prepare("SELECT id, name FROM edu_groups WHERE id = ?")
+      .get(trimmedGroupId) as { id: string; name: string } | undefined;
+
+    if (!groupRow) {
+      res.status(400).json({ message: "گروه آموزشی انتخاب‌شده یافت نشد." });
+      return;
+    }
+    cleanGroupId = groupRow.id;
+    groupName = groupRow.name;
+  }
+
+  let cleanFieldId: string | null = null;
+  let fieldName = "";
+  if (fieldId !== undefined && fieldId !== null && String(fieldId).trim() !== "") {
+    if (typeof fieldId !== "string") {
+      res.status(400).json({ message: "رشته تحصیلی انتخاب‌شده نامعتبر است." });
+      return;
+    }
+    const trimmedFieldId = fieldId.trim();
+    const fieldRow = db
+      .prepare("SELECT id, name FROM edu_fields WHERE id = ?")
+      .get(trimmedFieldId) as { id: string; name: string } | undefined;
+
+    if (!fieldRow) {
+      res.status(400).json({ message: "رشته تحصیلی انتخاب‌شده یافت نشد." });
+      return;
+    }
+    cleanFieldId = fieldRow.id;
+    fieldName = fieldRow.name;
+  }
+
+  const duplicateNationalId = db
+    .prepare("SELECT id FROM employees WHERE national_id = ?")
+    .get(cleanNationalId) as { id: string } | undefined;
+
+  if (duplicateNationalId) {
+    res.status(409).json({ message: "کارمندی با این کد ملی قبلاً ثبت شده است." });
+    return;
+  }
+
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+
+  db.prepare(`
+    INSERT INTO employees (id, first_name, last_name, national_id, personnel_code, phone, position, group_id, field_id, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    id,
+    cleanFirstName,
+    cleanLastName,
+    cleanNationalId,
+    cleanPersonnelCode,
+    cleanPhone,
+    cleanPosition,
+    cleanGroupId,
+    cleanFieldId,
+    createdAt
+  );
+
+  res.status(201).json({
+    employee: {
+      id,
+      firstName: cleanFirstName,
+      lastName: cleanLastName,
+      nationalId: cleanNationalId,
+      personnelCode: cleanPersonnelCode || "",
+      phone: cleanPhone || "",
+      position: cleanPosition || "",
+      groupId: cleanGroupId,
+      groupName,
+      fieldId: cleanFieldId,
+      fieldName,
+      createdAt,
+    },
+  });
+});
+
+// DELETE /api/admin/employees/:id
+apiRouter.delete("/admin/employees/:id", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const empId = typeof req.params.id === "string" ? req.params.id.trim() : "";
+  if (!empId) {
+    res.status(400).json({ message: "شناسه کارمند نامعتبر است." });
+    return;
+  }
+
+  const db = getDb();
+  const result = db.prepare("DELETE FROM employees WHERE id = ?").run(empId);
+  if (result.changes === 0) {
+    res.status(404).json({ message: "کارمند مورد نظر یافت نشد." });
+    return;
+  }
+
+  res.json({ message: "کارمند با موفقیت حذف شد." });
 });

@@ -92,11 +92,20 @@ export const StudentChatbot: React.FC = () => {
         })
       });
 
+      const data = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const serverMsg = typeof data?.message === 'string' && data.message.trim() ? data.message : t('chatbotError');
+        const errorMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'model',
+          text: serverMsg,
+          timestamp: new Date().toLocaleTimeString(isFa ? 'fa-IR' : 'en-US', { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages(prev => [...prev, errorMsg]);
+        return;
       }
 
-      const data = await response.json();
       const replyText = data.reply || t('chatbotError');
 
       const botMsg: ChatMessage = {

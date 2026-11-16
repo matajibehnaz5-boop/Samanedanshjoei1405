@@ -25,7 +25,11 @@ export type ActiveModal =
   | 'dormitory'
   | 'student_loan'
   | 'student_id_card'
-  | 'dining';
+  | 'dining'
+  | 'edu_groups'
+  | 'edu_fields'
+  | 'employee_register'
+  | 'employee_list';
 
 export interface NotificationItem {
   id: string;

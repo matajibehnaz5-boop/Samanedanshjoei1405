@@ -24,9 +24,8 @@ FROM node:22-bookworm-slim AS runner
 
 WORKDIR /app
 
-# Default production environment variables
+# Default production environment variables (PORT is injected by Cloud Run; defaults to 3000 in app)
 ENV NODE_ENV=production
-ENV PORT=3000
 ENV DATA_DIR=/data
 ENV TRUST_PROXY=1
 
@@ -49,12 +48,12 @@ COPY --from=builder --chown=node:node /app/scripts ./scripts
 # Drop root privileges and run as non-root 'node' user
 USER node
 
-# Expose standard application port
+# Expose default application port
 EXPOSE 3000
 
 # Container healthcheck querying the lightweight public health endpoint
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/api/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
 
-# Start the bundled production server
+# Start the compiled Express server (server.ts -> dist/server.cjs)
 CMD ["node", "dist/server.cjs"]

@@ -49,19 +49,6 @@ export function getDataDir(): string {
 }
 
 export function getDbPath(): string {
-  if (process.env.DATABASE_PATH && process.env.DATABASE_PATH.trim()) {
-    const custom = path.resolve(process.env.DATABASE_PATH.trim());
-    const parentDir = path.dirname(custom);
-    if (!fs.existsSync(parentDir)) {
-      try {
-        fs.mkdirSync(parentDir, { recursive: true });
-      } catch (err: any) {
-        console.error(`[CRITICAL DATABASE ERROR] Failed to create database directory at "${parentDir}": ${err?.message || err}`);
-        throw err;
-      }
-    }
-    return custom;
-  }
   const dataDir = getDataDir();
   return path.join(dataDir, "app.db");
 }
@@ -133,8 +120,35 @@ export function getDb(): DatabaseSync {
         created_at TEXT NOT NULL
       );
 
+      CREATE TABLE IF NOT EXISTS edu_groups (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        head TEXT,
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS edu_fields (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS employees (
+        id TEXT PRIMARY KEY,
+        first_name TEXT NOT NULL,
+        last_name TEXT NOT NULL,
+        national_id TEXT NOT NULL UNIQUE,
+        personnel_code TEXT,
+        phone TEXT,
+        position TEXT,
+        group_id TEXT REFERENCES edu_groups(id) ON DELETE SET NULL,
+        field_id TEXT REFERENCES edu_fields(id) ON DELETE SET NULL,
+        created_at TEXT NOT NULL
+      );
+
       CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at ON chat_messages(created_at);
       CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
+      CREATE INDEX IF NOT EXISTS idx_employees_group_id ON employees(group_id);
     `);
 
     // Safe column migrations for existing databases
@@ -148,6 +162,15 @@ export function getDb(): DatabaseSync {
     } catch {
       // Column already exists
     }
+
+    // Check employees columns via PRAGMA table_info(employees) and add field_id if missing
+    const employeeColumns = db
+      .prepare("PRAGMA table_info(employees)")
+      .all() as Array<{ name: string }>;
+    if (!employeeColumns.some((col) => col.name === "field_id")) {
+      db.exec("ALTER TABLE employees ADD COLUMN field_id TEXT REFERENCES edu_fields(id) ON DELETE SET NULL;");
+    }
+    db.exec("CREATE INDEX IF NOT EXISTS idx_employees_field_id ON employees(field_id);");
   } catch (schemaErr: any) {
     console.error(
       `[CRITICAL DATABASE ERROR] Failed to create or verify schema tables in "${dbPath}": ${schemaErr?.message || schemaErr}`
@@ -617,41 +640,59 @@ export async function initAdminUser(hashPasswordFn: (password: string) => Promis
     const db = getDb();
 
     // 1. Check if an admin user already exists in the database
-    const existingAdmin = db.prepare("SELECT id, email, role FROM users WHERE role = 'admin' LIMIT 1").get() as unknown as { id: string; email: string; role: string } | undefined;
+    const existingAdmin = db
+      .prepare("SELECT id, role FROM users WHERE role = 'admin' LIMIT 1")
+      .get() as unknown as { id: string; role: string } | undefined;
 
     if (existingAdmin) {
-      console.log(`[ADMIN INIT] Existing admin user retained without modifications: ${existingAdmin.email}`);
+      console.log("[ADMIN INIT] Existing admin user retained without modifications.");
       return;
     }
 
-    // 2. If no user with role='admin' exists, check if user with ADMIN_EMAIL exists to ensure role='admin'
-    if (adminEmail) {
-      const normalizedAdminEmail = adminEmail.toLowerCase();
-      const existingUserByEmail = db.prepare("SELECT id, email, role FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))").get(normalizedAdminEmail) as unknown as { id: string; email: string; role: string } | undefined;
+    const totalUsersRow = db.prepare("SELECT COUNT(*) as count FROM users").get() as unknown as { count: number };
+    const isDbEmpty = (totalUsersRow?.count || 0) === 0;
 
-      if (existingUserByEmail) {
-        db.prepare("UPDATE users SET role = 'admin' WHERE id = ?").run(existingUserByEmail.id);
-        console.log(`[ADMIN INIT] Confirmed role admin for user: ${existingUserByEmail.email}`);
+    if (!adminEmail) {
+      if (isDbEmpty) {
+        console.warn("[ADMIN INIT] Database has no users and ADMIN_EMAIL is not configured.");
+      }
+      return;
+    }
+
+    const normalizedAdminEmail = adminEmail.toLowerCase();
+
+    // 2. If user with ADMIN_EMAIL already exists (e.g. non-admin), confirm role='admin' without overwriting password
+    const existingUserByEmail = db
+      .prepare("SELECT id, role FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))")
+      .get(normalizedAdminEmail) as unknown as { id: string; role: string } | undefined;
+
+    if (existingUserByEmail) {
+      db.prepare("UPDATE users SET role = 'admin' WHERE id = ?").run(existingUserByEmail.id);
+      console.log("[ADMIN INIT] Confirmed admin role for existing account.");
+      return;
+    }
+
+    // 3. If database is empty (or no admin exists), create initial admin with scrypt-hashed password (never log password/hash)
+    if (isDbEmpty || adminEmail) {
+      if (!adminPassword) {
+        console.warn("[ADMIN INIT] ADMIN_PASSWORD is not configured; cannot initialize admin account.");
         return;
       }
 
-      // 3. Only if NO admin account exists at all, create one from ADMIN_EMAIL & ADMIN_PASSWORD
-      if (adminPassword) {
-        const passwordHash = await hashPasswordFn(adminPassword);
-        const name = process.env.ADMIN_NAME?.trim() || "مدیر سیستم";
-        const now = new Date().toISOString();
-        const id = crypto.randomUUID();
+      const passwordHash = await hashPasswordFn(adminPassword);
+      const name = process.env.ADMIN_NAME?.trim() || "مدیر سیستم";
+      const now = new Date().toISOString();
+      const id = crypto.randomUUID();
 
-        const insertStmt = db.prepare(`
-          INSERT INTO users (id, email, password_hash, name, student_id, role, profile, created_at)
-          VALUES (?, ?, ?, ?, ?, 'admin', '{}', ?)
-        `);
-        insertStmt.run(id, normalizedAdminEmail, passwordHash, name, "ADMIN", now);
-        console.log(`[ADMIN INIT] Initialized new admin account: ${normalizedAdminEmail}`);
-      }
+      const insertStmt = db.prepare(`
+        INSERT INTO users (id, email, password_hash, name, student_id, role, profile, created_at)
+        VALUES (?, ?, ?, ?, ?, 'admin', '{}', ?)
+      `);
+      insertStmt.run(id, normalizedAdminEmail, passwordHash, name, "ADMIN", now);
+      console.log("[ADMIN INIT] Initialized new admin account.");
     }
   } catch (err: any) {
-    console.error(`[CRITICAL DATABASE ERROR] Failed to initialize admin account in database: ${err?.message || err}`, err);
+    console.error(`[CRITICAL DATABASE ERROR] Failed to initialize admin account in database: ${err?.message || err}`);
     throw err;
   }
 }

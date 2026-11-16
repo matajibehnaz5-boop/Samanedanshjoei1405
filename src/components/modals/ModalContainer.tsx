@@ -27,6 +27,7 @@ import { DormitoryModal } from './DormitoryModal';
 import { StudentLoanModal } from './StudentLoanModal';
 import { StudentIdCardModal } from './StudentIdCardModal';
 import { DiningModal } from './DiningModal';
+import { EducationalAffairsModals } from './EducationalAffairsModals';
 
 export const ModalContainer: React.FC = React.memo(() => {
   const { activeModal } = useDashboard();
@@ -59,6 +60,10 @@ export const ModalContainer: React.FC = React.memo(() => {
       {activeModal === 'student_loan' && <StudentLoanModal />}
       {activeModal === 'student_id_card' && <StudentIdCardModal />}
       {activeModal === 'dining' && <DiningModal />}
+      {(activeModal === 'edu_groups' ||
+        activeModal === 'edu_fields' ||
+        activeModal === 'employee_register' ||
+        activeModal === 'employee_list') && <EducationalAffairsModals />}
     </>
   );
 });

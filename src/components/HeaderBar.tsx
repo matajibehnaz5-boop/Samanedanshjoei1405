@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, LayoutDashboard, TrendingUp, Settings, User, Globe, Bell } from 'lucide-react';
+import { Menu, X, LayoutDashboard, TrendingUp, Settings, User, Globe, Bell, GraduationCap, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useDashboard } from '../context/DashboardContext';
 import { UserAvatar } from './UserAvatar';
@@ -7,6 +7,7 @@ import { UserAvatar } from './UserAvatar';
 export const HeaderBar: React.FC = () => {
   const { setActiveModal, instituteName, isLoggedIn, studentProfile, handleLogout, language, toggleLanguage, notifications, t } = useDashboard();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isEduOpen, setIsEduOpen] = useState(false);
 
   const unreadCount = notifications ? notifications.filter(n => !n.read).length : 0;
 
@@ -121,7 +122,7 @@ export const HeaderBar: React.FC = () => {
               animate={{ x: 0 }}
               exit={{ x: language === 'fa' ? '100%' : '-100%' }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className={`fixed top-0 ${language === 'fa' ? 'right-0 border-l' : 'left-0 border-r'} bottom-0 z-50 w-80 max-w-[85vw] bg-surface-container-high border-outline/20 p-6 shadow-2xl flex flex-col justify-between text-on-primary`}
+              className={`fixed top-0 ${language === 'fa' ? 'right-0 border-l' : 'left-0 border-r'} bottom-0 z-50 w-80 max-w-[85vw] bg-surface-container-high border-outline/20 p-6 shadow-2xl flex flex-col justify-between text-on-primary overflow-y-auto`}
             >
               <div>
                 {/* Drawer Header */}
@@ -247,6 +248,76 @@ export const HeaderBar: React.FC = () => {
                       <span className="text-xs font-normal text-outline">پیکربندی حساب و سامانه</span>
                     </div>
                   </button>
+
+                  {isLoggedIn && studentProfile.role === 'admin' && (
+                    <div className="rounded-2xl bg-surface-container-low/80 border border-outline/20 shadow-sm overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setIsEduOpen((prev) => !prev)}
+                        className="w-full flex items-center justify-between p-3.5 hover:bg-surface-container-low transition-all text-sm font-bold text-on-primary text-right cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-3.5">
+                          <div className="p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform">
+                            <GraduationCap className="w-5 h-5" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span>امور آموزش</span>
+                            <span className="text-xs font-normal text-outline">مدیریت گروه‌ها، رشته‌ها و کارمندان</span>
+                          </div>
+                        </div>
+                        <ChevronDown
+                          className={`w-4 h-4 text-outline transition-transform duration-200 ${
+                            isEduOpen ? 'rotate-180 text-primary' : ''
+                          }`}
+                        />
+                      </button>
+
+                      {isEduOpen && (
+                        <div className="px-3 pb-3 pt-1 space-y-1.5 border-t border-outline/15">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsDrawerOpen(false);
+                              setActiveModal('edu_groups');
+                            }}
+                            className="w-full text-right px-3 py-2 rounded-xl text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
+                          >
+                            گروه‌های آموزشی
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsDrawerOpen(false);
+                              setActiveModal('edu_fields');
+                            }}
+                            className="w-full text-right px-3 py-2 rounded-xl text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
+                          >
+                            رشته‌های تحصیلی
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsDrawerOpen(false);
+                              setActiveModal('employee_register');
+                            }}
+                            className="w-full text-right px-3 py-2 rounded-xl text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
+                          >
+                            ثبت نام کارمندان
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsDrawerOpen(false);
+                              setActiveModal('employee_list');
+                            }}
+                            className="w-full text-right px-3 py-2 rounded-xl text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
+                          >
+                            لیست کارمندان
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
