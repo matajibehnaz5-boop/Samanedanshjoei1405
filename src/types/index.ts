@@ -29,7 +29,21 @@ export type ActiveModal =
   | 'edu_groups'
   | 'edu_fields'
   | 'employee_register'
-  | 'employee_list';
+  | 'employee_list'
+  | 'thesis_list'
+  | 'professor_capacity'
+  | 'defense_sessions'
+  | 'professor_register'
+  | 'professor_list'
+  | 'professor_access'
+  | 'professor_theses'
+  | 'student_bulk_register'
+  | 'student_register'
+  | 'student_delete'
+  | 'student_search'
+  | 'thesis_affairs'
+  | 'public_announcements'
+  | 'admin_users';
 
 export interface NotificationItem {
   id: string;

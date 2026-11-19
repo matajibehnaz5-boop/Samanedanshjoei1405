@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useDashboard } from '../context/DashboardContext';
+import { useModalActions } from '../context/DashboardContext';
 
-export const WarningBanner: React.FC = () => {
+export const WarningBanner: React.FC = React.memo(() => {
   const [isVisible, setIsVisible] = useState(true);
-  const { setActiveModal } = useDashboard();
+  const { setActiveModal } = useModalActions();
 
   return (
     <AnimatePresence>
@@ -18,8 +18,8 @@ export const WarningBanner: React.FC = () => {
           className="w-full min-h-[60px] bg-gradient-to-r from-[#23324D] via-[#1F2B41] to-[#1C2436] border border-white/[0.08] rounded-[22px] px-4 py-3 shadow-[0_10px_25px_rgba(0,0,0,0.25)] backdrop-blur-md flex items-center justify-between gap-3 text-white relative overflow-hidden group"
         >
           {/* Gentle background glow */}
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#5EA8FF]/15 rounded-full blur-2xl pointer-events-none animate-pulse" />
-          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#35D07F]/15 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#5EA8FF]/15 rounded-full blur-2xl pointer-events-none animate-pulse [transform:translateZ(0)]" />
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#35D07F]/15 rounded-full blur-2xl pointer-events-none [transform:translateZ(0)]" />
 
           {/* Left / Right Content in RTL: Sparkles + Title + Subtitle */}
           <div className="flex items-center gap-3 min-w-0 z-10">
@@ -64,7 +64,7 @@ export const WarningBanner: React.FC = () => {
       )}
     </AnimatePresence>
   );
-};
+});
 
 
 

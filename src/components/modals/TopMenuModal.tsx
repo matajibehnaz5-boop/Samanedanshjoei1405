@@ -26,12 +26,12 @@ export const TopMenuModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4 bg-slate-950/70 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-slate-950/70 backdrop-blur-sm">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: -10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: -10 }}
-          className="w-full max-w-sm bg-[#1E293B] border border-slate-700/80 rounded-2xl p-5 shadow-2xl text-slate-100"
+          className="w-full max-w-sm bg-[#1E293B] border border-slate-700/80 rounded-2xl p-5 shadow-2xl text-slate-100 max-h-[85dvh] overflow-y-auto"
         >
           {/* Header */}
           <div className="flex items-center justify-between pb-3 border-b border-slate-700/60">

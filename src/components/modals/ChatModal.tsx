@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageSquare, X, Send } from 'lucide-react';
-import { useDashboard } from '../../context/DashboardContext';
+import { useChat, useModalActions, useModalState } from '../../context/DashboardContext';
 import { UserAvatar } from '../UserAvatar';
 
-export const ChatModal: React.FC = () => {
-  const { activeModal, closeModal, messages, addChatMessage } = useDashboard();
+export const ChatModal: React.FC = React.memo(() => {
+  const { activeModal } = useModalState();
+  const { closeModal } = useModalActions();
+  const { messages, addChatMessage } = useChat();
   const [inputText, setInputText] = useState('');
 
   if (activeModal !== 'chat') return null;
@@ -19,12 +21,12 @@ export const ChatModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-slate-950/80 backdrop-blur-sm">
         <motion.div
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
-          className="w-full max-w-lg bg-[#1E293B] border border-slate-700/80 rounded-t-[28px] sm:rounded-[28px] p-6 shadow-2xl text-slate-100 max-h-[85vh] flex flex-col"
+          className="w-full max-w-lg bg-[#1E293B] border border-slate-700/80 rounded-[28px] p-6 shadow-2xl text-slate-100 max-h-[85dvh] overflow-y-auto flex flex-col"
         >
           {/* Header */}
           <div className="flex items-center justify-between pb-4 border-b border-slate-700/60 shrink-0">
@@ -98,4 +100,4 @@ export const ChatModal: React.FC = () => {
       </div>
     </AnimatePresence>
   );
-};
+});

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, User as UserIcon } from 'lucide-react';
-import { useDashboard } from '../context/DashboardContext';
+import { useAuth, useI18n, useToastActions } from '../context/DashboardContext';
 
 export interface UserAvatarProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -13,7 +13,7 @@ export interface UserAvatarProps {
   title?: string;
 }
 
-export const UserAvatar: React.FC<UserAvatarProps> = ({
+export const UserAvatar: React.FC<UserAvatarProps> = React.memo(({
   size = 'md',
   avatarUrl,
   name,
@@ -23,7 +23,9 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   onClick,
   title,
 }) => {
-  const { studentProfile, updateStudentProfile, showToast, language, t } = useDashboard();
+  const { studentProfile, updateStudentProfile } = useAuth();
+  const { showToast } = useToastActions();
+  const { language } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageError, setImageError] = useState(false);
 
@@ -39,7 +41,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   // Compute size-specific styles
   const sizeMap = {
     xs: {
-      box: 'w-7 h-7 min-w-[28px] min-h-[28px]',
+      box: 'w-[30px] h-[30px] min-w-[30px] min-h-[30px] sm:w-7 sm:h-7 sm:min-w-[28px] sm:min-h-[28px]',
       text: 'text-xs',
       icon: 'w-3.5 h-3.5',
       uploadBtn: 'w-4 h-4 -bottom-1 -left-1 p-0.5',
@@ -47,7 +49,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       status: 'w-2 h-2 -bottom-0.5 -right-0.5',
     },
     sm: {
-      box: 'w-8 h-8 sm:w-9 sm:h-9 min-w-[32px] min-h-[32px]',
+      box: 'w-[36px] h-[36px] sm:w-9 sm:h-9 min-w-[36px] min-h-[36px]',
       text: 'text-xs sm:text-sm',
       icon: 'w-4 h-4',
       uploadBtn: 'w-5 h-5 -bottom-1 -left-1 p-1',
@@ -55,7 +57,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       status: 'w-2.5 h-2.5 -bottom-0.5 -right-0.5',
     },
     md: {
-      box: 'w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] min-h-[40px]',
+      box: 'w-[38px] h-[38px] sm:w-11 sm:h-11 min-w-[38px] min-h-[38px]',
       text: 'text-sm sm:text-base',
       icon: 'w-5 h-5',
       uploadBtn: 'w-6 h-6 -bottom-1 -left-1 p-1',
@@ -63,12 +65,12 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       status: 'w-3 h-3 -bottom-0.5 -right-0.5',
     },
     lg: {
-      box: 'w-14 h-14 sm:w-16 sm:h-16 min-w-[56px] min-h-[56px]',
-      text: 'text-xl sm:text-2xl',
-      icon: 'w-7 h-7 sm:w-8 sm:h-8',
-      uploadBtn: 'w-7 h-7 -bottom-1.5 -left-1.5 p-1.5',
-      uploadIcon: 'w-4 h-4',
-      status: 'w-4 h-4 -bottom-0.5 -right-0.5',
+      box: 'w-[42px] h-[42px] sm:w-16 sm:h-16 min-w-[42px] min-h-[42px] sm:min-w-[64px] sm:min-h-[64px]',
+      text: 'text-base sm:text-2xl',
+      icon: 'w-5 h-5 sm:w-8 sm:h-8',
+      uploadBtn: 'w-5 h-5 sm:w-7 sm:h-7 -bottom-1 -left-1 sm:-bottom-1.5 sm:-left-1.5 p-1 sm:p-1.5',
+      uploadIcon: 'w-3 h-3 sm:w-4 sm:h-4',
+      status: 'w-3 h-3 sm:w-4 sm:h-4 -bottom-0.5 -right-0.5',
     },
     xl: {
       box: 'w-20 h-20 sm:w-24 sm:h-24 min-w-[80px] min-h-[80px]',
@@ -184,6 +186,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
             onError={() => setImageError(true)}
             className="w-full h-full object-cover rounded-full"
             loading="lazy"
+            decoding="async"
           />
         ) : (
           <span className={`${currentSize.text} tracking-tight drop-shadow-sm`}>
@@ -232,4 +235,4 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       )}
     </div>
   );
-};
+});

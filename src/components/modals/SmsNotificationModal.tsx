@@ -265,13 +265,13 @@ export const SmsNotificationModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#0F172A]/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[#0F172A]/80 backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, y: 50, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 50, scale: 0.96 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="w-full max-w-2xl bg-[#1C2436] border border-white/[0.08] rounded-t-[30px] sm:rounded-[30px] shadow-2xl text-white flex flex-col h-[90vh] sm:h-[85vh] max-h-[750px] overflow-hidden"
+          className="w-full max-w-2xl bg-[#1C2436] border border-white/[0.08] rounded-[30px] shadow-2xl text-white flex flex-col max-h-[85dvh] sm:h-[85dvh] sm:max-h-[min(750px,85dvh)] overflow-y-auto"
           dir={isFa ? 'rtl' : 'ltr'}
         >
           {/* Header */}

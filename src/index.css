@@ -58,6 +58,60 @@
   overflow: hidden;
 }
 
+@media (max-width: 639px) {
+  html {
+    font-size: 13px;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-size: 13px;
+    overflow-x: hidden;
+  }
+
+  :root {
+    --text-xs: 12px;
+    --text-sm: 13px;
+    --text-base: 14px;
+    --text-lg: 15.5px;
+    --text-xl: 17px;
+    --text-2xl: 18px;
+  }
+
+  .liquid-glass-card {
+    border-radius: 12px;
+  }
+
+  .fixed [class*="max-h-[85dvh]"] {
+    border-radius: 14px !important;
+    overflow-x: hidden !important;
+  }
+
+  .fixed [class*="max-h-[85dvh]"].p-6,
+  .fixed [class*="max-h-[85dvh]"].p-5 {
+    padding: 12px !important;
+  }
+
+  .fixed [class*="max-h-[85dvh]"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .fixed [class*="max-h-[85dvh]"] select {
+    min-height: 36px;
+    font-size: 13px;
+  }
+
+  .fixed [class*="max-h-[85dvh]"] button:not([role="switch"]):not([class*="absolute"]) {
+    min-height: 34px;
+  }
+
+  .fixed [class*="max-h-[85dvh]"] table {
+    font-size: 12px;
+  }
+
+  .fixed [class*="max-h-[85dvh]"] th,
+  .fixed [class*="max-h-[85dvh]"] td {
+    padding: 6px 8px;
+  }
+}
+
 /* Subtle top edge specular reflection */
 .liquid-glass-card::before {
   content: '';

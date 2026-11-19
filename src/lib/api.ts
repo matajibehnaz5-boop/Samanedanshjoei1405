@@ -67,6 +67,7 @@ export interface EduGroup {
 export interface EduField {
   id: string;
   name: string;
+  level: string;
   employeeCount: number;
   createdAt: string;
 }
@@ -93,6 +94,7 @@ export interface CreateEduGroupParams {
 
 export interface CreateEduFieldParams {
   name: string;
+  level?: string;
 }
 
 export interface CreateEmployeeParams {
@@ -104,6 +106,106 @@ export interface CreateEmployeeParams {
   position?: string;
   groupId?: string | null;
   fieldId?: string | null;
+}
+
+export type AcademicRank = 'مربی' | 'استادیار' | 'دانشیار' | 'استاد';
+export type ProfessorAccessLevel = 'view' | 'advisor' | 'referee' | 'group_head';
+
+export interface ProfessorSpecialty {
+  id: string;
+  name: string;
+  professorCount: number;
+  createdAt: string;
+}
+
+export interface Professor {
+  id: string;
+  firstName: string;
+  lastName: string;
+  nationalId: string;
+  personnelCode: string;
+  phone: string;
+  email: string;
+  academicRank: AcademicRank;
+  groupId: string | null;
+  groupName: string;
+  fieldId: string | null;
+  fieldName: string;
+  specialtyId: string | null;
+  specialtyName: string;
+  capacity: number;
+  accessLevel: ProfessorAccessLevel;
+  createdAt: string;
+}
+
+export interface CreateProfessorParams {
+  firstName: string;
+  lastName: string;
+  nationalId: string;
+  personnelCode?: string;
+  phone?: string;
+  email?: string;
+  academicRank: AcademicRank;
+  groupId?: string | null;
+  fieldId?: string | null;
+  specialtyId?: string | null;
+  capacity: number;
+  accessLevel?: ProfessorAccessLevel;
+}
+
+export interface ProfessorThesis {
+  id: string;
+  title: string;
+  studentName: string;
+  role: 'advisor' | 'co_advisor' | 'referee';
+  status?: string;
+}
+
+export interface Student {
+  id: string;
+  firstName: string;
+  lastName: string;
+  nationalId: string;
+  studentNumber: string;
+  phone: string;
+  fieldId: string | null;
+  fieldName: string;
+  groupId: string | null;
+  groupName: string;
+  createdAt: string;
+}
+
+export interface CreateStudentParams {
+  firstName: string;
+  lastName: string;
+  nationalId: string;
+  studentNumber: string;
+  phone?: string;
+  fieldId?: string | null;
+  groupId?: string | null;
+}
+
+export interface BulkStudentRow {
+  rowNumber?: number;
+  firstName: string;
+  lastName: string;
+  nationalId: string;
+  studentNumber: string;
+  phone?: string;
+  fieldName?: string;
+  groupName?: string;
+}
+
+export interface BulkStudentError {
+  rowNumber: number;
+  reason: string;
+}
+
+export interface BulkAddStudentsResponse {
+  insertedCount: number;
+  duplicateCount: number;
+  errorCount: number;
+  errors: BulkStudentError[];
 }
 
 const ALLOWED_PROFILE_KEYS = [
@@ -335,6 +437,95 @@ export const api = {
 
   async deleteEmployee(id: string): Promise<{ message: string }> {
     return request<{ message: string }>(`/api/admin/employees/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Professor Affairs (Admin Only)
+  async getProfessorSpecialties(): Promise<{ specialties: ProfessorSpecialty[] }> {
+    return request<{ specialties: ProfessorSpecialty[] }>('/api/admin/professor-specialties', {
+      method: 'GET',
+    });
+  },
+
+  async addProfessorSpecialty(name: string): Promise<{ specialty: ProfessorSpecialty }> {
+    return request<{ specialty: ProfessorSpecialty }>('/api/admin/professor-specialties', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+  },
+
+  async deleteProfessorSpecialty(id: string): Promise<{ message: string }> {
+    return request<{ message: string }>(`/api/admin/professor-specialties/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async getProfessors(): Promise<{ professors: Professor[] }> {
+    return request<{ professors: Professor[] }>('/api/admin/professors', {
+      method: 'GET',
+    });
+  },
+
+  async addProfessor(params: CreateProfessorParams): Promise<{ professor: Professor }> {
+    return request<{ professor: Professor }>('/api/admin/professors', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async deleteProfessor(id: string): Promise<{ message: string }> {
+    return request<{ message: string }>(`/api/admin/professors/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async updateProfessorAccess(
+    id: string,
+    accessLevel: ProfessorAccessLevel
+  ): Promise<{ message: string; professor: Professor }> {
+    return request<{ message: string; professor: Professor }>(
+      `/api/admin/professors/${encodeURIComponent(id)}/access`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ accessLevel }),
+      }
+    );
+  },
+
+  async getProfessorTheses(id: string): Promise<{ theses: ProfessorThesis[] }> {
+    return request<{ theses: ProfessorThesis[] }>(
+      `/api/admin/professors/${encodeURIComponent(id)}/theses`,
+      {
+        method: 'GET',
+      }
+    );
+  },
+
+  // Student Affairs (Admin Only)
+  async getStudents(q?: string): Promise<{ students: Student[] }> {
+    const query = q && q.trim() ? `?q=${encodeURIComponent(q.trim())}` : '';
+    return request<{ students: Student[] }>(`/api/admin/students${query}`, {
+      method: 'GET',
+    });
+  },
+
+  async addStudent(params: CreateStudentParams): Promise<{ student: Student }> {
+    return request<{ student: Student }>('/api/admin/students', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async bulkAddStudents(rows: BulkStudentRow[]): Promise<BulkAddStudentsResponse> {
+    return request<BulkAddStudentsResponse>('/api/admin/students/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ rows }),
+    });
+  },
+
+  async deleteStudent(id: string): Promise<{ message: string }> {
+    return request<{ message: string }>(`/api/admin/students/${encodeURIComponent(id)}`, {
       method: 'DELETE',
     });
   },

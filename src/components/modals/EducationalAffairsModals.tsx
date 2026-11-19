@@ -39,6 +39,22 @@ export const EducationalAffairsModals: React.FC = () => {
   const [groups, setGroups] = useState<EduGroup[]>([]);
   const [fields, setFields] = useState<EduField[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+
+  const groupedFields = useMemo(() => {
+    const bachelor = fields
+      .filter((f) => (f.level || 'کارشناسی').trim() === 'کارشناسی')
+      .sort((a, b) => a.name.localeCompare(b.name, 'fa'));
+    const master = fields
+      .filter((f) => (f.level || '').trim() === 'کارشناسی ارشد')
+      .sort((a, b) => a.name.localeCompare(b.name, 'fa'));
+    const other = fields
+      .filter((f) => {
+        const lvl = (f.level || '').trim();
+        return lvl !== '' && lvl !== 'کارشناسی' && lvl !== 'کارشناسی ارشد';
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, 'fa'));
+    return { bachelor, master, other };
+  }, [fields]);
   const [loadingGroups, setLoadingGroups] = useState(false);
   const [loadingFields, setLoadingFields] = useState(false);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
@@ -88,7 +104,12 @@ export const EducationalAffairsModals: React.FC = () => {
     setLoadingFields(true);
     try {
       const res = await api.getEduFields();
-      setFields(res.fields || []);
+      if (Array.isArray(res?.fields)) {
+        setFields(res.fields);
+      } else {
+        setFields([]);
+        showToast('فرمت پاسخ لیست رشته‌های تحصیلی نامعتبر است.');
+      }
     } catch (err: any) {
       showToast(err?.message || 'خطا در دریافت لیست رشته‌های تحصیلی');
     } finally {
@@ -306,29 +327,29 @@ export const EducationalAffairsModals: React.FC = () => {
     <AnimatePresence>
       <div
         dir="rtl"
-        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-slate-950/80 backdrop-blur-sm"
       >
         <motion.div
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
-          className="w-full max-w-2xl bg-[#1E293B] border border-slate-700/80 rounded-t-[28px] sm:rounded-[28px] p-6 shadow-2xl text-slate-100 max-h-[90vh] overflow-y-auto"
+          className="w-full max-w-2xl bg-[#1E293B] border border-slate-700/80 rounded-xl sm:rounded-[28px] p-[12px] sm:p-6 shadow-2xl text-slate-100 max-h-[85dvh] overflow-y-auto overflow-x-hidden"
         >
           {/* Modal Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-slate-700/60">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/30">
+          <div className="flex items-center justify-between gap-2 pb-3 sm:pb-4 border-b border-slate-700/60">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <div className="p-2 sm:p-2.5 bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/30 shrink-0">
                 {headerConfig.icon}
               </div>
-              <div>
-                <h2 className="text-lg font-bold text-slate-100">{headerConfig.title}</h2>
-                <p className="text-xs text-slate-400">{headerConfig.subtitle}</p>
+              <div className="min-w-0">
+                <h2 className="text-[15px] sm:text-lg font-bold text-slate-100 truncate">{headerConfig.title}</h2>
+                <p className="text-[11px] sm:text-xs text-slate-400 truncate">{headerConfig.subtitle}</p>
               </div>
             </div>
             <button
               type="button"
               onClick={closeModal}
-              className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
             >
               <X className="w-5 h-5" />
             </button>
@@ -336,14 +357,14 @@ export const EducationalAffairsModals: React.FC = () => {
 
           {/* 1) EDU GROUPS MODAL */}
           {activeModal === 'edu_groups' && (
-            <div className="mt-5 space-y-6">
+            <div className="mt-3 sm:mt-5 space-y-4 sm:space-y-6">
               <form
                 onSubmit={handleCreateGroup}
-                className="p-4 bg-slate-900/70 rounded-2xl border border-slate-800 space-y-4"
+                className="p-[12px] sm:p-4 bg-slate-900/70 rounded-xl sm:rounded-2xl border border-slate-800 space-y-3 sm:space-y-4"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5">
                   <div>
-                    <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                    <label className="text-[11px] sm:text-xs font-semibold text-slate-300 block mb-1 sm:mb-1.5">
                       نام گروه آموزشی *
                     </label>
                     <input
@@ -351,11 +372,11 @@ export const EducationalAffairsModals: React.FC = () => {
                       value={groupName}
                       onChange={(e) => setGroupName(e.target.value)}
                       placeholder="مثال: مهندسی کامپیوتر"
-                      className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
+                      className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                    <label className="text-[11px] sm:text-xs font-semibold text-slate-300 block mb-1 sm:mb-1.5">
                       مدیر گروه (اختیاری)
                     </label>
                     <input
@@ -363,7 +384,7 @@ export const EducationalAffairsModals: React.FC = () => {
                       value={groupHead}
                       onChange={(e) => setGroupHead(e.target.value)}
                       placeholder="نام مدیر گروه"
-                      className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
+                      className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
@@ -402,11 +423,11 @@ export const EducationalAffairsModals: React.FC = () => {
                     هنوز هیچ گروه آموزشی ثبت نشده است.
                   </div>
                 ) : (
-                  <div className="space-y-2.5">
+                  <div className="space-y-2 sm:space-y-2.5">
                     {groups.map((grp) => (
                       <div
                         key={grp.id}
-                        className="p-3.5 bg-slate-900/80 border border-slate-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                        className="p-[12px] sm:p-3.5 bg-slate-900/80 border border-slate-800 rounded-xl sm:rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3"
                       >
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -461,13 +482,13 @@ export const EducationalAffairsModals: React.FC = () => {
 
           {/* 2) EDU FIELDS MODAL */}
           {activeModal === 'edu_fields' && (
-            <div className="mt-5 space-y-6">
+            <div className="mt-3 sm:mt-5 space-y-4 sm:space-y-6">
               <form
                 onSubmit={handleCreateField}
-                className="p-4 bg-slate-900/70 rounded-2xl border border-slate-800 space-y-4"
+                className="p-[12px] sm:p-4 bg-slate-900/70 rounded-xl sm:rounded-2xl border border-slate-800 space-y-3 sm:space-y-4"
               >
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                  <label className="text-[11px] sm:text-xs font-semibold text-slate-300 block mb-1 sm:mb-1.5">
                     نام رشته تحصیلی *
                   </label>
                   <input
@@ -475,7 +496,7 @@ export const EducationalAffairsModals: React.FC = () => {
                     value={fieldName}
                     onChange={(e) => setFieldName(e.target.value)}
                     placeholder="مثال: مهندسی نرم‌افزار"
-                    className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
+                    className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
                   />
                 </div>
 
@@ -513,11 +534,11 @@ export const EducationalAffairsModals: React.FC = () => {
                     هنوز هیچ رشته تحصیلی ثبت نشده است.
                   </div>
                 ) : (
-                  <div className="space-y-2.5">
+                  <div className="space-y-2 sm:space-y-2.5">
                     {fields.map((fld) => (
                       <div
                         key={fld.id}
-                        className="p-3.5 bg-slate-900/80 border border-slate-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                        className="p-[12px] sm:p-3.5 bg-slate-900/80 border border-slate-800 rounded-xl sm:rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3"
                       >
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -569,10 +590,10 @@ export const EducationalAffairsModals: React.FC = () => {
 
           {/* 3) EMPLOYEE REGISTER MODAL */}
           {activeModal === 'employee_register' && (
-            <form onSubmit={handleCreateEmployee} className="mt-5 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form onSubmit={handleCreateEmployee} className="mt-3 sm:mt-5 space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                  <label className="text-[11px] sm:text-xs font-semibold text-slate-300 block mb-1 sm:mb-1.5">
                     نام *
                   </label>
                   <input
@@ -580,12 +601,12 @@ export const EducationalAffairsModals: React.FC = () => {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="نام"
-                    className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
+                    className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                  <label className="text-[11px] sm:text-xs font-semibold text-slate-300 block mb-1 sm:mb-1.5">
                     نام خانوادگی *
                   </label>
                   <input
@@ -593,12 +614,12 @@ export const EducationalAffairsModals: React.FC = () => {
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder="نام خانوادگی"
-                    className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
+                    className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                  <label className="text-[11px] sm:text-xs font-semibold text-slate-300 block mb-1 sm:mb-1.5">
                     کد ملی (۱۰ رقم) *
                   </label>
                   <div className="relative">
@@ -609,14 +630,14 @@ export const EducationalAffairsModals: React.FC = () => {
                       value={nationalId}
                       onChange={(e) => setNationalId(e.target.value)}
                       placeholder="0123456789"
-                      className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors dir-ltr text-right"
+                      className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 pr-9 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors dir-ltr text-right"
                     />
-                    <IdCard className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
+                    <IdCard className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                  <label className="text-[11px] sm:text-xs font-semibold text-slate-300 block mb-1 sm:mb-1.5">
                     کد پرسنلی
                   </label>
                   <div className="relative">
@@ -625,14 +646,14 @@ export const EducationalAffairsModals: React.FC = () => {
                       value={personnelCode}
                       onChange={(e) => setPersonnelCode(e.target.value)}
                       placeholder="مثال: 10452"
-                      className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors dir-ltr text-right"
+                      className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 pr-9 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors dir-ltr text-right"
                     />
-                    <BadgeCheck className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
+                    <BadgeCheck className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                  <label className="text-[11px] sm:text-xs font-semibold text-slate-300 block mb-1 sm:mb-1.5">
                     شماره تماس
                   </label>
                   <div className="relative">
@@ -641,14 +662,14 @@ export const EducationalAffairsModals: React.FC = () => {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="09123456789"
-                      className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors dir-ltr text-right"
+                      className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 pr-9 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors dir-ltr text-right"
                     />
-                    <Phone className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
+                    <Phone className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                  <label className="text-[11px] sm:text-xs font-semibold text-slate-300 block mb-1 sm:mb-1.5">
                     سمت
                   </label>
                   <div className="relative">
@@ -657,9 +678,9 @@ export const EducationalAffairsModals: React.FC = () => {
                       value={position}
                       onChange={(e) => setPosition(e.target.value)}
                       placeholder="مثال: کارشناس آموزش"
-                      className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
+                      className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 pr-9 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
                     />
-                    <Briefcase className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
+                    <Briefcase className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
 
@@ -690,12 +711,34 @@ export const EducationalAffairsModals: React.FC = () => {
                     onChange={(e) => setSelectedFieldId(e.target.value)}
                     className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none transition-colors"
                   >
-                    <option value="">بدون رشته تحصیلی</option>
-                    {fields.map((fld) => (
-                      <option key={fld.id} value={fld.id}>
-                        {fld.name}
-                      </option>
-                    ))}
+                    <option value="">انتخاب رشته تحصیلی</option>
+                    {groupedFields.bachelor.length > 0 && (
+                      <optgroup label="کارشناسی">
+                        {groupedFields.bachelor.map((fld) => (
+                          <option key={fld.id} value={fld.id}>
+                            {fld.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {groupedFields.master.length > 0 && (
+                      <optgroup label="کارشناسی ارشد">
+                        {groupedFields.master.map((fld) => (
+                          <option key={fld.id} value={fld.id}>
+                            {fld.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {groupedFields.other.length > 0 && (
+                      <optgroup label="سایر مقاطع">
+                        {groupedFields.other.map((fld) => (
+                          <option key={fld.id} value={fld.id}>
+                            {fld.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
                   </select>
                 </div>
               </div>
@@ -727,23 +770,23 @@ export const EducationalAffairsModals: React.FC = () => {
 
           {/* 4) EMPLOYEE LIST MODAL */}
           {activeModal === 'employee_list' && (
-            <div className="mt-5 space-y-4">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="mt-3 sm:mt-5 space-y-3 sm:space-y-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                 <div className="relative flex-1">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="جستجو بر اساس نام، کد ملی، گروه یا رشته تحصیلی..."
-                    className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 pr-9 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
+                    className="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2 sm:px-3.5 sm:py-2.5 pr-9 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
                   />
-                  <Search className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
+                  <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setActiveModal('employee_register')}
-                  className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                  className="px-4 py-2 sm:py-2.5 bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
                 >
                   <Plus className="w-4 h-4" />
                   <span>+ جدید</span>
@@ -756,17 +799,17 @@ export const EducationalAffairsModals: React.FC = () => {
                   <span>در حال بارگذاری لیست کارمندان...</span>
                 </div>
               ) : filteredEmployees.length === 0 ? (
-                <div className="py-10 text-center text-xs text-slate-400 bg-slate-900/50 rounded-2xl border border-slate-800">
+                <div className="py-10 text-center text-xs text-slate-400 bg-slate-900/50 rounded-xl sm:rounded-2xl border border-slate-800">
                   {employees.length === 0
                     ? 'هنوز کارمندی ثبت نشده است.'
                     : 'کارمندی با عبارت جستجو شده یافت نشد.'}
                 </div>
               ) : (
-                <div className="space-y-2.5">
+                <div className="space-y-2 sm:space-y-2.5">
                   {filteredEmployees.map((emp) => (
                     <div
                       key={emp.id}
-                      className="p-4 bg-slate-900/80 border border-slate-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      className="p-[12px] sm:p-4 bg-slate-900/80 border border-slate-800 rounded-xl sm:rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3"
                     >
                       <div className="min-w-0 space-y-1.5">
                         <div className="flex items-center gap-2 flex-wrap">

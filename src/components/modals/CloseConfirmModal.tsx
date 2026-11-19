@@ -10,12 +10,12 @@ export const CloseConfirmModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-slate-950/80 backdrop-blur-sm">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
-          className="w-full max-w-sm bg-[#1E293B] border border-slate-700/80 rounded-2xl p-6 shadow-2xl text-slate-100 text-center space-y-4"
+          className="w-full max-w-sm bg-[#1E293B] border border-slate-700/80 rounded-2xl p-6 shadow-2xl text-slate-100 text-center space-y-4 max-h-[85dvh] overflow-y-auto"
         >
           <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center mx-auto">
             <AlertCircle className="w-7 h-7" />

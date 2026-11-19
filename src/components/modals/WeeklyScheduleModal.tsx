@@ -305,13 +305,13 @@ export const WeeklyScheduleModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-slate-950/80 backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="w-full max-w-4xl bg-[#1E293B] border border-slate-700/80 rounded-[28px] shadow-2xl text-slate-100 flex flex-col max-h-[92vh] overflow-hidden"
+          className="w-full max-w-4xl bg-[#1E293B] border border-slate-700/80 rounded-[28px] shadow-2xl text-slate-100 flex flex-col max-h-[85dvh] overflow-y-auto"
           dir={isFa ? 'rtl' : 'ltr'}
         >
           {/* Header */}
@@ -602,12 +602,12 @@ export const WeeklyScheduleModal: React.FC = () => {
       {/* Popover / Modal for Class Slot Details */}
       <AnimatePresence>
         {selectedClass && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-60 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-black/60 backdrop-blur-sm">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-sm bg-[#1E293B] border border-slate-700 p-5 rounded-3xl shadow-2xl space-y-4 text-slate-100"
+              className="w-full max-w-sm bg-[#1E293B] border border-slate-700 p-5 rounded-3xl shadow-2xl space-y-4 text-slate-100 max-h-[85dvh] overflow-y-auto"
               dir={isFa ? 'rtl' : 'ltr'}
             >
               <div className="flex items-center justify-between">

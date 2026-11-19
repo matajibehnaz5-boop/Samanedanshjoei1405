@@ -46,12 +46,12 @@ export const FormLoginModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#0F172A]/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[#0F172A]/80 backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 50 }}
-          className="w-full max-w-lg bg-[#1C2436] border border-white/[0.08] rounded-t-[30px] sm:rounded-[30px] p-6 shadow-2xl text-white max-h-[85vh] overflow-y-auto"
+          className="w-full max-w-lg bg-[#1C2436] border border-white/[0.08] rounded-[30px] p-6 shadow-2xl text-white max-h-[85dvh] overflow-y-auto"
         >
           {/* Header */}
           <div className="flex items-center justify-between pb-4 border-b border-white/[0.08]">
@@ -109,12 +109,12 @@ export const FormLoginModal: React.FC = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <form onSubmit={handleSubmit} className="mt-3 sm:mt-4 space-y-3 sm:space-y-4">
             {mode === 'signup' && (
               <>
                 {/* Full Name */}
                 <div>
-                  <label className="text-xs font-semibold text-[#BBC1D1] block mb-1.5">
+                  <label className="text-[11px] sm:text-xs font-semibold text-[#BBC1D1] block mb-1 sm:mb-1.5">
                     نام و نام خانوادگی:
                   </label>
                   <div className="relative">
@@ -123,15 +123,15 @@ export const FormLoginModal: React.FC = () => {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="نام کامل خود را وارد کنید"
-                      className="w-full bg-[#232D42] border border-white/[0.08] rounded-2xl px-4 py-3 pl-10 text-sm text-white placeholder-[#BBC1D1]/50 focus:outline-none focus:border-[#5EA8FF] transition-colors"
+                      className="w-full bg-[#232D42] border border-white/[0.08] rounded-xl sm:rounded-2xl px-3.5 py-2 sm:px-4 sm:py-3 pl-10 text-sm text-white placeholder-[#BBC1D1]/50 focus:outline-none focus:border-[#5EA8FF] transition-colors"
                     />
-                    <User className="w-5 h-5 text-white absolute left-3 top-3.5 stroke-[2] icon-white-glow" />
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-white absolute left-3 top-1/2 -translate-y-1/2 stroke-[2] icon-white-glow" />
                   </div>
                 </div>
 
                 {/* Student ID */}
                 <div>
-                  <label className="text-xs font-semibold text-[#BBC1D1] block mb-1.5">
+                  <label className="text-[11px] sm:text-xs font-semibold text-[#BBC1D1] block mb-1 sm:mb-1.5">
                     شماره دانشجویی / کد ملی:
                   </label>
                   <div className="relative">
@@ -140,9 +140,9 @@ export const FormLoginModal: React.FC = () => {
                       value={studentId}
                       onChange={(e) => setStudentId(e.target.value)}
                       placeholder="شماره دانشجویی"
-                      className="w-full bg-[#232D42] border border-white/[0.08] rounded-2xl px-4 py-3 pl-10 text-sm text-white placeholder-[#BBC1D1]/50 focus:outline-none focus:border-[#5EA8FF] dir-ltr text-right transition-colors"
+                      className="w-full bg-[#232D42] border border-white/[0.08] rounded-xl sm:rounded-2xl px-3.5 py-2 sm:px-4 sm:py-3 pl-10 text-sm text-white placeholder-[#BBC1D1]/50 focus:outline-none focus:border-[#5EA8FF] dir-ltr text-right transition-colors"
                     />
-                    <User className="w-5 h-5 text-white absolute left-3 top-3.5 stroke-[2] icon-white-glow" />
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-white absolute left-3 top-1/2 -translate-y-1/2 stroke-[2] icon-white-glow" />
                   </div>
                 </div>
               </>
@@ -150,7 +150,7 @@ export const FormLoginModal: React.FC = () => {
 
             {/* Email Field */}
             <div>
-              <label className="text-xs font-semibold text-[#BBC1D1] block mb-1.5">
+              <label className="text-[11px] sm:text-xs font-semibold text-[#BBC1D1] block mb-1 sm:mb-1.5">
                 ایمیل کاربری:
               </label>
               <div className="relative">
@@ -159,15 +159,15 @@ export const FormLoginModal: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@domain.com"
-                  className="w-full bg-[#232D42] border border-white/[0.08] rounded-2xl px-4 py-3 pl-10 text-sm text-white placeholder-[#BBC1D1]/50 focus:outline-none focus:border-[#5EA8FF] dir-ltr text-left transition-colors"
+                  className="w-full bg-[#232D42] border border-white/[0.08] rounded-xl sm:rounded-2xl px-3.5 py-2 sm:px-4 sm:py-3 pl-10 text-sm text-white placeholder-[#BBC1D1]/50 focus:outline-none focus:border-[#5EA8FF] dir-ltr text-left transition-colors"
                 />
-                <Mail className="w-5 h-5 text-white absolute left-3 top-3.5 stroke-[2] icon-white-glow" />
+                <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-white absolute left-3 top-1/2 -translate-y-1/2 stroke-[2] icon-white-glow" />
               </div>
             </div>
 
             {/* Password Field */}
             <div>
-              <label className="text-xs font-semibold text-[#BBC1D1] block mb-1.5">
+              <label className="text-[11px] sm:text-xs font-semibold text-[#BBC1D1] block mb-1 sm:mb-1.5">
                 رمز عبور:
               </label>
               <div className="relative">
@@ -176,17 +176,17 @@ export const FormLoginModal: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="رمز عبور (حداقل ۶ کاراکتر)"
-                  className="w-full bg-[#232D42] border border-white/[0.08] rounded-2xl px-4 py-3 pl-10 text-sm text-white placeholder-[#BBC1D1]/50 focus:outline-none focus:border-[#5EA8FF] dir-ltr text-left transition-colors"
+                  className="w-full bg-[#232D42] border border-white/[0.08] rounded-xl sm:rounded-2xl px-3.5 py-2 sm:px-4 sm:py-3 pl-10 text-sm text-white placeholder-[#BBC1D1]/50 focus:outline-none focus:border-[#5EA8FF] dir-ltr text-left transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-3 top-3.5 text-white hover:text-white/80 transition-colors"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-white hover:text-white/80 transition-colors"
                 >
                   {showPassword ? (
-                    <EyeOff className="w-5 h-5 text-white stroke-[2] icon-white-glow" />
+                    <EyeOff className="w-4 h-4 sm:w-5 sm:h-5 text-white stroke-[2] icon-white-glow" />
                   ) : (
-                    <Eye className="w-5 h-5 text-white stroke-[2] icon-white-glow" />
+                    <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-white stroke-[2] icon-white-glow" />
                   )}
                 </button>
               </div>

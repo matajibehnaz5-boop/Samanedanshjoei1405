@@ -1,9 +1,10 @@
 import React from 'react';
 import { X, ChevronDown, MoreVertical } from 'lucide-react';
-import { useDashboard } from '../context/DashboardContext';
+import { useModalActions, useToastActions } from '../context/DashboardContext';
 
-export const AppBar: React.FC = () => {
-  const { setActiveModal, showToast } = useDashboard();
+export const AppBar: React.FC = React.memo(() => {
+  const { setActiveModal } = useModalActions();
+  const { showToast } = useToastActions();
 
   return (
     <header className="sticky top-0 z-30 w-full bg-[#0F172A] border-b border-white/[0.08] px-4 py-2.5 shadow-md">
@@ -50,5 +51,5 @@ export const AppBar: React.FC = () => {
       </div>
     </header>
   );
-};
+});
 

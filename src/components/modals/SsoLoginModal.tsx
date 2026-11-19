@@ -20,12 +20,12 @@ export const SsoLoginModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#0F172A]/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[#0F172A]/80 backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 50 }}
-          className="w-full max-w-lg bg-[#1C2436] border border-white/[0.08] rounded-t-[30px] sm:rounded-[30px] p-6 shadow-2xl text-white max-h-[85vh] overflow-y-auto"
+          className="w-full max-w-lg bg-[#1C2436] border border-white/[0.08] rounded-[30px] p-6 shadow-2xl text-white max-h-[85dvh] overflow-y-auto"
         >
           {/* Header */}
           <div className="flex items-center justify-between pb-4 border-b border-white/[0.08]">
@@ -47,22 +47,22 @@ export const SsoLoginModal: React.FC = () => {
           </div>
 
           {/* IdP Selection */}
-          <div className="mt-5 space-y-3">
-            <p className="text-xs font-bold text-[#BBC1D1] uppercase tracking-wider">
+          <div className="mt-3 sm:mt-5 space-y-2 sm:space-y-3">
+            <p className="text-[11px] sm:text-xs font-bold text-[#BBC1D1] uppercase tracking-wider">
               سرویس‌دهنده هویت یکپارچه را انتخاب کنید:
             </p>
 
             <label
               onClick={() => setSelectedIdP('central')}
-              className={`p-4 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+              className={`p-[12px] sm:p-4 rounded-xl sm:rounded-2xl border flex items-center justify-between gap-2 cursor-pointer transition-all ${
                 selectedIdP === 'central'
                   ? 'bg-[#35D07F]/15 border-[#35D07F]/50 text-white'
                   : 'bg-[#232D42] border-white/[0.08] text-[#BBC1D1] hover:bg-[#232D42]/80'
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                 <Building2 className="w-5 h-5 text-white shrink-0 stroke-[2] icon-white-glow" />
-                <div>
+                <div className="min-w-0">
                   <h4 className="text-sm font-bold text-white">سامانه مرکزی دولت و علوم (پنجره واحد)</h4>
                   <p className="text-xs text-[#BBC1D1]">ورود بدون نیاز به رمز عبور مجدد</p>
                 </div>
@@ -72,21 +72,21 @@ export const SsoLoginModal: React.FC = () => {
                 name="idp"
                 checked={selectedIdP === 'central'}
                 onChange={() => setSelectedIdP('central')}
-                className="w-4 h-4 accent-[#35D07F]"
+                className="w-4 h-4 accent-[#35D07F] shrink-0"
               />
             </label>
 
             <label
               onClick={() => setSelectedIdP('university')}
-              className={`p-4 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+              className={`p-[12px] sm:p-4 rounded-xl sm:rounded-2xl border flex items-center justify-between gap-2 cursor-pointer transition-all ${
                 selectedIdP === 'university'
                   ? 'bg-[#35D07F]/15 border-[#35D07F]/50 text-white'
                   : 'bg-[#232D42] border-white/[0.08] text-[#BBC1D1] hover:bg-[#232D42]/80'
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                 <Key className="w-5 h-5 text-white shrink-0 stroke-[2] icon-white-glow" />
-                <div>
+                <div className="min-w-0">
                   <h4 className="text-sm font-bold text-white">سرور CAS دانشکده فنی و مهندسی</h4>
                   <p className="text-xs text-[#BBC1D1]">احراز هویت توکن امنیتی CAS/OAuth2</p>
                 </div>
@@ -96,7 +96,7 @@ export const SsoLoginModal: React.FC = () => {
                 name="idp"
                 checked={selectedIdP === 'university'}
                 onChange={() => setSelectedIdP('university')}
-                className="w-4 h-4 accent-[#35D07F]"
+                className="w-4 h-4 accent-[#35D07F] shrink-0"
               />
             </label>
           </div>

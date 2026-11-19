@@ -129,8 +129,10 @@ export function getDb(): DatabaseSync {
 
       CREATE TABLE IF NOT EXISTS edu_fields (
         id TEXT PRIMARY KEY,
-        name TEXT NOT NULL UNIQUE COLLATE NOCASE,
-        created_at TEXT NOT NULL
+        name TEXT NOT NULL COLLATE NOCASE,
+        level TEXT NOT NULL DEFAULT 'کارشناسی',
+        created_at TEXT NOT NULL,
+        UNIQUE(name, level)
       );
 
       CREATE TABLE IF NOT EXISTS employees (
@@ -146,9 +148,50 @@ export function getDb(): DatabaseSync {
         created_at TEXT NOT NULL
       );
 
+      CREATE TABLE IF NOT EXISTS professor_specialties (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS professors (
+        id TEXT PRIMARY KEY,
+        first_name TEXT NOT NULL,
+        last_name TEXT NOT NULL,
+        national_id TEXT NOT NULL UNIQUE,
+        personnel_code TEXT,
+        phone TEXT,
+        email TEXT,
+        academic_rank TEXT NOT NULL,
+        group_id TEXT REFERENCES edu_groups(id) ON DELETE SET NULL,
+        field_id TEXT REFERENCES edu_fields(id) ON DELETE SET NULL,
+        specialty_id TEXT REFERENCES professor_specialties(id) ON DELETE SET NULL,
+        capacity INTEGER NOT NULL DEFAULT 0,
+        access_level TEXT NOT NULL DEFAULT 'view',
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS students (
+        id TEXT PRIMARY KEY,
+        first_name TEXT NOT NULL,
+        last_name TEXT NOT NULL,
+        national_id TEXT NOT NULL UNIQUE,
+        student_number TEXT NOT NULL UNIQUE,
+        phone TEXT,
+        field_id TEXT REFERENCES edu_fields(id) ON DELETE SET NULL,
+        group_id TEXT REFERENCES edu_groups(id) ON DELETE SET NULL,
+        created_at TEXT NOT NULL
+      );
+
       CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at ON chat_messages(created_at);
       CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
       CREATE INDEX IF NOT EXISTS idx_employees_group_id ON employees(group_id);
+      CREATE INDEX IF NOT EXISTS idx_professors_group_id ON professors(group_id);
+      CREATE INDEX IF NOT EXISTS idx_professors_field_id ON professors(field_id);
+      CREATE INDEX IF NOT EXISTS idx_students_national_id ON students(national_id);
+      CREATE INDEX IF NOT EXISTS idx_students_student_number ON students(student_number);
+      CREATE INDEX IF NOT EXISTS idx_students_field_id ON students(field_id);
+      CREATE INDEX IF NOT EXISTS idx_students_group_id ON students(group_id);
     `);
 
     // Safe column migrations for existing databases
@@ -171,6 +214,205 @@ export function getDb(): DatabaseSync {
       db.exec("ALTER TABLE employees ADD COLUMN field_id TEXT REFERENCES edu_fields(id) ON DELETE SET NULL;");
     }
     db.exec("CREATE INDEX IF NOT EXISTS idx_employees_field_id ON employees(field_id);");
+
+    // Ensure students columns exist if table already existed with partial columns
+    const studentColumns = db
+      .prepare("PRAGMA table_info(students)")
+      .all() as Array<{ name: string }>;
+    const existingStudentColNames = new Set(studentColumns.map((col) => col.name));
+    if (!existingStudentColNames.has("phone")) {
+      db.exec("ALTER TABLE students ADD COLUMN phone TEXT;");
+    }
+    if (!existingStudentColNames.has("field_id")) {
+      db.exec("ALTER TABLE students ADD COLUMN field_id TEXT REFERENCES edu_fields(id) ON DELETE SET NULL;");
+    }
+    if (!existingStudentColNames.has("group_id")) {
+      db.exec("ALTER TABLE students ADD COLUMN group_id TEXT REFERENCES edu_groups(id) ON DELETE SET NULL;");
+    }
+
+    // Safe migration for edu_fields: add level column if missing, enforce UNIQUE(name, level), and seed default fields
+    const eduFieldColumns = db
+      .prepare("PRAGMA table_info(edu_fields)")
+      .all() as Array<{ name: string }>;
+    if (!eduFieldColumns.some((col) => col.name === "level")) {
+      db.exec("ALTER TABLE edu_fields ADD COLUMN level TEXT NOT NULL DEFAULT 'کارشناسی';");
+    }
+
+    const eduFieldsTableRow = db
+      .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'edu_fields'")
+      .get() as { sql?: string } | undefined;
+    const eduFieldsSql = (eduFieldsTableRow?.sql || "").replace(/\s+/g, " ").toLowerCase();
+    const hasCompositeUnique =
+      eduFieldsSql.includes("unique(name, level)") || eduFieldsSql.includes("unique (name, level)");
+
+    if (!hasCompositeUnique) {
+      db.exec("PRAGMA foreign_keys = OFF;");
+      try {
+        db.exec("BEGIN IMMEDIATE;");
+        db.exec(`
+          CREATE TABLE edu_fields_migrated (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL COLLATE NOCASE,
+            level TEXT NOT NULL DEFAULT 'کارشناسی',
+            created_at TEXT NOT NULL,
+            UNIQUE(name, level)
+          );
+          INSERT INTO edu_fields_migrated (id, name, level, created_at)
+          SELECT id, name, COALESCE(NULLIF(TRIM(level), ''), 'کارشناسی'), created_at FROM edu_fields;
+          DROP TABLE edu_fields;
+          ALTER TABLE edu_fields_migrated RENAME TO edu_fields;
+        `);
+        db.exec("COMMIT;");
+      } catch (migrateErr) {
+        try {
+          db.exec("ROLLBACK;");
+        } catch {
+          // ignore
+        }
+        throw migrateErr;
+      } finally {
+        db.exec("PRAGMA foreign_keys = ON;");
+      }
+    }
+
+    db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_edu_fields_name_level ON edu_fields(name COLLATE NOCASE, level);");
+
+    const seededEduFields: Array<{ name: string; level: string }> = [
+      // کارشناسی
+      { name: "مهندسی کامپیوتر", level: "کارشناسی" },
+      { name: "مهندسی برق", level: "کارشناسی" },
+      { name: "مهندسی عمران", level: "کارشناسی" },
+      { name: "مهندسی صنایع", level: "کارشناسی" },
+      { name: "مهندسی معماری", level: "کارشناسی" },
+      { name: "معماری داخلی", level: "کارشناسی" },
+      { name: "حسابداری", level: "کارشناسی" },
+      { name: "حقوق", level: "کارشناسی" },
+      { name: "روان‌شناسی", level: "کارشناسی" },
+      { name: "مدیریت بازرگانی", level: "کارشناسی" },
+      { name: "ارتباط تصویری", level: "کارشناسی" },
+      { name: "طراحی لباس", level: "کارشناسی" },
+      { name: "باستان‌شناسی", level: "کارشناسی" },
+      { name: "علوم ورزشی", level: "کارشناسی" },
+      // کارشناسی ارشد
+      { name: "مهندسی فناوری اطلاعات", level: "کارشناسی ارشد" },
+      { name: "ارتباط تصویری", level: "کارشناسی ارشد" },
+      { name: "مهندسی معماری", level: "کارشناسی ارشد" },
+      { name: "معماری داخلی", level: "کارشناسی ارشد" },
+      { name: "پژوهش هنر", level: "کارشناسی ارشد" },
+      { name: "هنر اسلامی", level: "کارشناسی ارشد" },
+      { name: "طراحی پارچه و لباس", level: "کارشناسی ارشد" },
+      { name: "تاریخ هنر ایران باستان", level: "کارشناسی ارشد" },
+      { name: "تصویرسازی", level: "کارشناسی ارشد" },
+      { name: "باستان‌شناسی", level: "کارشناسی ارشد" },
+      { name: "ارتباطات اجتماعی", level: "کارشناسی ارشد" },
+      { name: "حقوق خصوصی", level: "کارشناسی ارشد" },
+    ];
+
+    const insertSeedFieldStmt = db.prepare(`
+      INSERT OR IGNORE INTO edu_fields (id, name, level, created_at)
+      VALUES (?, ?, ?, ?)
+    `);
+    const seedTimestamp = new Date().toISOString();
+    db.exec("BEGIN IMMEDIATE;");
+    try {
+      for (const item of seededEduFields) {
+        insertSeedFieldStmt.run(crypto.randomUUID(), item.name, item.level, seedTimestamp);
+      }
+      db.exec("COMMIT;");
+    } catch (seedErr) {
+      try {
+        db.exec("ROLLBACK;");
+      } catch {
+        // ignore
+      }
+      throw seedErr;
+    }
+
+    // Safe migration for professors.specialty_id (preserve existing field_id)
+    const professorColumns = db
+      .prepare("PRAGMA table_info(professors)")
+      .all() as Array<{ name: string }>;
+    if (!professorColumns.some((col) => col.name === "specialty_id")) {
+      db.exec("ALTER TABLE professors ADD COLUMN specialty_id TEXT REFERENCES professor_specialties(id) ON DELETE SET NULL;");
+    }
+    db.exec("CREATE INDEX IF NOT EXISTS idx_professors_specialty_id ON professors(specialty_id);");
+
+    // Seed edu_groups only if currently empty
+    const eduGroupCountRow = db
+      .prepare("SELECT COUNT(*) AS cnt FROM edu_groups")
+      .get() as { cnt: number };
+    if (eduGroupCountRow.cnt === 0) {
+      const seededEduGroups = [
+        "گروه مهندسی کامپیوتر و فناوری اطلاعات",
+        "گروه مهندسی برق",
+        "گروه مهندسی عمران",
+        "گروه مهندسی صنایع",
+        "گروه معماری و شهرسازی",
+        "گروه هنر",
+        "گروه علوم انسانی و مدیریت",
+        "گروه حقوق",
+        "گروه علوم ورزشی",
+      ];
+      const insertSeedGroupStmt = db.prepare(`
+        INSERT OR IGNORE INTO edu_groups (id, name, head, created_at)
+        VALUES (?, ?, NULL, ?)
+      `);
+      db.exec("BEGIN IMMEDIATE;");
+      try {
+        for (const groupName of seededEduGroups) {
+          insertSeedGroupStmt.run(crypto.randomUUID(), groupName, seedTimestamp);
+        }
+        db.exec("COMMIT;");
+      } catch (grpSeedErr) {
+        try {
+          db.exec("ROLLBACK;");
+        } catch {
+          // ignore
+        }
+        throw grpSeedErr;
+      }
+    }
+
+    // Seed professor_specialties with INSERT OR IGNORE
+    const seededProfessorSpecialties = [
+      "هوش مصنوعی",
+      "شبکه‌های کامپیوتری",
+      "مهندسی نرم‌افزار",
+      "پردازش تصویر",
+      "سازه",
+      "مدیریت ساخت",
+      "ژئوتکنیک",
+      "سیستم‌های قدرت",
+      "الکترونیک",
+      "معماری داخلی",
+      "ارتباط تصویری",
+      "هنر اسلامی",
+      "باستان‌شناسی",
+      "حقوق خصوصی",
+      "حقوق جزا و جرم‌شناسی",
+      "روان‌شناسی بالینی",
+      "حسابداری مالی",
+      "مدیریت بازرگانی",
+      "فیزیولوژی ورزشی",
+    ];
+    const insertSeedSpecialtyStmt = db.prepare(`
+      INSERT OR IGNORE INTO professor_specialties (id, name, created_at)
+      VALUES (?, ?, ?)
+    `);
+    db.exec("BEGIN IMMEDIATE;");
+    try {
+      for (const specName of seededProfessorSpecialties) {
+        insertSeedSpecialtyStmt.run(crypto.randomUUID(), specName, seedTimestamp);
+      }
+      db.exec("COMMIT;");
+    } catch (specSeedErr) {
+      try {
+        db.exec("ROLLBACK;");
+      } catch {
+        // ignore
+      }
+      throw specSeedErr;
+    }
   } catch (schemaErr: any) {
     console.error(
       `[CRITICAL DATABASE ERROR] Failed to create or verify schema tables in "${dbPath}": ${schemaErr?.message || schemaErr}`

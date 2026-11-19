@@ -13,7 +13,7 @@ import {
   RefreshCw,
   ChevronDown
 } from 'lucide-react';
-import { useDashboard } from '../../context/DashboardContext';
+import { useI18n } from '../../context/DashboardContext';
 
 export interface ChatMessage {
   id: string;
@@ -22,8 +22,8 @@ export interface ChatMessage {
   timestamp: string;
 }
 
-export const StudentChatbot: React.FC = () => {
-  const { language, t } = useDashboard();
+export const StudentChatbot: React.FC = React.memo(() => {
+  const { language, t } = useI18n();
   const isFa = language === 'fa';
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -176,26 +176,26 @@ export const StudentChatbot: React.FC = () => {
     <>
       {/* FLOATING ACTION BUTTON (FAB) */}
       <div 
-        className={`fixed z-40 bottom-4 sm:bottom-6 ${isFa ? 'left-4 sm:left-6' : 'right-4 sm:right-6'}`}
+        className={`fixed z-40 bottom-3 sm:bottom-6 ${isFa ? 'left-3 sm:left-6' : 'right-3 sm:right-6'} will-change-transform [transform:translateZ(0)] [contain:layout_style]`}
         dir={isFa ? 'rtl' : 'ltr'}
       >
         <motion.button
           onClick={() => setIsOpen(!isOpen)}
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.95 }}
-          className="relative w-14 h-14 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 shadow-2xl shadow-amber-500/40 border-2 border-amber-300/40 flex items-center justify-center cursor-pointer transition-all group"
+          className="relative w-[44px] h-[44px] sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 shadow-2xl shadow-amber-500/40 border-2 border-amber-300/40 flex items-center justify-center cursor-pointer transition-all group"
           aria-label={t('chatbotTitle')}
         >
           {/* Animated Glow Halo */}
-          <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 opacity-40 blur-md group-hover:opacity-75 transition-opacity" />
+          <span className="absolute -inset-0.5 sm:-inset-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 opacity-40 blur-md group-hover:opacity-75 transition-opacity" />
 
           <div className="relative z-10 flex items-center justify-center">
             {isOpen ? (
-              <X className="w-6 h-6 text-slate-950" />
+              <X className="w-[18px] h-[18px] sm:w-6 sm:h-6 text-slate-950" />
             ) : (
               <>
-                <Bot className="w-6 h-6 text-slate-950" />
-                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#101726] animate-pulse" />
+                <Bot className="w-[18px] h-[18px] sm:w-6 sm:h-6 text-slate-950" />
+                <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 rounded-full bg-emerald-400 border-2 border-[#101726] animate-pulse" />
               </>
             )}
           </div>
@@ -210,35 +210,35 @@ export const StudentChatbot: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className={`fixed z-50 bottom-20 sm:bottom-24 ${
-              isFa ? 'left-3 sm:left-6' : 'right-3 sm:right-6'
-            } w-[calc(100vw-1.5rem)] sm:w-[420px] max-w-full h-[540px] max-h-[80vh] bg-[#161F2E] border border-amber-500/30 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-white font-['Vazirmatn',sans-serif]`}
+            className={`fixed z-50 bottom-16 sm:bottom-24 ${
+              isFa ? 'left-2.5 sm:left-6' : 'right-2.5 sm:right-6'
+            } w-[calc(100vw-1.25rem)] sm:w-[420px] max-w-full h-[460px] sm:h-[540px] max-h-[82dvh] bg-[#161F2E] border border-amber-500/30 rounded-xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col text-white font-['Vazirmatn',sans-serif]`}
             dir={isFa ? 'rtl' : 'ltr'}
           >
             {/* Top Amber Decorative Bar */}
             <div className="h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 w-full shrink-0" />
 
             {/* CHAT HEADER */}
-            <div className="p-3.5 sm:p-4 bg-[#111827] border-b border-white/10 flex items-center justify-between gap-3 shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-orange-500/30 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
-                  <Sparkles className="w-5 h-5 animate-pulse" />
+            <div className="p-2.5 sm:p-4 bg-[#111827] border-b border-white/10 flex items-center justify-between gap-2 sm:gap-3 shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-amber-500/20 to-orange-500/30 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                    <span>{t('chatbotTitle')}</span>
-                    <span className="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[10px] font-mono border border-amber-500/30">
+                <div className="min-w-0">
+                  <h3 className="text-[14px] sm:text-sm font-bold text-white flex items-center gap-1.5 truncate">
+                    <span className="truncate">{t('chatbotTitle')}</span>
+                    <span className="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[10px] font-mono border border-amber-500/30 shrink-0">
                       Gemini AI
                     </span>
                   </h3>
-                  <p className="text-[11px] text-[#BBC1D1]">{t('chatbotSubtitle')}</p>
+                  <p className="text-[11px] text-[#BBC1D1] truncate">{t('chatbotSubtitle')}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 shrink-0">
                 <button
                   onClick={handleClearHistory}
-                  className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-white/5 transition-colors cursor-pointer"
+                  className="min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-white/5 transition-colors cursor-pointer"
                   title={t('chatbotClearHistory')}
                 >
                   <Trash2 className="w-4 h-4" />
@@ -246,7 +246,7 @@ export const StudentChatbot: React.FC = () => {
 
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                  className="min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
                   title={t('close')}
                 >
                   <X className="w-4 h-4" />
@@ -255,7 +255,7 @@ export const StudentChatbot: React.FC = () => {
             </div>
 
             {/* CHAT THREAD MESSAGES */}
-            <div className="flex-1 p-3.5 sm:p-4 overflow-y-auto space-y-4 custom-scrollbar bg-[#161F2E]">
+            <div className="flex-1 p-2.5 sm:p-4 overflow-y-auto space-y-2.5 sm:space-y-4 custom-scrollbar bg-[#161F2E]">
               {messages.map((msg) => {
                 const isUser = msg.role === 'user';
 
@@ -341,7 +341,7 @@ export const StudentChatbot: React.FC = () => {
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="p-3 bg-[#111827] border-t border-white/10 flex items-center gap-2 shrink-0"
+              className="p-2 sm:p-3 bg-[#111827] border-t border-white/10 flex items-center gap-2 shrink-0"
             >
               <input
                 ref={inputRef}
@@ -350,13 +350,13 @@ export const StudentChatbot: React.FC = () => {
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder={t('chatbotInputPlaceholder')}
                 disabled={isLoading}
-                className="flex-1 bg-[#1E293B] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-colors"
+                className="flex-1 h-[36px] sm:h-auto bg-[#1E293B] border border-white/10 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2.5 text-sm sm:text-xs text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-colors min-w-0"
               />
 
               <button
                 type="submit"
                 disabled={!inputMessage.trim() || isLoading}
-                className={`w-9 h-9 rounded-xl flex items-center justify-center text-slate-950 font-bold transition-all shrink-0 cursor-pointer ${
+                className={`w-[36px] h-[36px] sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-slate-950 font-bold transition-all shrink-0 cursor-pointer ${
                   inputMessage.trim() && !isLoading
                     ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:scale-105 active:scale-95 shadow-md shadow-amber-500/20'
                     : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
@@ -370,4 +370,4 @@ export const StudentChatbot: React.FC = () => {
       </AnimatePresence>
     </>
   );
-};
+});
