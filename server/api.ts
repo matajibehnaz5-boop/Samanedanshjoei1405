@@ -567,6 +567,92 @@ apiRouter.get("/admin/stats", requireAdmin, (_req: AuthenticatedRequest, res: Re
   });
 });
 
+// GET /api/admin/overview
+apiRouter.get("/admin/overview", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  try {
+    const db = getDb();
+
+    const studentsRow = db.prepare("SELECT COUNT(*) AS count FROM students").get() as { count: number } | undefined;
+    const professorsRow = db.prepare("SELECT COUNT(*) AS count FROM professors").get() as { count: number } | undefined;
+    const employeesRow = db.prepare("SELECT COUNT(*) AS count FROM employees").get() as { count: number } | undefined;
+
+    const currentUserId = req.user?.id || "";
+    const unreadMsgRow = db
+      .prepare("SELECT COUNT(*) AS count FROM chat_messages WHERE user_id != ?")
+      .get(currentUserId) as { count: number } | undefined;
+
+    const activityRows = db
+      .prepare(`
+        SELECT id, type, title, subtitle, created_at FROM (
+          SELECT
+            id,
+            'employee' AS type,
+            ('ثبت کارمند: ' || first_name || ' ' || last_name) AS title,
+            COALESCE(NULLIF(TRIM(position), ''), 'کارمند آموزش') AS subtitle,
+            created_at
+          FROM employees
+          UNION ALL
+          SELECT
+            id,
+            'edu_group' AS type,
+            ('ثبت گروه آموزشی: ' || name) AS title,
+            COALESCE(NULLIF(TRIM(head), ''), 'گروه آموزشی') AS subtitle,
+            created_at
+          FROM edu_groups
+          UNION ALL
+          SELECT
+            id,
+            'professor' AS type,
+            ('ثبت استاد: ' || first_name || ' ' || last_name) AS title,
+            COALESCE(NULLIF(TRIM(academic_rank), ''), 'عضو هیئت علمی') AS subtitle,
+            created_at
+          FROM professors
+          UNION ALL
+          SELECT
+            id,
+            'student' AS type,
+            ('ثبت دانشجو: ' || first_name || ' ' || last_name) AS title,
+            ('شماره دانشجویی: ' || student_number) AS subtitle,
+            created_at
+          FROM students
+        )
+        ORDER BY created_at DESC
+        LIMIT 5
+      `)
+      .all() as Array<{
+        id: string;
+        type: "employee" | "edu_group" | "professor" | "student";
+        title: string;
+        subtitle: string;
+        created_at: string;
+      }>;
+
+    res.json({
+      stats: {
+        studentsCount: Number(studentsRow?.count ?? 0),
+        professorsCount: Number(professorsRow?.count ?? 0),
+        employeesCount: Number(employeesRow?.count ?? 0),
+        activeThesesCount: 0,
+      },
+      pending: {
+        pendingRequestsCount: 0,
+        unreadMessagesCount: Number(unreadMsgRow?.count ?? 0),
+      },
+      defenseSessions: [],
+      recentActivities: activityRows.map((row) => ({
+        id: row.id,
+        type: row.type,
+        title: row.title,
+        subtitle: row.subtitle,
+        createdAt: row.created_at,
+      })),
+    });
+  } catch (err: any) {
+    console.error("[ADMIN OVERVIEW ERROR]:", err);
+    res.status(500).json({ message: "خطا در دریافت خلاصه وضعیت مدیریت" });
+  }
+});
+
 // DELETE /api/admin/messages/:id
 apiRouter.delete("/admin/messages/:id", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
   const msgId = Number(req.params.id);

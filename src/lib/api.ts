@@ -161,6 +161,37 @@ export interface ProfessorThesis {
   status?: string;
 }
 
+export interface AdminOverviewActivity {
+  id: string;
+  type: 'employee' | 'edu_group' | 'professor' | 'student';
+  title: string;
+  subtitle: string;
+  createdAt: string;
+}
+
+export interface AdminOverviewDefenseSession {
+  id: string;
+  title: string;
+  studentName: string;
+  dateTime: string;
+  location?: string;
+}
+
+export interface AdminOverviewResponse {
+  stats: {
+    studentsCount: number;
+    professorsCount: number;
+    employeesCount: number;
+    activeThesesCount: number;
+  };
+  pending: {
+    pendingRequestsCount: number;
+    unreadMessagesCount: number;
+  };
+  defenseSessions: AdminOverviewDefenseSession[];
+  recentActivities: AdminOverviewActivity[];
+}
+
 export interface Student {
   id: string;
   firstName: string;
@@ -527,6 +558,12 @@ export const api = {
   async deleteStudent(id: string): Promise<{ message: string }> {
     return request<{ message: string }>(`/api/admin/students/${encodeURIComponent(id)}`, {
       method: 'DELETE',
+    });
+  },
+
+  async getAdminOverview(): Promise<AdminOverviewResponse> {
+    return request<AdminOverviewResponse>('/api/admin/overview', {
+      method: 'GET',
     });
   },
 };

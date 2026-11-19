@@ -50,10 +50,10 @@ export const HeaderBar: React.FC = React.memo(() => {
 
   return (
     <header className="w-full bg-gradient-to-r from-[#2A2550] via-[#222340] to-[#1A2332] border-b border-white/10 shadow-md relative z-30">
-      <div className="max-w-4xl mx-auto px-2.5 sm:px-6 h-[48px] sm:h-15 flex items-center justify-between text-white relative">
+      <div className="max-w-4xl mx-auto px-[8px] sm:px-6 h-[48px] sm:h-15 flex items-center justify-between gap-[4px] sm:gap-3 text-white relative">
         
         {/* Right Side (RTL Start): Hamburger Menu Button (☰) + Title + Status Dot */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink">
+        <div className="flex items-center gap-[4px] sm:gap-3 flex-1 min-w-0">
           {/* Menu Button (☰) */}
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -61,33 +61,33 @@ export const HeaderBar: React.FC = React.memo(() => {
             onClick={() => setIsDrawerOpen(true)}
             aria-label={t('topMenu')}
             title={t('topMenu')}
-            className="w-[36px] h-[36px] sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0"
+            className="w-[32px] h-[32px] sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0"
           >
             <Menu className="w-4 h-4 text-white stroke-[2.2] group-hover:text-secondary transition-colors" />
           </motion.button>
 
           {/* Title & Active Status Indicator Dot */}
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0" dir="rtl">
-            <h1 className="text-[14px] sm:text-base font-bold text-white truncate max-w-[180px] sm:max-w-none leading-none">
+          <div className="flex items-center gap-[4px] sm:gap-2 flex-1 min-w-0" dir="rtl">
+            <h1 className="text-[12px] sm:text-base font-bold text-white whitespace-nowrap sm:truncate sm:max-w-none leading-none">
               {language === 'fa' ? 'سامانه مدیریت دانشجویی' : 'Student Management System'}
             </h1>
-            <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5 shrink-0" title={language === 'fa' ? 'سامانه آنلاین' : 'System Online'}>
+            <span className="relative flex h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 shrink-0" title={language === 'fa' ? 'سامانه آنلاین' : 'System Online'}>
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 [transform:translateZ(0)]" />
-              <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-emerald-500 shadow-[0_0_8px_#10B981]" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 bg-emerald-500 shadow-[0_0_8px_#10B981]" />
             </span>
           </div>
         </div>
 
         {/* Left Side (RTL End): User Avatar, Notification Bell (🔔), Language Switcher (FA/EN) */}
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0" dir="ltr">
-          {/* User Avatar Button */}
+        <div className="flex items-center gap-[4px] sm:gap-2 shrink-0" dir="ltr">
+          {/* User Avatar Button (hidden on mobile < 640px) */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setActiveModal('profile')}
             aria-label={language === 'fa' ? 'مشخصات فردی' : 'User Profile'}
             title={language === 'fa' ? 'مشخصات فردی' : 'User Profile'}
-            className="min-w-[36px] min-h-[36px] sm:min-w-0 sm:min-h-0 flex items-center justify-center cursor-pointer transition-transform shrink-0 rounded-full"
+            className="hidden sm:flex min-w-0 min-h-0 items-center justify-center cursor-pointer transition-transform shrink-0 rounded-full"
           >
             <UserAvatar size="xs" showStatus={isLoggedIn} />
           </motion.button>
@@ -99,11 +99,11 @@ export const HeaderBar: React.FC = React.memo(() => {
             onClick={() => setActiveModal('notifications')}
             aria-label={language === 'fa' ? 'اعلانات' : 'Notifications'}
             title={language === 'fa' ? 'اعلانات و پیام‌ها' : 'Notifications'}
-            className="w-[36px] h-[36px] sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0 relative"
+            className="w-[30px] h-[30px] sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0 relative"
           >
-            <Bell className="w-4 h-4 text-white stroke-[2] group-hover:text-amber-300 transition-colors" />
+            <Bell className="w-[16px] h-[16px] sm:w-4 sm:h-4 text-white stroke-[2] group-hover:text-amber-300 transition-colors" />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-500 text-[9px] font-extrabold text-white ring-2 ring-[#222340]">
+              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 flex h-3 w-3 sm:h-3.5 sm:w-3.5 items-center justify-center rounded-full bg-rose-500 text-[8px] sm:text-[9px] font-extrabold text-white ring-1 sm:ring-2 ring-[#222340]">
                 {unreadCount}
               </span>
             )}
@@ -115,9 +115,9 @@ export const HeaderBar: React.FC = React.memo(() => {
             whileTap={{ scale: 0.95 }}
             onClick={toggleLanguage}
             title={language === 'fa' ? 'Switch to English' : 'تغییر به فارسی'}
-            className="h-[36px] sm:h-7 px-2 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 flex items-center gap-1 text-[11px] font-bold transition-all cursor-pointer shadow-sm text-white shrink-0"
+            className="h-[30px] sm:h-7 px-1.5 sm:px-2 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 flex items-center gap-1 text-[10.5px] sm:text-[11px] font-bold transition-all cursor-pointer shadow-sm text-white shrink-0"
           >
-            <Globe className="w-3 h-3 text-secondary shrink-0" />
+            <Globe className="hidden sm:block w-3 h-3 text-secondary shrink-0" />
             <span className={language === 'fa' ? 'text-secondary font-extrabold' : 'opacity-60'}>FA</span>
             <span className="opacity-40 text-[9px]">/</span>
             <span className={language === 'en' ? 'text-secondary font-extrabold' : 'opacity-60'}>EN</span>

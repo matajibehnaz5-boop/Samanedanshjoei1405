@@ -35,6 +35,7 @@ import { useAuth, useI18n, useLayoutSettings, useModalActions, useToastActions }
 import { HeaderBar } from '../components/HeaderBar';
 import { Footer } from '../components/Footer';
 import { UserAvatar } from '../components/UserAvatar';
+import { AdminDashboardOverview } from '../components/AdminDashboardOverview';
 
 export const StudentDashboardPage: React.FC = React.memo(() => {
   const { studentProfile, handleLogout, loginMethod, setCurrentPage } = useAuth();
@@ -219,8 +220,11 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
             </div>
           </motion.div>
 
-          {/* DASHBOARD CARDS GRID (4 SECTIONS) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-5 mt-0 sm:mt-2">
+          {studentProfile.role === 'admin' ? (
+            <AdminDashboardOverview />
+          ) : (
+            /* DASHBOARD CARDS GRID (4 SECTIONS) */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-5 mt-0 sm:mt-2">
 
             {/* 1. My Desk */}
             <motion.div
@@ -510,7 +514,8 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
             </motion.div>
 
 
-          </div>
+            </div>
+          )}
 
         </main>
 
