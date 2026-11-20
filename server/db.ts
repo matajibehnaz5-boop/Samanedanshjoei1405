@@ -224,6 +224,20 @@ export function getDb(): DatabaseSync {
         created_at TEXT NOT NULL
       );
 
+      CREATE TABLE IF NOT EXISTS admin_cartable (
+        id TEXT PRIMARY KEY,
+        type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        sender TEXT NOT NULL,
+        body TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        decision_note TEXT,
+        target_modal TEXT,
+        dedupe_key TEXT,
+        created_at TEXT NOT NULL,
+        done_at TEXT
+      );
+
       CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at ON chat_messages(created_at);
       CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
       CREATE INDEX IF NOT EXISTS idx_employees_group_id ON employees(group_id);
@@ -244,6 +258,9 @@ export function getDb(): DatabaseSync {
       CREATE INDEX IF NOT EXISTS idx_admin_notifications_created_at ON admin_notifications(created_at);
       CREATE INDEX IF NOT EXISTS idx_admin_notifications_is_read ON admin_notifications(is_read);
       CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_notifications_dedupe_key ON admin_notifications(dedupe_key) WHERE dedupe_key IS NOT NULL;
+      CREATE INDEX IF NOT EXISTS idx_admin_cartable_status ON admin_cartable(status);
+      CREATE INDEX IF NOT EXISTS idx_admin_cartable_created_at ON admin_cartable(created_at);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_cartable_dedupe_key ON admin_cartable(dedupe_key) WHERE dedupe_key IS NOT NULL;
     `);
 
     // Safe column migrations for existing databases

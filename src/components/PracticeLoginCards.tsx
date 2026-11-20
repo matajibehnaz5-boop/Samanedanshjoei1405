@@ -217,7 +217,8 @@ export const PracticeLoginCards: React.FC = React.memo(() => {
         className="mt-3 sm:mt-5 flex items-center justify-center gap-2.5 sm:gap-3 text-xs sm:text-sm text-white/60 font-medium"
       >
         <button
-          onClick={() => setActiveModal('form_login')}
+          type="button"
+          onClick={() => setActiveModal('forgot_password')}
           className="min-h-[32px] sm:min-h-0 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
         >
           <KeyRound className="w-3.5 h-3.5 opacity-80" />
@@ -227,7 +228,8 @@ export const PracticeLoginCards: React.FC = React.memo(() => {
         <span className="text-white/30 select-none">•</span>
 
         <button
-          onClick={() => setActiveModal('sso')}
+          type="button"
+          onClick={() => setActiveModal('login_guide')}
           className="min-h-[32px] sm:min-h-0 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
         >
           <HelpCircle className="w-3.5 h-3.5 opacity-80" />

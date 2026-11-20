@@ -44,7 +44,10 @@ export type ActiveModal =
   | 'thesis_affairs'
   | 'public_announcements'
   | 'admin_users'
-  | 'users_manage';
+  | 'users_manage'
+  | 'admin_cartable'
+  | 'forgot_password'
+  | 'login_guide';
 
 export interface NotificationItem {
   id: string;
@@ -71,6 +74,28 @@ export interface AdminNotificationItem {
   targetModal: ActiveModal | null;
   isRead: boolean;
   createdAt: string;
+}
+
+export type AdminCartableType = 'student_request' | 'thesis' | 'message' | 'system';
+export type AdminCartableStatus = 'pending' | 'approved' | 'rejected' | 'done';
+
+export interface AdminCartableItem {
+  id: string;
+  type: AdminCartableType;
+  title: string;
+  sender: string;
+  body: string;
+  status: AdminCartableStatus;
+  decisionNote: string;
+  targetModal: ActiveModal | null;
+  createdAt: string;
+  doneAt: string | null;
+}
+
+export interface AdminCartableCounts {
+  all: number;
+  pending: number;
+  done: number;
 }
 
 export interface ChatMessage {

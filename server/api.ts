@@ -669,6 +669,18 @@ apiRouter.post("/messages", (req: AuthenticatedRequest, res: Response): void => 
     createdAt: now,
   };
 
+  if (user.role !== "admin") {
+    createAdminCartableItem(db, {
+      type: "message",
+      title: `پیام جدید از ${user.name}`,
+      sender: user.name || "دانشجو",
+      body: cleanText,
+      targetModal: "chat",
+      dedupeKey: `cartable:msg:${insertedMessage.id}`,
+      createdAt: now,
+    });
+  }
+
   res.status(201).json({ message: insertedMessage });
 });
 
@@ -2900,6 +2912,20 @@ apiRouter.post("/admin/theses", requireAdmin, (req: AuthenticatedRequest, res: R
     createdAt,
   });
 
+  const thesisStudentName = (createdRow.student_name || "").trim();
+  const thesisSupervisorName = (createdRow.supervisor_name || "").trim();
+  createAdminCartableItem(db, {
+    type: "thesis",
+    title: `بررسی پایان‌نامه: ${cleanTitle}`,
+    sender: thesisStudentName || req.user?.name || "سیستم آموزش",
+    body: `پایان‌نامه «${cleanTitle}» با وضعیت «${cleanStatus}»${
+      thesisSupervisorName ? ` و استاد راهنما ${thesisSupervisorName}` : " (بدون استاد راهنما)"
+    } ثبت شد.`,
+    targetModal: "thesis_list",
+    dedupeKey: `cartable:thesis:${id}`,
+    createdAt,
+  });
+
   res.status(201).json({
     thesis: formatThesisRow(createdRow),
     message: "پایان‌نامه با موفقیت ثبت شد.",
@@ -3692,4 +3718,341 @@ apiRouter.patch("/admin/notifications/:id/read", requireAdmin, (req: Authenticat
     res.status(500).json({ message: "خطا در به‌روزرسانی وضعیت اعلان" });
   }
 });
+
+// --- ADMIN CARTABLE (Protected by requireAdmin) ---
+
+type AdminCartableType = "student_request" | "thesis" | "message" | "system";
+type AdminCartableStatus = "pending" | "approved" | "rejected" | "done";
+
+interface AdminCartableDbRow {
+  id: string;
+  type: AdminCartableType;
+  title: string;
+  sender: string;
+  body: string;
+  status: AdminCartableStatus;
+  decision_note: string | null;
+  target_modal: string | null;
+  dedupe_key: string | null;
+  created_at: string;
+  done_at: string | null;
+}
+
+function formatAdminCartableRow(row: AdminCartableDbRow) {
+  return {
+    id: row.id,
+    type: row.type,
+    title: row.title,
+    sender: row.sender,
+    body: row.body,
+    status: row.status,
+    decisionNote: row.decision_note || "",
+    targetModal: row.target_modal || null,
+    createdAt: row.created_at,
+    doneAt: row.done_at || null,
+  };
+}
+
+function createAdminCartableItem(
+  db: ReturnType<typeof getDb>,
+  params: {
+    type: AdminCartableType;
+    title: string;
+    sender: string;
+    body: string;
+    targetModal?: string | null;
+    dedupeKey?: string | null;
+    createdAt?: string;
+  }
+): string {
+  const id = crypto.randomUUID();
+  const createdAt = params.createdAt || new Date().toISOString();
+  const dedupeKey = params.dedupeKey?.trim() || null;
+  const targetModal = params.targetModal || null;
+
+  if (dedupeKey) {
+    db.prepare(`
+      INSERT OR IGNORE INTO admin_cartable (
+        id, type, title, sender, body, status, decision_note, target_modal, dedupe_key, created_at, done_at
+      )
+      VALUES (?, ?, ?, ?, ?, 'pending', NULL, ?, ?, ?, NULL)
+    `).run(
+      id,
+      params.type,
+      params.title,
+      params.sender,
+      params.body,
+      targetModal,
+      dedupeKey,
+      createdAt
+    );
+    return id;
+  }
+
+  db.prepare(`
+    INSERT INTO admin_cartable (
+      id, type, title, sender, body, status, decision_note, target_modal, dedupe_key, created_at, done_at
+    )
+    VALUES (?, ?, ?, ?, ?, 'pending', NULL, ?, NULL, ?, NULL)
+  `).run(id, params.type, params.title, params.sender, params.body, targetModal, createdAt);
+  return id;
+}
+
+function getAdminCartableCounts(db: ReturnType<typeof getDb>) {
+  const row = db
+    .prepare(`
+      SELECT
+        COUNT(*) AS all_count,
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
+        SUM(CASE WHEN status IN ('approved', 'rejected', 'done') THEN 1 ELSE 0 END) AS done_count
+      FROM admin_cartable
+    `)
+    .get() as
+    | {
+        all_count: number;
+        pending_count: number | null;
+        done_count: number | null;
+      }
+    | undefined;
+
+  return {
+    all: Number(row?.all_count ?? 0),
+    pending: Number(row?.pending_count ?? 0),
+    done: Number(row?.done_count ?? 0),
+  };
+}
+
+function syncExistingThesesToCartable(db: ReturnType<typeof getDb>): void {
+  const thesisRows = db
+    .prepare(`
+      SELECT
+        t.id,
+        t.title,
+        t.status,
+        t.created_at,
+        (COALESCE(s.first_name, '') || ' ' || COALESCE(s.last_name, '')) AS student_name,
+        (COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')) AS supervisor_name
+      FROM theses t
+      LEFT JOIN students s ON s.id = t.student_id
+      LEFT JOIN professors p ON p.id = t.supervisor_id
+      ORDER BY t.created_at DESC
+      LIMIT 30
+    `)
+    .all() as Array<{
+      id: string;
+      title: string;
+      status: string;
+      created_at: string;
+      student_name: string | null;
+      supervisor_name: string | null;
+    }>;
+
+  for (const t of thesisRows) {
+    const stName = (t.student_name || "").trim();
+    const supName = (t.supervisor_name || "").trim();
+    createAdminCartableItem(db, {
+      type: "thesis",
+      title: `بررسی پایان‌نامه: ${t.title}`,
+      sender: stName || "سیستم آموزش",
+      body: `پایان‌نامه «${t.title}» با وضعیت «${t.status}»${
+        supName ? ` و استاد راهنما ${supName}` : " (بدون استاد راهنما)"
+      } ثبت شده است.`,
+      targetModal: "thesis_list",
+      dedupeKey: `cartable:thesis:${t.id}`,
+      createdAt: t.created_at,
+    });
+  }
+}
+
+// POST /api/student-requests (Authenticated student/user submits request -> adds row to admin_cartable)
+apiRouter.post("/student-requests", (req: AuthenticatedRequest, res: Response): void => {
+  const user = req.user!;
+  const { trackingCode, typeTitle, courseName, details } = req.body || {};
+
+  if (!typeTitle || typeof typeTitle !== "string" || !typeTitle.trim()) {
+    res.status(400).json({ message: "نوع درخواست الزامی است." });
+    return;
+  }
+
+  const cleanTypeTitle = typeTitle.trim().slice(0, 120);
+  const cleanCourse = typeof courseName === "string" ? courseName.trim().slice(0, 120) : "";
+  const cleanDetails = typeof details === "string" ? details.trim().slice(0, 500) : "";
+  const cleanTracking = typeof trackingCode === "string" ? trackingCode.trim().slice(0, 50) : "";
+
+  const db = getDb();
+  const title = cleanCourse ? `${cleanTypeTitle} (${cleanCourse})` : cleanTypeTitle;
+  const bodyParts = [
+    cleanTracking ? `کد پیگیری: ${cleanTracking}` : "",
+    cleanDetails || "درخواست جدید توسط دانشجو ثبت شد.",
+  ].filter(Boolean);
+
+  const id = createAdminCartableItem(db, {
+    type: "student_request",
+    title,
+    sender: user.name || "دانشجو",
+    body: bodyParts.join(" — "),
+    targetModal: null,
+  });
+
+  createAdminNotification(db, {
+    type: "pending",
+    title: "درخواست جدید دانشجو",
+    body: `${user.name || "دانشجو"}: ${title}`,
+    targetModal: "admin_cartable",
+  });
+
+  res.status(201).json({ id, message: "درخواست با موفقیت ثبت شد." });
+});
+
+// GET /api/admin/cartable?status=
+apiRouter.get("/admin/cartable", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  try {
+    const db = getDb();
+    syncExistingThesesToCartable(db);
+
+    const rawStatus = typeof req.query.status === "string" ? req.query.status.trim().toLowerCase() : "all";
+    let rows: AdminCartableDbRow[];
+
+    if (rawStatus === "pending") {
+      rows = db
+        .prepare(`
+          SELECT id, type, title, sender, body, status, decision_note, target_modal, dedupe_key, created_at, done_at
+          FROM admin_cartable
+          WHERE status = 'pending'
+          ORDER BY created_at DESC
+          LIMIT 100
+        `)
+        .all() as unknown as AdminCartableDbRow[];
+    } else if (rawStatus === "done") {
+      rows = db
+        .prepare(`
+          SELECT id, type, title, sender, body, status, decision_note, target_modal, dedupe_key, created_at, done_at
+          FROM admin_cartable
+          WHERE status IN ('approved', 'rejected', 'done')
+          ORDER BY COALESCE(done_at, created_at) DESC
+          LIMIT 100
+        `)
+        .all() as unknown as AdminCartableDbRow[];
+    } else if (rawStatus === "approved" || rawStatus === "rejected") {
+      rows = db
+        .prepare(`
+          SELECT id, type, title, sender, body, status, decision_note, target_modal, dedupe_key, created_at, done_at
+          FROM admin_cartable
+          WHERE status = ?
+          ORDER BY created_at DESC
+          LIMIT 100
+        `)
+        .all(rawStatus) as unknown as AdminCartableDbRow[];
+    } else {
+      rows = db
+        .prepare(`
+          SELECT id, type, title, sender, body, status, decision_note, target_modal, dedupe_key, created_at, done_at
+          FROM admin_cartable
+          ORDER BY CASE WHEN status = 'pending' THEN 0 ELSE 1 END ASC, created_at DESC
+          LIMIT 100
+        `)
+        .all() as unknown as AdminCartableDbRow[];
+    }
+
+    const counts = getAdminCartableCounts(db);
+    res.json({
+      items: rows.map(formatAdminCartableRow),
+      counts,
+    });
+  } catch (err: any) {
+    console.error("[ADMIN CARTABLE GET ERROR]:", err);
+    res.status(500).json({ message: "خطا در دریافت اطلاعات کارتابل ادمین" });
+  }
+});
+
+// PATCH /api/admin/cartable/:id
+apiRouter.patch("/admin/cartable/:id", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const itemId = typeof req.params.id === "string" ? req.params.id.trim() : "";
+  if (!itemId) {
+    res.status(400).json({ message: "شناسه مورد کارتابل نامعتبر است." });
+    return;
+  }
+
+  const { action, status, decisionNote } = req.body || {};
+  const rawAction = typeof action === "string" ? action.trim().toLowerCase() : "";
+  const rawStatus = typeof status === "string" ? status.trim().toLowerCase() : "";
+
+  let nextStatus: AdminCartableStatus | null = null;
+  if (rawAction === "approve" || rawStatus === "approved") {
+    nextStatus = "approved";
+  } else if (rawAction === "reject" || rawStatus === "rejected") {
+    nextStatus = "rejected";
+  } else if (rawAction === "done" || rawStatus === "done") {
+    nextStatus = "done";
+  }
+
+  if (!nextStatus) {
+    res.status(400).json({ message: "عملیات یا وضعیت انتخاب‌شده معتبر نیست." });
+    return;
+  }
+
+  let cleanNote: string | null = null;
+  if (decisionNote !== undefined && decisionNote !== null) {
+    if (typeof decisionNote !== "string") {
+      res.status(400).json({ message: "فرمت توضیح تصمیم نامعتبر است." });
+      return;
+    }
+    const trimmedNote = decisionNote.trim();
+    if (trimmedNote.length > 500) {
+      res.status(400).json({ message: "توضیح تصمیم نباید بیشتر از ۵۰۰ کاراکتر باشد." });
+      return;
+    }
+    cleanNote = trimmedNote || null;
+  }
+
+  if (nextStatus === "rejected" && !cleanNote) {
+    res.status(400).json({ message: "لطفاً توضیح یا دلیل رد را وارد کنید." });
+    return;
+  }
+
+  try {
+    const db = getDb();
+    const existing = db
+      .prepare("SELECT id FROM admin_cartable WHERE id = ?")
+      .get(itemId) as { id: string } | undefined;
+
+    if (!existing) {
+      res.status(404).json({ message: "آیتم کارتابل مورد نظر یافت نشد." });
+      return;
+    }
+
+    const doneAt = new Date().toISOString();
+    db.prepare(`
+      UPDATE admin_cartable
+      SET status = ?, decision_note = COALESCE(?, decision_note), done_at = ?
+      WHERE id = ?
+    `).run(nextStatus, cleanNote, doneAt, itemId);
+
+    const updated = db
+      .prepare(`
+        SELECT id, type, title, sender, body, status, decision_note, target_modal, dedupe_key, created_at, done_at
+        FROM admin_cartable
+        WHERE id = ?
+      `)
+      .get(itemId) as unknown as AdminCartableDbRow;
+
+    const counts = getAdminCartableCounts(db);
+    const successMessage =
+      nextStatus === "approved"
+        ? "مورد کارتابل با موفقیت تأیید شد."
+        : nextStatus === "rejected"
+        ? "مورد کارتابل با ثبت توضیح رد شد."
+        : "مورد کارتابل به‌عنوان انجام‌شده ثبت شد.";
+
+    res.json({
+      item: formatAdminCartableRow(updated),
+      counts,
+      message: successMessage,
+    });
+  } catch (err: any) {
+    console.error("[ADMIN CARTABLE PATCH ERROR]:", err);
+    res.status(500).json({ message: "خطا در ثبت تصمیم کارتابل" });
+  }
+});
+
 

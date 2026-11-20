@@ -330,6 +330,23 @@ export interface AdminNotificationsResponse {
   unreadCount: number;
 }
 
+export interface AdminCartableResponse {
+  items: import('../types').AdminCartableItem[];
+  counts: import('../types').AdminCartableCounts;
+}
+
+export interface UpdateAdminCartableParams {
+  action: 'approve' | 'reject' | 'done';
+  decisionNote?: string;
+}
+
+export interface SubmitStudentRequestParams {
+  trackingCode?: string;
+  typeTitle: string;
+  courseName?: string;
+  details?: string;
+}
+
 const ALLOWED_PROFILE_KEYS = [
   'name',
   'studentId',
@@ -794,6 +811,35 @@ export const api = {
     return request<{ message: string; unreadCount: number }>('/api/admin/notifications/read-all', {
       method: 'PATCH',
       body: JSON.stringify({}),
+    });
+  },
+
+  // Admin Cartable (Admin Only)
+  async getAdminCartable(status?: string): Promise<AdminCartableResponse> {
+    const query = status && status.trim() ? `?status=${encodeURIComponent(status.trim())}` : '';
+    return request<AdminCartableResponse>(`/api/admin/cartable${query}`, {
+      method: 'GET',
+    });
+  },
+
+  async updateAdminCartableItem(
+    id: string,
+    params: UpdateAdminCartableParams
+  ): Promise<{ item: import('../types').AdminCartableItem; counts: import('../types').AdminCartableCounts; message: string }> {
+    return request<{ item: import('../types').AdminCartableItem; counts: import('../types').AdminCartableCounts; message: string }>(
+      `/api/admin/cartable/${encodeURIComponent(id)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(params),
+      }
+    );
+  },
+
+  // Student Request Submission -> Feeds Admin Cartable
+  async submitStudentRequest(params: SubmitStudentRequestParams): Promise<{ id: string; message: string }> {
+    return request<{ id: string; message: string }>('/api/student-requests', {
+      method: 'POST',
+      body: JSON.stringify(params),
     });
   },
 };

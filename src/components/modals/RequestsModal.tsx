@@ -20,6 +20,7 @@ import {
   Check
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
+import { api } from '../../lib/api';
 
 export interface RequestItem {
   id: string;
@@ -112,7 +113,7 @@ const SAMPLE_COURSES = [
 ];
 
 export const RequestsModal: React.FC = () => {
-  const { activeModal, closeModal, showToast, language, t } = useDashboard();
+  const { activeModal, closeModal, showToast, language, t, isLoggedIn } = useDashboard();
   const isFa = language === 'fa';
 
   const [requestsList, setRequestsList] = useState<RequestItem[]>(INITIAL_REQUESTS);
@@ -194,6 +195,17 @@ export const RequestsModal: React.FC = () => {
       details: detailsText,
       courseName: selectedCourseObj ? (isFa ? selectedCourseObj.nameFa : selectedCourseObj.nameEn) : undefined
     };
+
+    if (isLoggedIn) {
+      void api
+        .submitStudentRequest({
+          trackingCode,
+          typeTitle: titleFa,
+          courseName: selectedCourseObj?.nameFa,
+          details: detailsText.trim() || undefined,
+        })
+        .catch(() => {});
+    }
 
     setRequestsList([newReq, ...requestsList]);
     setSelectedType('');

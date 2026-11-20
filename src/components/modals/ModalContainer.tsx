@@ -32,6 +32,8 @@ const ProfessorAffairsModals = lazy(() => import('./ProfessorAffairsModals').the
 const StudentAffairsModals = lazy(() => import('./StudentAffairsModals').then((m) => ({ default: m.StudentAffairsModals })));
 const AdminManagementModals = lazy(() => import('./AdminManagementModals').then((m) => ({ default: m.AdminManagementModals })));
 const AcademicPlaceholderModals = lazy(() => import('./AcademicPlaceholderModals').then((m) => ({ default: m.AcademicPlaceholderModals })));
+const AdminCartableModal = lazy(() => import('./AdminCartableModal').then((m) => ({ default: m.AdminCartableModal })));
+const LoginHelpModals = lazy(() => import('./LoginHelpModals').then((m) => ({ default: m.LoginHelpModals })));
 
 export const ModalContainer: React.FC = React.memo(() => {
   const { activeModal } = useModalState();
@@ -85,6 +87,9 @@ export const ModalContainer: React.FC = React.memo(() => {
             activeModal === 'users_manage') && <AdminManagementModals />}
           {(activeModal === 'thesis_affairs' ||
             activeModal === 'public_announcements') && <AcademicPlaceholderModals />}
+          {activeModal === 'admin_cartable' && <AdminCartableModal />}
+          {(activeModal === 'forgot_password' ||
+            activeModal === 'login_guide') && <LoginHelpModals />}
         </Suspense>
       )}
     </>

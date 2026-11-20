@@ -46,6 +46,19 @@ export const HeaderBar: React.FC = React.memo(() => {
   const [isLoadingAdminNotifs, setIsLoadingAdminNotifs] = useState(false);
   const [isMarkingAllNotifs, setIsMarkingAllNotifs] = useState(false);
   const bellButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [adminCartablePendingCount, setAdminCartablePendingCount] = useState<number>(0);
+
+  const fetchAdminCartableCount = useCallback(async () => {
+    if (!isAdminUser) return;
+    try {
+      const res = await api.getAdminCartable('pending');
+      if (typeof res?.counts?.pending === 'number') {
+        setAdminCartablePendingCount(res.counts.pending);
+      }
+    } catch {
+      // keep existing count silently
+    }
+  }, [isAdminUser]);
 
   const fetchAdminNotifications = useCallback(async (showSpinner = false) => {
     if (!isAdminUser) return;
@@ -67,32 +80,53 @@ export const HeaderBar: React.FC = React.memo(() => {
       setIsAdminNotifOpen(false);
       setAdminNotifications([]);
       setAdminUnreadCount(0);
+      setAdminCartablePendingCount(0);
       return;
     }
 
     if (document.visibilityState === 'visible') {
       fetchAdminNotifications(false);
+      fetchAdminCartableCount();
     }
 
     const intervalId = window.setInterval(() => {
       if (document.visibilityState === 'visible') {
         fetchAdminNotifications(false);
+        fetchAdminCartableCount();
       }
     }, 60000);
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         fetchAdminNotifications(false);
+        fetchAdminCartableCount();
+      }
+    };
+
+    const handleCartableUpdated = (event: Event) => {
+      const customEvent = event as CustomEvent<{ pendingCount?: number }>;
+      if (typeof customEvent?.detail?.pendingCount === 'number') {
+        setAdminCartablePendingCount(customEvent.detail.pendingCount);
+      } else {
+        fetchAdminCartableCount();
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('admin-cartable-updated', handleCartableUpdated);
 
     return () => {
       window.clearInterval(intervalId);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('admin-cartable-updated', handleCartableUpdated);
     };
-  }, [isAdminUser, fetchAdminNotifications]);
+  }, [isAdminUser, fetchAdminNotifications, fetchAdminCartableCount]);
+
+  useEffect(() => {
+    if (isDrawerOpen && isAdminUser) {
+      fetchAdminCartableCount();
+    }
+  }, [isDrawerOpen, isAdminUser, fetchAdminCartableCount]);
 
   const handleToggleAdminNotifs = () => {
     setIsAdminNotifOpen((prev) => {
@@ -173,15 +207,38 @@ export const HeaderBar: React.FC = React.memo(() => {
           </motion.button>
 
           {/* Title & Active Status Indicator Dot */}
-          <div className="flex items-center gap-[4px] sm:gap-2 flex-1 min-w-0" dir="rtl">
-            <h1 className="text-[12px] sm:text-base font-bold text-white whitespace-nowrap sm:truncate sm:max-w-none leading-none">
-              {language === 'fa' ? 'سامانه مدیریت دانشجویی' : 'Student Management System'}
-            </h1>
-            <span className="relative flex h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 shrink-0" title={language === 'fa' ? 'سامانه آنلاین' : 'System Online'}>
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 [transform:translateZ(0)]" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 bg-emerald-500 shadow-[0_0_8px_#10B981]" />
-            </span>
-          </div>
+          {isAdminUser ? (
+            <button
+              type="button"
+              onClick={() => {
+                closeModal();
+                setCurrentPage('dashboard');
+                window.dispatchEvent(new CustomEvent('admin-overview-refresh'));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="flex items-center gap-[4px] sm:gap-2 flex-1 min-w-0 text-right cursor-pointer hover:opacity-90 transition-opacity"
+              dir="rtl"
+              title="صفحه اصلی مدیریت"
+            >
+              <h1 className="text-[12px] sm:text-base font-bold text-white whitespace-nowrap sm:truncate sm:max-w-none leading-none">
+                {language === 'fa' ? 'سامانه مدیریت دانشجویی' : 'Student Management System'}
+              </h1>
+              <span className="relative flex h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 shrink-0" title={language === 'fa' ? 'سامانه آنلاین' : 'System Online'}>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 [transform:translateZ(0)]" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 bg-emerald-500 shadow-[0_0_8px_#10B981]" />
+              </span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-[4px] sm:gap-2 flex-1 min-w-0" dir="rtl">
+              <h1 className="text-[12px] sm:text-base font-bold text-white whitespace-nowrap sm:truncate sm:max-w-none leading-none">
+                {language === 'fa' ? 'سامانه مدیریت دانشجویی' : 'Student Management System'}
+              </h1>
+              <span className="relative flex h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 shrink-0" title={language === 'fa' ? 'سامانه آنلاین' : 'System Online'}>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 [transform:translateZ(0)]" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 bg-emerald-500 shadow-[0_0_8px_#10B981]" />
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Left Side (RTL End): User Avatar, Notification Bell (🔔), Language Switcher (FA/EN) */}
@@ -334,20 +391,24 @@ export const HeaderBar: React.FC = React.memo(() => {
                         type="button"
                         onClick={() => {
                           setIsDrawerOpen(false);
-                          closeModal();
-                          setCurrentPage('dashboard');
-                          window.dispatchEvent(new CustomEvent('admin-overview-refresh'));
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                          setActiveModal('admin_cartable');
                         }}
-                        className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-primary/40 shadow-sm"
+                        className="w-full flex items-center justify-between gap-2 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-primary/40 shadow-sm"
                       >
-                        <div className="p-2 sm:p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform">
-                          <LayoutDashboard className="w-5 h-5" />
+                        <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                          <div className="p-2 sm:p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform shrink-0">
+                            <LayoutDashboard className="w-5 h-5" />
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <span>کارتابل</span>
+                            <span className="text-[11px] sm:text-xs font-normal text-outline truncate">کارتابل و پیگیری کارها</span>
+                          </div>
                         </div>
-                        <div className="flex flex-col">
-                          <span>کارتابل</span>
-                          <span className="text-[11px] sm:text-xs font-normal text-outline">صفحه اصلی مدیریت</span>
-                        </div>
+                        {adminCartablePendingCount > 0 && (
+                          <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/35 text-[11px] font-extrabold shrink-0">
+                            {String(adminCartablePendingCount).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)] ?? d)}
+                          </span>
+                        )}
                       </button>
 
                       {/* 2. لیست پایان‌نامه‌ها */}
