@@ -184,9 +184,17 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
 
                   <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-[#BBC1D1] mt-1 sm:mt-1.5 flex-wrap">
                     <span>
-                      {language === 'fa' 
-                        ? `${studentProfile.field || 'مهندسی کامپیوتر'} - ${studentProfile.term || 'ترم ۵ - نیمسال اول ۱۴۰۵-۱۴۰۶'}` 
-                        : `${studentProfile.field === 'مهندسی کامپیوتر' ? 'Computer Engineering' : (studentProfile.field || 'Computer Engineering')} - ${t('termDefault')}`}
+                      {studentProfile.role === 'admin'
+                        ? language === 'fa'
+                          ? (studentProfile.institute?.trim() || instituteName?.trim())
+                            ? `مدیر سیستم - ${studentProfile.institute?.trim() || instituteName?.trim()}`
+                            : 'مدیریت سامانه'
+                          : (studentProfile.institute?.trim() || instituteName?.trim())
+                            ? 'System Admin - Sample Educational Institute'
+                            : 'System Management'
+                        : language === 'fa'
+                          ? `${studentProfile.field || 'مهندسی کامپیوتر'} - ${studentProfile.term || 'ترم ۵ - نیمسال اول ۱۴۰۵-۱۴۰۶'}`
+                          : `${studentProfile.field === 'مهندسی کامپیوتر' ? 'Computer Engineering' : (studentProfile.field || 'Computer Engineering')} - ${t('termDefault')}`}
                     </span>
                     {studentProfile.studentId && (
                       <>
