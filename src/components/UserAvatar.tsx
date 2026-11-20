@@ -216,8 +216,8 @@ export const UserAvatar: React.FC<UserAvatarProps> = React.memo(({
             aria-label={language === 'fa' ? 'تغییر عکس پروفایل' : 'Change profile photo'}
             className={`
               absolute ${currentSize.uploadBtn}
-              bg-indigo-600 hover:bg-indigo-500 text-white
-              rounded-full border-2 border-[#1E293B] shadow-lg
+              bg-indigo-600 hover:bg-indigo-500 text-white rounded-full
+              border-2 border-[#1E293B] shadow-lg
               flex items-center justify-center cursor-pointer
               transition-transform hover:scale-115 active:scale-90 z-20 group
             `}

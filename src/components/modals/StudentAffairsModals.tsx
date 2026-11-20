@@ -902,29 +902,31 @@ export const StudentAffairsModals: React.FC = () => {
                   {students.map((stu) => (
                     <div
                       key={stu.id}
-                      className="p-[12px] sm:p-4 bg-slate-900/80 border border-slate-800 rounded-xl sm:rounded-2xl space-y-1.5"
+                      className="p-[12px] sm:p-4 bg-slate-900/80 border border-slate-800 rounded-xl sm:rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3"
                     >
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-bold text-white break-words">
-                          {stu.firstName} {stu.lastName}
-                        </span>
-                        <span className="px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-[11px] font-semibold">
-                          شماره دانشجویی: {stu.studentNumber}
-                        </span>
-                        {stu.fieldName && (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold">
-                            رشته: {stu.fieldName}
+                      <div className="min-w-0 space-y-1.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-bold text-white break-words">
+                            {stu.firstName} {stu.lastName}
                           </span>
-                        )}
-                        {stu.groupName && (
-                          <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] font-semibold">
-                            گروه: {stu.groupName}
+                          <span className="px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-[11px] font-semibold">
+                            شماره دانشجویی: {stu.studentNumber}
                           </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 flex-wrap text-xs text-slate-400">
-                        <span>کد ملی: {stu.nationalId}</span>
-                        {stu.phone && <span>• تماس: {stu.phone}</span>}
+                          {stu.fieldName && (
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold">
+                              رشته: {stu.fieldName}
+                            </span>
+                          )}
+                          {stu.groupName && (
+                            <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] font-semibold">
+                              گروه: {stu.groupName}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 flex-wrap text-xs text-slate-400">
+                          <span>کد ملی: {stu.nationalId}</span>
+                          {stu.phone && <span>• تماس: {stu.phone}</span>}
+                        </div>
                       </div>
                     </div>
                   ))}

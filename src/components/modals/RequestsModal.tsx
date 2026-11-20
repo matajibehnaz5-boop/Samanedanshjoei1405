@@ -335,7 +335,7 @@ export const RequestsModal: React.FC = () => {
                 <div className="flex justify-end">
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-gradient-to-r from-sky-500 to-emerald-600 hover:from-sky-400 hover:to-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-sky-600/20 flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+                    className="px-5 py-2.5 bg-gradient-to-r from-sky-500 to-emerald-600 hover:from-sky-400 hover:to-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-sky-600/20 flex items-center gap-2 transition-all cursor-pointer active:scale-95"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>{t('submitRequestBtn')}</span>

@@ -75,11 +75,7 @@ export const ProfileModal: React.FC = () => {
 
           {/* Profile Summary Card */}
           <div className="mt-5 p-4 bg-slate-900/80 rounded-2xl border border-slate-800 flex items-center gap-4">
-            <UserAvatar
-              size="lg"
-              allowUpload={true}
-              name={name}
-            />
+            <UserAvatar size="lg" allowUpload={true} name={name} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-base font-bold text-white truncate">{name || 'کاربر جدید'}</h3>
@@ -204,7 +200,7 @@ export const ProfileModal: React.FC = () => {
 
               <button
                 type="submit"
-                className="flex-1 py-2.5 bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-600/20 hover:scale-[1.02] flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 py-2.5 bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02]"
               >
                 <Check className="w-4 h-4" />
                 <span>ذخیره تغییرات</span>

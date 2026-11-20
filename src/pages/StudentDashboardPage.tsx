@@ -157,6 +157,8 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
               <div className="flex items-center gap-2.5 sm:gap-4">
                 <UserAvatar
                   size="lg"
+                  name={studentProfile.name}
+                  avatarUrl={studentProfile.avatar}
                   allowUpload={true}
                   showStatus={true}
                   onClick={() => setActiveModal('profile')}

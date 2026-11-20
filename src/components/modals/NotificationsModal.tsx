@@ -46,7 +46,7 @@ export const NotificationsModal: React.FC = () => {
                 markNotificationsRead();
                 showToast('همه اعلا‌ن‌ها خوانده شد');
               }}
-              className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 cursor-pointer transition-colors"
             >
               <CheckCheck className="w-4 h-4" />
               <span>علامت‌گذاری همه به عنوان خوانده‌شده</span>

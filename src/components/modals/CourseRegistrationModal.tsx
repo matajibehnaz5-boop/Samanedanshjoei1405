@@ -702,10 +702,10 @@ export const CourseRegistrationModal: React.FC = () => {
             <button
               onClick={handleFinalize}
               disabled={selectedCourseIds.length === 0 || hasConflict || isOverLimit}
-              className={`px-6 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-lg flex items-center gap-2 cursor-pointer ${
+              className={`px-6 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-lg flex items-center gap-2 ${
                 hasConflict || isOverLimit || selectedCourseIds.length === 0
-                  ? 'bg-slate-700/50 text-slate-400 border border-white/[0.06] cursor-not-allowed shadow-none'
-                  : 'bg-gradient-to-r from-sky-500 via-indigo-600 to-blue-600 hover:from-sky-400 hover:to-indigo-500 text-white shadow-sky-600/25'
+                  ? 'bg-slate-700/50 text-slate-400 cursor-not-allowed border border-white/[0.06]'
+                  : 'bg-gradient-to-r from-sky-500 via-indigo-600 to-blue-600 hover:from-sky-400 hover:to-indigo-500 text-white shadow-sky-600/25 cursor-pointer'
               }`}
             >
               <CheckCircle2 className="w-4 h-4" />

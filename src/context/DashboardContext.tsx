@@ -344,9 +344,12 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   );
 
   // 4. Change Password
-  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
-    await api.changePassword({ currentPassword, newPassword });
-  }, []);
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string) => {
+      await api.changePassword({ currentPassword, newPassword });
+    },
+    []
+  );
 
   // 6. Login with Email/Password
   const loginWithEmailPass = useCallback(
@@ -498,6 +501,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       handleLogout,
       isAuthLoading,
       currentPage,
+      setCurrentPage,
       currentUserId,
     ]
   );
