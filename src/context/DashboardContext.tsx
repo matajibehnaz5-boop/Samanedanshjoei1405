@@ -132,6 +132,7 @@ interface AuthContextType {
   isLoggedIn: boolean;
   loginMethod: 'SSO' | 'FORM' | 'GOOGLE' | 'EMAIL' | null;
   handleSsoLogin: (ssoName?: string) => void;
+  loginWithSso: (username: string, password: string) => Promise<void>;
   handleFormLogin: (id: string, pass: string, nameInput?: string) => boolean;
   loginWithEmailPass: (email: string, pass: string) => Promise<void>;
   registerWithEmailPass: (email: string, pass: string, name: string, studentId?: string) => Promise<void>;
@@ -413,7 +414,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     showToast('از حساب کاربری با موفقیت خارج شدید');
   }, [showToast]);
 
-  // 9. SSO Login simulation
+  // 9. SSO Login simulation (legacy fallback)
   const handleSsoLogin = useCallback(
     async (ssoName?: string) => {
       const profile = studentProfileRef.current;
@@ -430,6 +431,28 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       setCurrentPage('dashboard');
       closeModal();
       showToast(`ورود با موفقیت از طریق SSO انجام شد (${nameToSet})`);
+    },
+    [closeModal, showToast]
+  );
+
+  // 9b. Real Student SSO Login with credentials (POST /api/auth/sso-login)
+  const loginWithSso = useCallback(
+    async (username: string, password: string) => {
+      try {
+        const { user } = await api.ssoLogin({ username, password });
+        if (user.role !== 'student') {
+          throw new Error('ورود از درگاه یکپارچه فقط برای نقش دانشجو مجاز است.');
+        }
+        setCurrentUserId(user.id);
+        setStudentProfile((prev) => mapApiUserToProfile(user, prev));
+        setIsLoggedIn(true);
+        setLoginMethod('SSO');
+        setCurrentPage('dashboard');
+        closeModal();
+        showToast(`ورود با موفقیت از طریق SSO انجام شد (${user.name})`);
+      } catch (err: any) {
+        throw new Error(err?.message || 'خطا در ورود یکپارچه SSO');
+      }
     },
     [closeModal, showToast]
   );
@@ -476,6 +499,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       isLoggedIn,
       loginMethod,
       handleSsoLogin,
+      loginWithSso,
       handleFormLogin,
       loginWithEmailPass,
       registerWithEmailPass,
@@ -493,6 +517,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       isLoggedIn,
       loginMethod,
       handleSsoLogin,
+      loginWithSso,
       handleFormLogin,
       loginWithEmailPass,
       registerWithEmailPass,
@@ -743,6 +768,7 @@ export const useDashboard = (): DashboardContextType => {
       isLoggedIn: auth.isLoggedIn,
       loginMethod: auth.loginMethod,
       handleSsoLogin: auth.handleSsoLogin,
+      loginWithSso: auth.loginWithSso,
       handleFormLogin: auth.handleFormLogin,
       loginWithEmailPass: auth.loginWithEmailPass,
       registerWithEmailPass: auth.registerWithEmailPass,

@@ -43,7 +43,8 @@ export type ActiveModal =
   | 'student_search'
   | 'thesis_affairs'
   | 'public_announcements'
-  | 'admin_users';
+  | 'admin_users'
+  | 'users_manage';
 
 export interface NotificationItem {
   id: string;
@@ -52,6 +53,24 @@ export interface NotificationItem {
   time: string;
   read: boolean;
   type: 'academic' | 'exam' | 'system';
+}
+
+export type AdminNotificationType =
+  | 'pending'
+  | 'theses'
+  | 'professors'
+  | 'defense'
+  | 'registrations'
+  | 'system';
+
+export interface AdminNotificationItem {
+  id: string;
+  type: AdminNotificationType;
+  title: string;
+  body: string;
+  targetModal: ActiveModal | null;
+  isRead: boolean;
+  createdAt: string;
 }
 
 export interface ChatMessage {
@@ -94,6 +113,7 @@ export interface DashboardContextType {
   isLoggedIn: boolean;
   loginMethod: 'SSO' | 'FORM' | 'GOOGLE' | 'EMAIL' | null;
   handleSsoLogin: (ssoName?: string) => void;
+  loginWithSso: (username: string, password: string) => Promise<void>;
   handleFormLogin: (id: string, pass: string, nameInput?: string) => boolean;
   loginWithEmailPass: (email: string, pass: string) => Promise<void>;
   registerWithEmailPass: (email: string, pass: string, name: string, studentId?: string) => Promise<void>;

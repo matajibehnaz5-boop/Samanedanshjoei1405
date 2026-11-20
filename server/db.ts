@@ -180,6 +180,47 @@ export function getDb(): DatabaseSync {
         phone TEXT,
         field_id TEXT REFERENCES edu_fields(id) ON DELETE SET NULL,
         group_id TEXT REFERENCES edu_groups(id) ON DELETE SET NULL,
+        username TEXT UNIQUE,
+        password_hash TEXT,
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS theses (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        student_id TEXT REFERENCES students(id) ON DELETE SET NULL,
+        supervisor_id TEXT REFERENCES professors(id) ON DELETE SET NULL,
+        status TEXT NOT NULL DEFAULT 'در حال انجام',
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS defense_sessions (
+        id TEXT PRIMARY KEY,
+        thesis_id TEXT REFERENCES theses(id) ON DELETE SET NULL,
+        date TEXT NOT NULL,
+        time TEXT NOT NULL,
+        location TEXT NOT NULL,
+        referee_id TEXT REFERENCES professors(id) ON DELETE SET NULL,
+        status TEXT NOT NULL DEFAULT 'برنامه‌ریزی‌شده',
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS admin_audit_logs (
+        id TEXT PRIMARY KEY,
+        admin_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        action TEXT NOT NULL,
+        target_id TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS admin_notifications (
+        id TEXT PRIMARY KEY,
+        type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL,
+        target_modal TEXT,
+        dedupe_key TEXT,
+        is_read INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL
       );
 
@@ -192,6 +233,17 @@ export function getDb(): DatabaseSync {
       CREATE INDEX IF NOT EXISTS idx_students_student_number ON students(student_number);
       CREATE INDEX IF NOT EXISTS idx_students_field_id ON students(field_id);
       CREATE INDEX IF NOT EXISTS idx_students_group_id ON students(group_id);
+      CREATE INDEX IF NOT EXISTS idx_theses_student_id ON theses(student_id);
+      CREATE INDEX IF NOT EXISTS idx_theses_supervisor_id ON theses(supervisor_id);
+      CREATE INDEX IF NOT EXISTS idx_theses_status ON theses(status);
+      CREATE INDEX IF NOT EXISTS idx_defense_sessions_thesis_id ON defense_sessions(thesis_id);
+      CREATE INDEX IF NOT EXISTS idx_defense_sessions_referee_id ON defense_sessions(referee_id);
+      CREATE INDEX IF NOT EXISTS idx_defense_sessions_status ON defense_sessions(status);
+      CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_admin_id ON admin_audit_logs(admin_id);
+      CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_created_at ON admin_audit_logs(created_at);
+      CREATE INDEX IF NOT EXISTS idx_admin_notifications_created_at ON admin_notifications(created_at);
+      CREATE INDEX IF NOT EXISTS idx_admin_notifications_is_read ON admin_notifications(is_read);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_notifications_dedupe_key ON admin_notifications(dedupe_key) WHERE dedupe_key IS NOT NULL;
     `);
 
     // Safe column migrations for existing databases
@@ -229,6 +281,13 @@ export function getDb(): DatabaseSync {
     if (!existingStudentColNames.has("group_id")) {
       db.exec("ALTER TABLE students ADD COLUMN group_id TEXT REFERENCES edu_groups(id) ON DELETE SET NULL;");
     }
+    if (!existingStudentColNames.has("username")) {
+      db.exec("ALTER TABLE students ADD COLUMN username TEXT;");
+    }
+    if (!existingStudentColNames.has("password_hash")) {
+      db.exec("ALTER TABLE students ADD COLUMN password_hash TEXT;");
+    }
+    db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_students_username ON students(username);");
 
     // Safe migration for edu_fields: add level column if missing, enforce UNIQUE(name, level), and seed default fields
     const eduFieldColumns = db
@@ -327,6 +386,42 @@ export function getDb(): DatabaseSync {
       }
       throw seedErr;
     }
+
+    // Seed initial SSO student account if not already present (password stored only as bcrypt hash)
+    const defaultStudentFieldRow = db
+      .prepare("SELECT id FROM edu_fields WHERE name = ? AND level = ? LIMIT 1")
+      .get("مهندسی کامپیوتر", "کارشناسی") as { id: string } | undefined;
+    const defaultStudentBcryptHash = "$2b$10$QBaeMyD8I.uoF11lL.1U2u3ZT.gJmepQD6YqjcOMqv5HjCKtbi15e";
+    db.prepare(`
+      INSERT OR IGNORE INTO students (
+        id, first_name, last_name, national_id, student_number,
+        phone, field_id, group_id, username, password_hash, created_at
+      )
+      VALUES (?, ?, ?, ?, ?, NULL, ?, NULL, ?, ?, ?)
+    `).run(
+      crypto.randomUUID(),
+      "آیدین",
+      "رستمی",
+      "1234567890",
+      "12345678",
+      defaultStudentFieldRow?.id ?? null,
+      "12345678",
+      defaultStudentBcryptHash,
+      seedTimestamp
+    );
+
+    // If previously seeded with placeholder name «دانشجوی نمونه», update only its name to «آیدین رستمی»
+    db.prepare(`
+      UPDATE students
+      SET first_name = ?, last_name = ?
+      WHERE username = ? AND first_name = ? AND last_name = ?
+    `).run("آیدین", "رستمی", "12345678", "دانشجوی", "نمونه");
+
+    db.prepare(`
+      UPDATE users
+      SET name = ?
+      WHERE (LOWER(TRIM(email)) = ? OR TRIM(student_id) = ?) AND name = ?
+    `).run("آیدین رستمی", "12345678@student.sso.local", "12345678", "دانشجوی نمونه");
 
     // Safe migration for professors.specialty_id (preserve existing field_id)
     const professorColumns = db

@@ -109,6 +109,15 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
     prevModalRef.current = activeModal;
   }, [activeModal, loadOverview]);
 
+  // Refresh overview when clicking کارتابل in Drawer
+  useEffect(() => {
+    const handleRefresh = () => {
+      loadOverview(false);
+    };
+    window.addEventListener('admin-overview-refresh', handleRefresh);
+    return () => window.removeEventListener('admin-overview-refresh', handleRefresh);
+  }, [loadOverview]);
+
   const statCards = [
     {
       id: 'students',
@@ -156,6 +165,10 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
         return { icon: UserCheck, cls: 'bg-[#6366F1]/15 text-[#818CF8] border-[#6366F1]/30' };
       case 'student':
         return { icon: Users, cls: 'bg-[#38BDF8]/15 text-[#38BDF8] border-[#38BDF8]/30' };
+      case 'thesis':
+        return { icon: FileText, cls: 'bg-[#818CF8]/15 text-[#818CF8] border-[#818CF8]/30' };
+      case 'defense_session':
+        return { icon: CalendarDays, cls: 'bg-[#38BDF8]/15 text-[#38BDF8] border-[#38BDF8]/30' };
       case 'edu_group':
       default:
         return { icon: Layers, cls: 'bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/30' };
@@ -293,9 +306,11 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
                   >
                     <div className="min-w-0">
                       <div className="text-[11.5px] sm:text-xs font-bold text-white truncate">{session.title}</div>
-                      <div className="text-[10.5px] sm:text-[11px] text-[#BBC1D1] truncate">{session.studentName}</div>
+                      <div className="text-[10.5px] sm:text-[11px] text-[#BBC1D1] truncate">
+                        {session.studentName}{session.location ? ` • ${session.location}` : ''}
+                      </div>
                     </div>
-                    <span className="text-[10.5px] sm:text-[11px] font-semibold text-[#38BDF8] shrink-0">
+                    <span className="text-[10.5px] sm:text-[11px] font-semibold text-[#38BDF8] shrink-0 dir-ltr">
                       {session.dateTime}
                     </span>
                   </div>

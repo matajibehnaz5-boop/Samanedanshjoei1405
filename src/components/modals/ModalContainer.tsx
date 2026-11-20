@@ -30,6 +30,7 @@ const DiningModal = lazy(() => import('./DiningModal').then((m) => ({ default: m
 const EducationalAffairsModals = lazy(() => import('./EducationalAffairsModals').then((m) => ({ default: m.EducationalAffairsModals })));
 const ProfessorAffairsModals = lazy(() => import('./ProfessorAffairsModals').then((m) => ({ default: m.ProfessorAffairsModals })));
 const StudentAffairsModals = lazy(() => import('./StudentAffairsModals').then((m) => ({ default: m.StudentAffairsModals })));
+const AdminManagementModals = lazy(() => import('./AdminManagementModals').then((m) => ({ default: m.AdminManagementModals })));
 const AcademicPlaceholderModals = lazy(() => import('./AcademicPlaceholderModals').then((m) => ({ default: m.AcademicPlaceholderModals })));
 
 export const ModalContainer: React.FC = React.memo(() => {
@@ -80,9 +81,10 @@ export const ModalContainer: React.FC = React.memo(() => {
           {(activeModal === 'thesis_list' ||
             activeModal === 'professor_capacity' ||
             activeModal === 'defense_sessions' ||
-            activeModal === 'thesis_affairs' ||
-            activeModal === 'public_announcements' ||
-            activeModal === 'admin_users') && <AcademicPlaceholderModals />}
+            activeModal === 'admin_users' ||
+            activeModal === 'users_manage') && <AdminManagementModals />}
+          {(activeModal === 'thesis_affairs' ||
+            activeModal === 'public_announcements') && <AcademicPlaceholderModals />}
         </Suspense>
       )}
     </>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Menu,
   X,
@@ -16,13 +16,15 @@ import {
   UserCheck,
   Contact,
   FolderKanban,
-  Megaphone,
   UserCog,
   MessageSquare,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useAuth, useI18n, useLayoutSettings, useModalActions, useNotifications } from '../context/DashboardContext';
+import { useAuth, useI18n, useLayoutSettings, useModalActions, useNotifications, useToastActions } from '../context/DashboardContext';
 import { UserAvatar } from './UserAvatar';
+import { AdminNotificationCenter } from './AdminNotificationCenter';
+import { api } from '../lib/api';
+import { AdminNotificationItem } from '../types';
 
 export const HeaderBar: React.FC = React.memo(() => {
   const { setActiveModal, closeModal } = useModalActions();
@@ -30,10 +32,114 @@ export const HeaderBar: React.FC = React.memo(() => {
   const { isLoggedIn, studentProfile, handleLogout, setCurrentPage } = useAuth();
   const { language, toggleLanguage, t } = useI18n();
   const { notificationCount: unreadCount } = useNotifications();
+  const { showToast } = useToastActions();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEduOpen, setIsEduOpen] = useState(false);
   const [isProfOpen, setIsProfOpen] = useState(false);
   const [isStudentOpen, setIsStudentOpen] = useState(false);
+
+  // Admin Notification Center state (strictly active only for admin users)
+  const isAdminUser = isLoggedIn && studentProfile.role === 'admin';
+  const [isAdminNotifOpen, setIsAdminNotifOpen] = useState(false);
+  const [adminNotifications, setAdminNotifications] = useState<AdminNotificationItem[]>([]);
+  const [adminUnreadCount, setAdminUnreadCount] = useState<number>(0);
+  const [isLoadingAdminNotifs, setIsLoadingAdminNotifs] = useState(false);
+  const [isMarkingAllNotifs, setIsMarkingAllNotifs] = useState(false);
+  const bellButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  const fetchAdminNotifications = useCallback(async (showSpinner = false) => {
+    if (!isAdminUser) return;
+    if (showSpinner) setIsLoadingAdminNotifs(true);
+    try {
+      const res = await api.getAdminNotifications();
+      setAdminNotifications(Array.isArray(res?.notifications) ? res.notifications : []);
+      setAdminUnreadCount(typeof res?.unreadCount === 'number' ? res.unreadCount : 0);
+    } catch {
+      // keep existing state silently on background poll failure
+    } finally {
+      if (showSpinner) setIsLoadingAdminNotifs(false);
+    }
+  }, [isAdminUser]);
+
+  // Poll every 60 seconds ONLY when tab is visible/active
+  useEffect(() => {
+    if (!isAdminUser) {
+      setIsAdminNotifOpen(false);
+      setAdminNotifications([]);
+      setAdminUnreadCount(0);
+      return;
+    }
+
+    if (document.visibilityState === 'visible') {
+      fetchAdminNotifications(false);
+    }
+
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchAdminNotifications(false);
+      }
+    }, 60000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchAdminNotifications(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isAdminUser, fetchAdminNotifications]);
+
+  const handleToggleAdminNotifs = () => {
+    setIsAdminNotifOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        fetchAdminNotifications(true);
+      }
+      return next;
+    });
+  };
+
+  const handleMarkAllAdminRead = async () => {
+    setIsMarkingAllNotifs(true);
+    try {
+      await api.markAllAdminNotificationsRead();
+      setAdminNotifications((prev) => prev.map((item) => ({ ...item, isRead: true })));
+      setAdminUnreadCount(0);
+      showToast('همه اعلان‌ها به عنوان خوانده‌شده علامت‌گذاری شدند');
+    } catch (err: any) {
+      showToast(err?.message || 'خطا در به‌روزرسانی اعلان‌ها');
+    } finally {
+      setIsMarkingAllNotifs(false);
+    }
+  };
+
+  const handleSelectAdminNotification = async (item: AdminNotificationItem) => {
+    setIsAdminNotifOpen(false);
+    if (!item.isRead) {
+      setAdminNotifications((prev) =>
+        prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n))
+      );
+      setAdminUnreadCount((prev) => Math.max(0, prev - 1));
+      try {
+        const res = await api.markAdminNotificationRead(item.id);
+        if (typeof res?.unreadCount === 'number') {
+          setAdminUnreadCount(res.unreadCount);
+        }
+      } catch {
+        // ignore background sync error
+      }
+    }
+    if (item.targetModal) {
+      setActiveModal(item.targetModal);
+    }
+  };
+
+  const displayedBellCount = isAdminUser ? adminUnreadCount : unreadCount;
 
   // Close drawer on ESC key
   useEffect(() => {
@@ -94,17 +200,18 @@ export const HeaderBar: React.FC = React.memo(() => {
 
           {/* Notification Bell Button (🔔) */}
           <motion.button
+            ref={bellButtonRef}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setActiveModal('notifications')}
+            onClick={isAdminUser ? handleToggleAdminNotifs : () => setActiveModal('notifications')}
             aria-label={language === 'fa' ? 'اعلانات' : 'Notifications'}
             title={language === 'fa' ? 'اعلانات و پیام‌ها' : 'Notifications'}
             className="w-[30px] h-[30px] sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0 relative"
           >
             <Bell className="w-[16px] h-[16px] sm:w-4 sm:h-4 text-white stroke-[2] group-hover:text-amber-300 transition-colors" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 flex h-3 w-3 sm:h-3.5 sm:w-3.5 items-center justify-center rounded-full bg-rose-500 text-[8px] sm:text-[9px] font-extrabold text-white ring-1 sm:ring-2 ring-[#222340]">
-                {unreadCount}
+            {displayedBellCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 flex min-w-[14px] h-3.5 sm:min-w-[15px] sm:h-3.5 px-0.5 items-center justify-center rounded-full bg-rose-500 text-[8px] sm:text-[9px] font-extrabold text-white ring-1 sm:ring-2 ring-[#222340]">
+                {displayedBellCount > 99 ? '99+' : displayedBellCount}
               </span>
             )}
           </motion.button>
@@ -123,6 +230,26 @@ export const HeaderBar: React.FC = React.memo(() => {
             <span className={language === 'en' ? 'text-secondary font-extrabold' : 'opacity-60'}>EN</span>
           </motion.button>
         </div>
+
+        {/* Admin Notification Center Popover (Admin Only) */}
+        {isAdminUser && (
+          <AdminNotificationCenter
+            isOpen={isAdminNotifOpen}
+            onClose={() => setIsAdminNotifOpen(false)}
+            bellButtonRef={bellButtonRef}
+            notifications={adminNotifications}
+            unreadCount={adminUnreadCount}
+            isLoading={isLoadingAdminNotifs}
+            isMarkingAll={isMarkingAllNotifs}
+            onMarkAllRead={handleMarkAllAdminRead}
+            onSelectNotification={handleSelectAdminNotification}
+            onOpenPublicAnnouncements={() => {
+              setIsAdminNotifOpen(false);
+              setActiveModal('public_announcements');
+            }}
+            isRtlLayout={language === 'fa'}
+          />
+        )}
 
       </div>
 
@@ -209,6 +336,7 @@ export const HeaderBar: React.FC = React.memo(() => {
                           setIsDrawerOpen(false);
                           closeModal();
                           setCurrentPage('dashboard');
+                          window.dispatchEvent(new CustomEvent('admin-overview-refresh'));
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
                         className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-primary/40 shadow-sm"
@@ -501,25 +629,7 @@ export const HeaderBar: React.FC = React.memo(() => {
                         </div>
                       </button>
 
-                      {/* 9. اعلانات عمومی */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsDrawerOpen(false);
-                          setActiveModal('public_announcements');
-                        }}
-                        className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-primary/40 shadow-sm"
-                      >
-                        <div className="p-2 sm:p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform">
-                          <Megaphone className="w-5 h-5" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span>اعلانات عمومی</span>
-                          <span className="text-[11px] sm:text-xs font-normal text-outline">انتشار و مدیریت اطلاعیه‌ها</span>
-                        </div>
-                      </button>
-
-                      {/* 10. کاربران */}
+                      {/* 9. کاربران */}
                       <button
                         type="button"
                         onClick={() => {

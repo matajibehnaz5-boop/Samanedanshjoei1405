@@ -9,7 +9,7 @@ export const translations = {
     language: 'زبان',
     version: 'نسخه: v2.0',
     backToLogin: 'بازگشت به صفحه ورود',
-    welcome: '{name} خوش آمدید 👋',
+    welcome: '{name}، خوش آمدید 👋',
     welcomeDefault: 'دانشجوی گرامی',
     studentRole: 'دانشجو',
     adminRole: 'مدیر سیستم (ادمین)',

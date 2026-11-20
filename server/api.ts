@@ -2,6 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import bcrypt from "bcryptjs";
 import { getDb, getDataDir, exportDatabaseBackup, restoreDatabaseBackup, type UserRow, type ChatMessageRow } from "./db.js";
 import {
   hashPassword,
@@ -136,9 +137,14 @@ export function requireAdmin(req: AuthenticatedRequest, res: Response, next: Nex
   next();
 }
 
-// Every route in apiRouter EXCEPT register, login, and health requires a logged-in session
+// Every route in apiRouter EXCEPT register, login, sso-login, and health requires a logged-in session
 apiRouter.use((req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  if (req.path === "/auth/register" || req.path === "/auth/login" || req.path === "/health") {
+  if (
+    req.path === "/auth/register" ||
+    req.path === "/auth/login" ||
+    req.path === "/auth/sso-login" ||
+    req.path === "/health"
+  ) {
     next();
     return;
   }
@@ -314,6 +320,130 @@ apiRouter.post("/auth/login", async (req: Request, res: Response): Promise<void>
   setSessionCookie(res, req, sessionId);
 
   res.json({ user: formatUser(user) });
+});
+
+// POST /api/auth/sso-login
+apiRouter.post("/auth/sso-login", async (req: Request, res: Response): Promise<void> => {
+  const { username, password, role } = req.body || {};
+
+  if (role !== undefined && role !== null && String(role).trim() !== "" && String(role).trim() !== "student") {
+    res.status(403).json({ message: "ورود از درگاه یکپارچه فقط برای نقش دانشجو مجاز است." });
+    return;
+  }
+
+  if (!username || !password || typeof username !== "string" || typeof password !== "string") {
+    res.status(400).json({ message: "لطفاً نام کاربری و رمز عبور را وارد نمایید." });
+    return;
+  }
+
+  const cleanUsername = normalizeDigitsOnly(username.trim());
+  if (!cleanUsername || cleanUsername.length > 100 || password.length > 128) {
+    res.status(400).json({ message: "نام کاربری یا رمز عبور نامعتبر است." });
+    return;
+  }
+
+  const ip = getClientIp(req);
+  const fifteenMinutesMs = 15 * 60 * 1000;
+  if (!rateLimiters.loginIp.check(ip, 10, fifteenMinutesMs)) {
+    res.status(429).json({ message: "تعداد تلاش‌های ورود بیش از حد مجاز است. لطفاً ۱۵ دقیقه دیگر تلاش کنید." });
+    return;
+  }
+  if (!rateLimiters.loginEmail.check(`sso:${cleanUsername.toLowerCase()}`, 10, fifteenMinutesMs)) {
+    res.status(429).json({ message: "تعداد تلاش‌های ورود برای این حساب بیش از حد مجاز است. لطفاً ۱۵ دقیقه دیگر تلاش کنید." });
+    return;
+  }
+
+  const db = getDb();
+  const student = db
+    .prepare(`
+      SELECT
+        s.id,
+        s.first_name,
+        s.last_name,
+        s.national_id,
+        s.student_number,
+        s.phone,
+        s.field_id,
+        f.name AS field_name,
+        s.username,
+        s.password_hash
+      FROM students s
+      LEFT JOIN edu_fields f ON f.id = s.field_id
+      WHERE s.username = ?
+    `)
+    .get(cleanUsername) as
+    | {
+        id: string;
+        first_name: string;
+        last_name: string;
+        national_id: string;
+        student_number: string;
+        phone: string | null;
+        field_id: string | null;
+        field_name: string | null;
+        username: string | null;
+        password_hash: string | null;
+      }
+    | undefined;
+
+  if (!student || !student.password_hash) {
+    res.status(401).json({ message: "نام کاربری یا رمز عبور اشتباه است." });
+    return;
+  }
+
+  const normalizedPass = normalizeDigitsOnly(password);
+  let isValid = await bcrypt.compare(password, student.password_hash);
+  if (!isValid && normalizedPass !== password) {
+    isValid = await bcrypt.compare(normalizedPass, student.password_hash);
+  }
+
+  if (!isValid) {
+    res.status(401).json({ message: "نام کاربری یا رمز عبور اشتباه است." });
+    return;
+  }
+
+  // Ensure a matching student account exists in users table and strictly enforce student role
+  const ssoInternalEmail = `${cleanUsername.toLowerCase()}@student.sso.local`;
+  let userRow = db
+    .prepare(`
+      SELECT * FROM users
+      WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))
+         OR (student_id IS NOT NULL AND TRIM(student_id) = TRIM(?))
+      LIMIT 1
+    `)
+    .get(ssoInternalEmail, student.student_number) as unknown as UserRow | undefined;
+
+  if (userRow && userRow.role !== "student") {
+    res.status(403).json({ message: "ورود از درگاه یکپارچه فقط برای نقش دانشجو مجاز است." });
+    return;
+  }
+
+  const fullName = `${student.first_name} ${student.last_name}`.trim() || "آیدین رستمی";
+
+  if (!userRow) {
+    const newUserId = crypto.randomUUID();
+    const nowIso = new Date().toISOString();
+    const initialProfile = JSON.stringify({
+      field: student.field_name || "مهندسی کامپیوتر",
+      phone: student.phone || "",
+    });
+    const sessionPlaceholderHash = await hashPassword(crypto.randomUUID());
+
+    db.prepare(`
+      INSERT INTO users (id, email, password_hash, name, student_id, role, profile, created_at)
+      VALUES (?, ?, ?, ?, ?, 'student', ?, ?)
+    `).run(newUserId, ssoInternalEmail, sessionPlaceholderHash, fullName, student.student_number, initialProfile, nowIso);
+
+    userRow = db.prepare("SELECT * FROM users WHERE id = ?").get(newUserId) as unknown as UserRow;
+  } else if (userRow.name === "دانشجوی نمونه" && fullName && fullName !== "دانشجوی نمونه") {
+    db.prepare("UPDATE users SET name = ? WHERE id = ?").run(fullName, userRow.id);
+    userRow = db.prepare("SELECT * FROM users WHERE id = ?").get(userRow.id) as unknown as UserRow;
+  }
+
+  const sessionId = createSession(userRow.id);
+  setSessionCookie(res, req, sessionId);
+
+  res.json({ user: formatUser(userRow) });
 });
 
 // POST /api/auth/logout
@@ -544,11 +674,123 @@ apiRouter.post("/messages", (req: AuthenticatedRequest, res: Response): void => 
 
 // --- ADMIN-ONLY ROUTES (Protected by requireAdmin on server) ---
 
+function generateTemporaryPassword(length = 8): string {
+  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const lower = "abcdefghijkmnopqrstuvwxyz";
+  const digits = "23456789";
+  const all = upper + lower + digits;
+  const chars = [
+    upper[crypto.randomInt(upper.length)],
+    lower[crypto.randomInt(lower.length)],
+    digits[crypto.randomInt(digits.length)],
+  ];
+  for (let i = chars.length; i < length; i++) {
+    chars.push(all[crypto.randomInt(all.length)]);
+  }
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = crypto.randomInt(i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+  return chars.join("");
+}
+
 // GET /api/admin/users
-apiRouter.get("/admin/users", requireAdmin, (_req: AuthenticatedRequest, res: Response): void => {
+apiRouter.get("/admin/users", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
   const db = getDb();
-  const rows = db.prepare("SELECT id, email, name, student_id, role, created_at FROM users ORDER BY created_at DESC").all();
-  res.json({ users: rows });
+  const rows = db
+    .prepare("SELECT id, email, name, student_id, role, locked_until, created_at FROM users ORDER BY created_at DESC")
+    .all() as Array<{
+      id: string;
+      email: string;
+      name: string;
+      student_id: string | null;
+      role: string;
+      locked_until?: number | null;
+      created_at: string;
+    }>;
+
+  const nowMs = Date.now();
+  const currentAdminId = req.user?.id || "";
+
+  const users = rows.map((u) => {
+    const isLocked = Number(u.locked_until || 0) > nowMs;
+    return {
+      id: u.id,
+      email: u.email,
+      name: u.name,
+      student_id: u.student_id,
+      studentId: u.student_id || "",
+      role: u.role,
+      status: isLocked ? "locked" : "active",
+      isSelf: u.id === currentAdminId,
+      created_at: u.created_at,
+      createdAt: u.created_at,
+    };
+  });
+
+  res.json({ users });
+});
+
+// POST /api/admin/users/:id/reset-password
+apiRouter.post("/admin/users/:id/reset-password", requireAdmin, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const targetUserId = typeof req.params.id === "string" ? req.params.id.trim() : "";
+  if (!targetUserId) {
+    res.status(400).json({ message: "شناسه کاربر نامعتبر است." });
+    return;
+  }
+
+  const currentAdminId = req.user?.id || "";
+  if (targetUserId === currentAdminId) {
+    res.status(403).json({ message: "امکان بازنشانی رمز عبور حساب ادمین فعلی از این بخش وجود ندارد." });
+    return;
+  }
+
+  const db = getDb();
+  const targetUser = db
+    .prepare("SELECT id, role, name, email FROM users WHERE id = ?")
+    .get(targetUserId) as { id: string; role: string; name: string; email: string } | undefined;
+
+  if (!targetUser) {
+    res.status(404).json({ message: "کاربر مورد نظر یافت نشد." });
+    return;
+  }
+
+  const tempPassword = generateTemporaryPassword(8);
+  const passwordHash = await hashPassword(tempPassword);
+  const logId = crypto.randomUUID();
+  const nowIso = new Date().toISOString();
+
+  db.exec("BEGIN IMMEDIATE;");
+  try {
+    db.prepare(
+      "UPDATE users SET password_hash = ?, failed_attempts = 0, locked_until = 0 WHERE id = ?"
+    ).run(passwordHash, targetUserId);
+    db.prepare("DELETE FROM sessions WHERE user_id = ?").run(targetUserId);
+    db.prepare(`
+      INSERT INTO admin_audit_logs (id, admin_id, action, target_id, created_at)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(logId, currentAdminId, "reset_password", targetUserId, nowIso);
+    createAdminNotification(db, {
+      type: "system",
+      title: "بازنشانی رمز عبور انجام شد",
+      body: `رمز عبور موقت برای کاربر «${targetUser.name || targetUser.email}» صادر گردید.`,
+      targetModal: "admin_users",
+      createdAt: nowIso,
+    });
+    db.exec("COMMIT;");
+  } catch (err) {
+    try {
+      db.exec("ROLLBACK;");
+    } catch {
+      // ignore
+    }
+    throw err;
+  }
+
+  res.json({
+    temporaryPassword: tempPassword,
+    message: "رمز عبور موقت با موفقیت ایجاد شد.",
+  });
 });
 
 // GET /api/admin/stats
@@ -575,11 +817,39 @@ apiRouter.get("/admin/overview", requireAdmin, (req: AuthenticatedRequest, res: 
     const studentsRow = db.prepare("SELECT COUNT(*) AS count FROM students").get() as { count: number } | undefined;
     const professorsRow = db.prepare("SELECT COUNT(*) AS count FROM professors").get() as { count: number } | undefined;
     const employeesRow = db.prepare("SELECT COUNT(*) AS count FROM employees").get() as { count: number } | undefined;
+    const activeThesesRow = db
+      .prepare("SELECT COUNT(*) AS count FROM theses WHERE status != 'دفاع شده'")
+      .get() as { count: number } | undefined;
 
     const currentUserId = req.user?.id || "";
     const unreadMsgRow = db
       .prepare("SELECT COUNT(*) AS count FROM chat_messages WHERE user_id != ?")
       .get(currentUserId) as { count: number } | undefined;
+
+    const defenseSessionRows = db
+      .prepare(`
+        SELECT
+          ds.id,
+          COALESCE(t.title, 'پایان‌نامه ثبت‌نشده') AS title,
+          COALESCE(NULLIF(TRIM(s.first_name || ' ' || s.last_name), ''), 'نامشخص') AS student_name,
+          ds.date,
+          ds.time,
+          ds.location
+        FROM defense_sessions ds
+        LEFT JOIN theses t ON t.id = ds.thesis_id
+        LEFT JOIN students s ON s.id = t.student_id
+        WHERE ds.status = 'برنامه‌ریزی‌شده'
+        ORDER BY ds.date ASC, ds.time ASC
+        LIMIT 5
+      `)
+      .all() as Array<{
+        id: string;
+        title: string;
+        student_name: string;
+        date: string;
+        time: string;
+        location: string;
+      }>;
 
     const activityRows = db
       .prepare(`
@@ -615,13 +885,30 @@ apiRouter.get("/admin/overview", requireAdmin, (req: AuthenticatedRequest, res: 
             ('شماره دانشجویی: ' || student_number) AS subtitle,
             created_at
           FROM students
+          UNION ALL
+          SELECT
+            id,
+            'thesis' AS type,
+            ('ثبت پایان‌نامه: ' || title) AS title,
+            ('وضعیت: ' || status) AS subtitle,
+            created_at
+          FROM theses
+          UNION ALL
+          SELECT
+            ds.id,
+            'defense_session' AS type,
+            ('جلسه دفاع: ' || COALESCE(t.title, 'پایان‌نامه')) AS title,
+            (ds.date || ' ساعت ' || ds.time || ' - ' || ds.location) AS subtitle,
+            ds.created_at
+          FROM defense_sessions ds
+          LEFT JOIN theses t ON t.id = ds.thesis_id
         )
         ORDER BY created_at DESC
         LIMIT 5
       `)
       .all() as Array<{
         id: string;
-        type: "employee" | "edu_group" | "professor" | "student";
+        type: "employee" | "edu_group" | "professor" | "student" | "thesis" | "defense_session";
         title: string;
         subtitle: string;
         created_at: string;
@@ -632,13 +919,19 @@ apiRouter.get("/admin/overview", requireAdmin, (req: AuthenticatedRequest, res: 
         studentsCount: Number(studentsRow?.count ?? 0),
         professorsCount: Number(professorsRow?.count ?? 0),
         employeesCount: Number(employeesRow?.count ?? 0),
-        activeThesesCount: 0,
+        activeThesesCount: Number(activeThesesRow?.count ?? 0),
       },
       pending: {
         pendingRequestsCount: 0,
         unreadMessagesCount: Number(unreadMsgRow?.count ?? 0),
       },
-      defenseSessions: [],
+      defenseSessions: defenseSessionRows.map((row) => ({
+        id: row.id,
+        title: row.title,
+        studentName: row.student_name,
+        dateTime: `${row.date} • ${row.time}`,
+        location: row.location,
+      })),
       recentActivities: activityRows.map((row) => ({
         id: row.id,
         type: row.type,
@@ -1182,6 +1475,15 @@ apiRouter.post("/admin/employees", requireAdmin, (req: AuthenticatedRequest, res
     createdAt
   );
 
+  createAdminNotification(db, {
+    type: "registrations",
+    title: "ثبت‌نام کارمند جدید",
+    body: `${cleanFirstName} ${cleanLastName}${cleanPosition ? ` (${cleanPosition})` : ""} ثبت شد.`,
+    targetModal: "employee_list",
+    dedupeKey: `reg:employee:${id}`,
+    createdAt,
+  });
+
   res.status(201).json({
     employee: {
       id,
@@ -1634,6 +1936,15 @@ apiRouter.post("/admin/professors", requireAdmin, (req: AuthenticatedRequest, re
     createdAt
   );
 
+  createAdminNotification(db, {
+    type: "registrations",
+    title: "ثبت‌نام استاد جدید",
+    body: `${cleanFirstName} ${cleanLastName} (${cleanAcademicRank}) به لیست اساتید اضافه شد.`,
+    targetModal: "professor_list",
+    dedupeKey: `reg:professor:${id}`,
+    createdAt,
+  });
+
   res.status(201).json({
     professor: {
       id,
@@ -1740,6 +2051,131 @@ apiRouter.patch("/admin/professors/:id/access", requireAdmin, (req: Authenticate
   });
 });
 
+// GET /api/admin/professors/capacity
+apiRouter.get("/admin/professors/capacity", requireAdmin, (_req: AuthenticatedRequest, res: Response): void => {
+  const db = getDb();
+  const rows = db
+    .prepare(`
+      SELECT
+        p.id,
+        p.first_name,
+        p.last_name,
+        p.academic_rank,
+        g.name AS group_name,
+        p.capacity,
+        COUNT(CASE WHEN t.id IS NOT NULL AND t.status != 'دفاع شده' THEN 1 END) AS current_theses_count
+      FROM professors p
+      LEFT JOIN edu_groups g ON g.id = p.group_id
+      LEFT JOIN theses t ON t.supervisor_id = p.id
+      GROUP BY p.id, p.first_name, p.last_name, p.academic_rank, g.name, p.capacity, p.created_at
+      ORDER BY p.created_at DESC
+    `)
+    .all() as Array<{
+      id: string;
+      first_name: string;
+      last_name: string;
+      academic_rank: string;
+      group_name: string | null;
+      capacity: number;
+      current_theses_count: number;
+    }>;
+
+  const professors = rows.map((p) => {
+    const totalCapacity = Number(p.capacity ?? 0);
+    const currentThesesCount = Number(p.current_theses_count ?? 0);
+    const remainingCapacity = Math.max(0, totalCapacity - currentThesesCount);
+    return {
+      id: p.id,
+      firstName: p.first_name,
+      lastName: p.last_name,
+      academicRank: p.academic_rank,
+      groupName: p.group_name || "",
+      totalCapacity,
+      currentThesesCount,
+      remainingCapacity,
+    };
+  });
+
+  res.json({ professors });
+});
+
+// PATCH /api/admin/professors/:id/capacity
+apiRouter.patch("/admin/professors/:id/capacity", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const profId = typeof req.params.id === "string" ? req.params.id.trim() : "";
+  if (!profId) {
+    res.status(400).json({ message: "شناسه استاد نامعتبر است." });
+    return;
+  }
+
+  const { capacity } = req.body || {};
+  if (capacity === undefined || capacity === null || String(capacity).trim() === "") {
+    res.status(400).json({ message: "مقدار ظرفیت استاد الزامی است." });
+    return;
+  }
+
+  const rawCap = typeof capacity === "string" ? normalizeDigitsOnly(capacity.trim()) : capacity;
+  const parsedCap = Number(rawCap);
+  if (!Number.isInteger(parsedCap) || parsedCap < 0 || parsedCap > 50) {
+    res.status(400).json({ message: "ظرفیت استاد باید یک عدد صحیح بین ۰ تا ۵۰ باشد." });
+    return;
+  }
+
+  const db = getDb();
+  const existing = db
+    .prepare("SELECT id FROM professors WHERE id = ?")
+    .get(profId) as { id: string } | undefined;
+
+  if (!existing) {
+    res.status(404).json({ message: "استاد مورد نظر یافت نشد." });
+    return;
+  }
+
+  db.prepare("UPDATE professors SET capacity = ? WHERE id = ?").run(parsedCap, profId);
+
+  const row = db
+    .prepare(`
+      SELECT
+        p.id,
+        p.first_name,
+        p.last_name,
+        p.academic_rank,
+        g.name AS group_name,
+        p.capacity,
+        COUNT(CASE WHEN t.id IS NOT NULL AND t.status != 'دفاع شده' THEN 1 END) AS current_theses_count
+      FROM professors p
+      LEFT JOIN edu_groups g ON g.id = p.group_id
+      LEFT JOIN theses t ON t.supervisor_id = p.id
+      WHERE p.id = ?
+      GROUP BY p.id, p.first_name, p.last_name, p.academic_rank, g.name, p.capacity
+    `)
+    .get(profId) as {
+      id: string;
+      first_name: string;
+      last_name: string;
+      academic_rank: string;
+      group_name: string | null;
+      capacity: number;
+      current_theses_count: number;
+    };
+
+  const totalCapacity = Number(row.capacity ?? 0);
+  const currentThesesCount = Number(row.current_theses_count ?? 0);
+
+  res.json({
+    message: "ظرفیت استاد با موفقیت به‌روزرسانی شد.",
+    professor: {
+      id: row.id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      academicRank: row.academic_rank,
+      groupName: row.group_name || "",
+      totalCapacity,
+      currentThesesCount,
+      remainingCapacity: Math.max(0, totalCapacity - currentThesesCount),
+    },
+  });
+});
+
 // GET /api/admin/professors/:id/theses
 apiRouter.get("/admin/professors/:id/theses", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
   const profId = typeof req.params.id === "string" ? req.params.id.trim() : "";
@@ -1758,7 +2194,60 @@ apiRouter.get("/admin/professors/:id/theses", requireAdmin, (req: AuthenticatedR
     return;
   }
 
-  res.json({ theses: [] });
+  const advisorRows = db
+    .prepare(`
+      SELECT
+        t.id,
+        t.title,
+        t.status,
+        COALESCE(NULLIF(TRIM(s.first_name || ' ' || s.last_name), ''), 'نامشخص') AS student_name
+      FROM theses t
+      LEFT JOIN students s ON s.id = t.student_id
+      WHERE t.supervisor_id = ?
+      ORDER BY t.created_at DESC
+    `)
+    .all(profId) as Array<{ id: string; title: string; status: string; student_name: string }>;
+
+  const refereeRows = db
+    .prepare(`
+      SELECT
+        t.id AS thesis_id,
+        ds.id AS session_id,
+        t.title,
+        t.status,
+        COALESCE(NULLIF(TRIM(s.first_name || ' ' || s.last_name), ''), 'نامشخص') AS student_name
+      FROM defense_sessions ds
+      INNER JOIN theses t ON t.id = ds.thesis_id
+      LEFT JOIN students s ON s.id = t.student_id
+      WHERE ds.referee_id = ? AND ds.status != 'لغو'
+      ORDER BY ds.created_at DESC
+    `)
+    .all(profId) as Array<{
+      thesis_id: string;
+      session_id: string;
+      title: string;
+      status: string;
+      student_name: string;
+    }>;
+
+  const theses = [
+    ...advisorRows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      studentName: row.student_name,
+      role: "advisor" as const,
+      status: row.status,
+    })),
+    ...refereeRows.map((row) => ({
+      id: `${row.thesis_id}-ref-${row.session_id}`,
+      title: row.title,
+      studentName: row.student_name,
+      role: "referee" as const,
+      status: row.status,
+    })),
+  ];
+
+  res.json({ theses });
 });
 
 // --- STUDENT AFFAIRS ADMIN ROUTES (Protected by requireAdmin) ---
@@ -2005,6 +2494,15 @@ apiRouter.post("/admin/students", requireAdmin, (req: AuthenticatedRequest, res:
     createdAt
   );
 
+  createAdminNotification(db, {
+    type: "registrations",
+    title: "ثبت‌نام دانشجوی جدید",
+    body: `${cleanFirstName} ${cleanLastName} (شماره دانشجویی: ${cleanStudentNumber}) ثبت شد.`,
+    targetModal: "student_search",
+    dedupeKey: `reg:student:${id}`,
+    createdAt,
+  });
+
   res.status(201).json({
     student: {
       id,
@@ -2181,6 +2679,23 @@ apiRouter.post("/admin/students/bulk", requireAdmin, (req: AuthenticatedRequest,
     throw err;
   }
 
+  if (insertedCount > 0) {
+    createAdminNotification(db, {
+      type: "registrations",
+      title: "ثبت‌نام گروهی دانشجویان",
+      body: `${insertedCount} دانشجوی جدید از فایل اکسل در سامانه ثبت شد.`,
+      targetModal: "student_search",
+    });
+  }
+  if (errors.length > 0) {
+    createAdminNotification(db, {
+      type: "system",
+      title: "ثبت‌نام گروهی تمام‌شده با خطا",
+      body: `ثبت‌نام گروهی با ${errors.length} ردیف دارای خطا (${insertedCount} موفق، ${duplicateCount} تکراری) پایان یافت.`,
+      targetModal: "student_bulk_register",
+    });
+  }
+
   res.status(200).json({
     insertedCount,
     duplicateCount,
@@ -2206,3 +2721,975 @@ apiRouter.delete("/admin/students/:id", requireAdmin, (req: AuthenticatedRequest
 
   res.json({ message: "دانشجو با موفقیت حذف شد." });
 });
+
+// --- THESES ADMIN ROUTES (Protected by requireAdmin) ---
+
+const ALLOWED_THESIS_STATUSES = ["در حال انجام", "تأیید شده", "دفاع شده"] as const;
+
+function normalizeThesisStatus(raw: unknown): (typeof ALLOWED_THESIS_STATUSES)[number] | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim().replace(/\u200c/g, "");
+  if (trimmed === "در حال انجام") return "در حال انجام";
+  if (trimmed === "تأیید شده" || trimmed === "تایید شده") return "تأیید شده";
+  if (trimmed === "دفاع شده") return "دفاع شده";
+  return null;
+}
+
+interface ThesisDbRow {
+  id: string;
+  title: string;
+  student_id: string | null;
+  student_name: string | null;
+  student_number: string | null;
+  supervisor_id: string | null;
+  supervisor_name: string | null;
+  status: string;
+  created_at: string;
+}
+
+function formatThesisRow(t: ThesisDbRow) {
+  return {
+    id: t.id,
+    title: t.title,
+    studentId: t.student_id || null,
+    studentName: (t.student_name || "").trim() || "تعیین نشده",
+    studentNumber: t.student_number || "",
+    supervisorId: t.supervisor_id || null,
+    supervisorName: (t.supervisor_name || "").trim() || "تعیین نشده",
+    status: t.status,
+    createdAt: t.created_at,
+  };
+}
+
+// GET /api/admin/theses
+apiRouter.get("/admin/theses", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const rawQuery = typeof req.query.q === "string" ? req.query.q.trim() : "";
+  const rawStatus = typeof req.query.status === "string" ? req.query.status.trim() : "";
+  const normalizedStatus = rawStatus ? normalizeThesisStatus(rawStatus) : null;
+
+  const db = getDb();
+  let rows = db
+    .prepare(`
+      SELECT
+        t.id,
+        t.title,
+        t.student_id,
+        (COALESCE(s.first_name, '') || ' ' || COALESCE(s.last_name, '')) AS student_name,
+        s.student_number,
+        t.supervisor_id,
+        (COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')) AS supervisor_name,
+        t.status,
+        t.created_at
+      FROM theses t
+      LEFT JOIN students s ON s.id = t.student_id
+      LEFT JOIN professors p ON p.id = t.supervisor_id
+      ORDER BY t.created_at DESC
+    `)
+    .all() as unknown as ThesisDbRow[];
+
+  if (normalizedStatus) {
+    rows = rows.filter((r) => r.status === normalizedStatus);
+  }
+
+  if (rawQuery) {
+    const q = normalizeDigitsOnly(rawQuery).toLowerCase();
+    rows = rows.filter((r) => {
+      const title = (r.title || "").toLowerCase();
+      const stName = (r.student_name || "").toLowerCase();
+      const supName = (r.supervisor_name || "").toLowerCase();
+      return title.includes(q) || stName.includes(q) || supName.includes(q);
+    });
+  }
+
+  res.json({ theses: rows.map(formatThesisRow) });
+});
+
+// POST /api/admin/theses
+apiRouter.post("/admin/theses", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const { title, studentId, supervisorId, status } = req.body || {};
+
+  if (!title || typeof title !== "string" || !title.trim()) {
+    res.status(400).json({ message: "عنوان پایان‌نامه الزامی است." });
+    return;
+  }
+  const cleanTitle = title.trim();
+  if (cleanTitle.length > 200) {
+    res.status(400).json({ message: "عنوان پایان‌نامه نباید بیشتر از ۲۰۰ کاراکتر باشد." });
+    return;
+  }
+
+  let cleanStatus: (typeof ALLOWED_THESIS_STATUSES)[number] = "در حال انجام";
+  if (status !== undefined && status !== null && String(status).trim() !== "") {
+    const parsedStatus = normalizeThesisStatus(status);
+    if (!parsedStatus) {
+      res.status(400).json({ message: "وضعیت پایان‌نامه معتبر نیست." });
+      return;
+    }
+    cleanStatus = parsedStatus;
+  }
+
+  const db = getDb();
+
+  let cleanStudentId: string | null = null;
+  if (studentId !== undefined && studentId !== null && String(studentId).trim() !== "") {
+    if (typeof studentId !== "string") {
+      res.status(400).json({ message: "شناسه دانشجو نامعتبر است." });
+      return;
+    }
+    const trimmedStudentId = studentId.trim();
+    const studentRow = db
+      .prepare("SELECT id FROM students WHERE id = ?")
+      .get(trimmedStudentId) as { id: string } | undefined;
+    if (!studentRow) {
+      res.status(400).json({ message: "دانشجوی انتخاب‌شده یافت نشد." });
+      return;
+    }
+    cleanStudentId = studentRow.id;
+  }
+
+  let cleanSupervisorId: string | null = null;
+  if (supervisorId !== undefined && supervisorId !== null && String(supervisorId).trim() !== "") {
+    if (typeof supervisorId !== "string") {
+      res.status(400).json({ message: "شناسه استاد راهنما نامعتبر است." });
+      return;
+    }
+    const trimmedSupervisorId = supervisorId.trim();
+    const profRow = db
+      .prepare("SELECT id FROM professors WHERE id = ?")
+      .get(trimmedSupervisorId) as { id: string } | undefined;
+    if (!profRow) {
+      res.status(400).json({ message: "استاد راهنمای انتخاب‌شده یافت نشد." });
+      return;
+    }
+    cleanSupervisorId = profRow.id;
+  }
+
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+
+  db.prepare(`
+    INSERT INTO theses (id, title, student_id, supervisor_id, status, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(id, cleanTitle, cleanStudentId, cleanSupervisorId, cleanStatus, createdAt);
+
+  const createdRow = db
+    .prepare(`
+      SELECT
+        t.id,
+        t.title,
+        t.student_id,
+        (COALESCE(s.first_name, '') || ' ' || COALESCE(s.last_name, '')) AS student_name,
+        s.student_number,
+        t.supervisor_id,
+        (COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')) AS supervisor_name,
+        t.status,
+        t.created_at
+      FROM theses t
+      LEFT JOIN students s ON s.id = t.student_id
+      LEFT JOIN professors p ON p.id = t.supervisor_id
+      WHERE t.id = ?
+    `)
+    .get(id) as unknown as ThesisDbRow;
+
+  createAdminNotification(db, {
+    type: "theses",
+    title: "پایان‌نامه جدید ثبت شد",
+    body: `پایان‌نامه «${cleanTitle}» با وضعیت «${cleanStatus}» ثبت گردید.`,
+    targetModal: "thesis_list",
+    dedupeKey: `thesis:created:${id}`,
+    createdAt,
+  });
+
+  res.status(201).json({
+    thesis: formatThesisRow(createdRow),
+    message: "پایان‌نامه با موفقیت ثبت شد.",
+  });
+});
+
+// DELETE /api/admin/theses/:id
+apiRouter.delete("/admin/theses/:id", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const thesisId = typeof req.params.id === "string" ? req.params.id.trim() : "";
+  if (!thesisId) {
+    res.status(400).json({ message: "شناسه پایان‌نامه نامعتبر است." });
+    return;
+  }
+
+  const db = getDb();
+  const result = db.prepare("DELETE FROM theses WHERE id = ?").run(thesisId);
+  if (result.changes === 0) {
+    res.status(404).json({ message: "پایان‌نامه مورد نظر یافت نشد." });
+    return;
+  }
+
+  res.json({ message: "پایان‌نامه با موفقیت حذف شد." });
+});
+
+// --- DEFENSE SESSIONS ADMIN ROUTES (Protected by requireAdmin) ---
+
+const ALLOWED_DEFENSE_STATUSES = ["برنامه‌ریزی‌شده", "برگزار شد", "لغو"] as const;
+
+function normalizeDefenseStatus(raw: unknown): (typeof ALLOWED_DEFENSE_STATUSES)[number] | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim().replace(/\u200c/g, "");
+  if (trimmed === "برنامهریزی‌شده" || trimmed === "برنامهریزیشده" || trimmed === "برنامه‌ریزی شده") {
+    return "برنامه‌ریزی‌شده";
+  }
+  if (trimmed === "برگزار شد") return "برگزار شد";
+  if (trimmed === "لغو") return "لغو";
+  return null;
+}
+
+function normalizeDefenseDate(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const cleaned = normalizeDigitsOnly(raw.trim()).replace(/-/g, "/");
+  const match = /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/.exec(cleaned);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return null;
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+
+  if (year >= 1300 && year <= 1500) {
+    if (month >= 7 && day > 30) return null;
+    if (month === 12 && day > 30) return null;
+  } else if (year >= 2000 && year <= 2100) {
+    const dt = new Date(Date.UTC(year, month - 1, day));
+    if (
+      dt.getUTCFullYear() !== year ||
+      dt.getUTCMonth() !== month - 1 ||
+      dt.getUTCDate() !== day
+    ) {
+      return null;
+    }
+  } else {
+    return null;
+  }
+
+  return `${String(year).padStart(4, "0")}/${String(month).padStart(2, "0")}/${String(day).padStart(2, "0")}`;
+}
+
+function normalizeDefenseTime(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const cleaned = normalizeDigitsOnly(raw.trim());
+  const match = /^(\d{1,2}):(\d{2})$/.exec(cleaned);
+  if (!match) return null;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (!Number.isInteger(hour) || !Number.isInteger(minute)) return null;
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+interface DefenseSessionDbRow {
+  id: string;
+  thesis_id: string | null;
+  thesis_title: string | null;
+  student_name: string | null;
+  date: string;
+  time: string;
+  location: string;
+  referee_id: string | null;
+  referee_name: string | null;
+  status: string;
+  created_at: string;
+}
+
+function formatDefenseSessionRow(row: DefenseSessionDbRow) {
+  return {
+    id: row.id,
+    thesisId: row.thesis_id || null,
+    thesisTitle: row.thesis_title || "پایان‌نامه حذف‌شده",
+    studentName: (row.student_name || "").trim() || "تعیین نشده",
+    date: row.date,
+    time: row.time,
+    location: row.location,
+    refereeId: row.referee_id || null,
+    refereeName: (row.referee_name || "").trim() || "تعیین نشده",
+    status: row.status,
+    createdAt: row.created_at,
+  };
+}
+
+// GET /api/admin/defense-sessions
+apiRouter.get("/admin/defense-sessions", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const rawStatus = typeof req.query.status === "string" ? req.query.status.trim() : "";
+  const normalizedStatus = rawStatus ? normalizeDefenseStatus(rawStatus) : null;
+
+  const db = getDb();
+  let rows = db
+    .prepare(`
+      SELECT
+        ds.id,
+        ds.thesis_id,
+        t.title AS thesis_title,
+        (COALESCE(s.first_name, '') || ' ' || COALESCE(s.last_name, '')) AS student_name,
+        ds.date,
+        ds.time,
+        ds.location,
+        ds.referee_id,
+        (COALESCE(r.first_name, '') || ' ' || COALESCE(r.last_name, '')) AS referee_name,
+        ds.status,
+        ds.created_at
+      FROM defense_sessions ds
+      LEFT JOIN theses t ON t.id = ds.thesis_id
+      LEFT JOIN students s ON s.id = t.student_id
+      LEFT JOIN professors r ON r.id = ds.referee_id
+      ORDER BY ds.date DESC, ds.time DESC, ds.created_at DESC
+    `)
+    .all() as unknown as DefenseSessionDbRow[];
+
+  if (normalizedStatus) {
+    rows = rows.filter((row) => row.status === normalizedStatus);
+  }
+
+  res.json({ sessions: rows.map(formatDefenseSessionRow) });
+});
+
+// POST /api/admin/defense-sessions
+apiRouter.post("/admin/defense-sessions", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const { thesisId, date, time, location, refereeId, status } = req.body || {};
+
+  if (!thesisId || typeof thesisId !== "string" || !thesisId.trim()) {
+    res.status(400).json({ message: "انتخاب پایان‌نامه الزامی است." });
+    return;
+  }
+
+  const normalizedDate = normalizeDefenseDate(date);
+  if (!normalizedDate) {
+    res.status(400).json({ message: "فرمت تاریخ معتبر نیست (مثال: 1405/09/15 یا 2026-12-05)." });
+    return;
+  }
+
+  const normalizedTime = normalizeDefenseTime(time);
+  if (!normalizedTime) {
+    res.status(400).json({ message: "فرمت ساعت معتبر نیست (مثال: 14:30)." });
+    return;
+  }
+
+  if (!location || typeof location !== "string" || !location.trim()) {
+    res.status(400).json({ message: "مکان جلسه دفاع الزامی است." });
+    return;
+  }
+  const cleanLocation = location.trim();
+  if (cleanLocation.length > 150) {
+    res.status(400).json({ message: "مکان جلسه نباید بیشتر از ۱۵۰ کاراکتر باشد." });
+    return;
+  }
+
+  let cleanStatus: (typeof ALLOWED_DEFENSE_STATUSES)[number] = "برنامه‌ریزی‌شده";
+  if (status !== undefined && status !== null && String(status).trim() !== "") {
+    const parsedStatus = normalizeDefenseStatus(status);
+    if (!parsedStatus) {
+      res.status(400).json({ message: "وضعیت جلسه دفاع معتبر نیست." });
+      return;
+    }
+    cleanStatus = parsedStatus;
+  }
+
+  const db = getDb();
+  const thesisRow = db
+    .prepare("SELECT id FROM theses WHERE id = ?")
+    .get(thesisId.trim()) as { id: string } | undefined;
+
+  if (!thesisRow) {
+    res.status(400).json({ message: "پایان‌نامه انتخاب‌شده یافت نشد." });
+    return;
+  }
+
+  let cleanRefereeId: string | null = null;
+  if (refereeId !== undefined && refereeId !== null && String(refereeId).trim() !== "") {
+    if (typeof refereeId !== "string") {
+      res.status(400).json({ message: "شناسه داور نامعتبر است." });
+      return;
+    }
+    const profRow = db
+      .prepare("SELECT id FROM professors WHERE id = ?")
+      .get(refereeId.trim()) as { id: string } | undefined;
+    if (!profRow) {
+      res.status(400).json({ message: "داور انتخاب‌شده یافت نشد." });
+      return;
+    }
+    cleanRefereeId = profRow.id;
+  }
+
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+
+  db.prepare(`
+    INSERT INTO defense_sessions (id, thesis_id, date, time, location, referee_id, status, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, thesisRow.id, normalizedDate, normalizedTime, cleanLocation, cleanRefereeId, cleanStatus, createdAt);
+
+  const createdRow = db
+    .prepare(`
+      SELECT
+        ds.id,
+        ds.thesis_id,
+        t.title AS thesis_title,
+        (COALESCE(s.first_name, '') || ' ' || COALESCE(s.last_name, '')) AS student_name,
+        ds.date,
+        ds.time,
+        ds.location,
+        ds.referee_id,
+        (COALESCE(r.first_name, '') || ' ' || COALESCE(r.last_name, '')) AS referee_name,
+        ds.status,
+        ds.created_at
+      FROM defense_sessions ds
+      LEFT JOIN theses t ON t.id = ds.thesis_id
+      LEFT JOIN students s ON s.id = t.student_id
+      LEFT JOIN professors r ON r.id = ds.referee_id
+      WHERE ds.id = ?
+    `)
+    .get(id) as unknown as DefenseSessionDbRow;
+
+  createAdminNotification(db, {
+    type: "defense",
+    title: "ثبت جلسه دفاع جدید",
+    body: `جلسه دفاع برای تاریخ ${normalizedDate} ساعت ${normalizedTime} در ${cleanLocation} ثبت شد.`,
+    targetModal: "defense_sessions",
+    dedupeKey: `defense:created:${id}`,
+    createdAt,
+  });
+
+  res.status(201).json({
+    session: formatDefenseSessionRow(createdRow),
+    message: "جلسه دفاع با موفقیت ثبت شد.",
+  });
+});
+
+// PATCH /api/admin/defense-sessions/:id
+apiRouter.patch("/admin/defense-sessions/:id", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const sessionId = typeof req.params.id === "string" ? req.params.id.trim() : "";
+  if (!sessionId) {
+    res.status(400).json({ message: "شناسه جلسه دفاع نامعتبر است." });
+    return;
+  }
+
+  const db = getDb();
+  const existing = db
+    .prepare("SELECT * FROM defense_sessions WHERE id = ?")
+    .get(sessionId) as {
+      id: string;
+      thesis_id: string | null;
+      date: string;
+      time: string;
+      location: string;
+      referee_id: string | null;
+      status: string;
+    } | undefined;
+
+  if (!existing) {
+    res.status(404).json({ message: "جلسه دفاع مورد نظر یافت نشد." });
+    return;
+  }
+
+  const { status, date, time, location, refereeId } = req.body || {};
+
+  let nextStatus = existing.status;
+  if (status !== undefined) {
+    const parsedStatus = normalizeDefenseStatus(status);
+    if (!parsedStatus) {
+      res.status(400).json({ message: "وضعیت جلسه دفاع معتبر نیست." });
+      return;
+    }
+    nextStatus = parsedStatus;
+  }
+
+  let nextDate = existing.date;
+  if (date !== undefined) {
+    const parsedDate = normalizeDefenseDate(date);
+    if (!parsedDate) {
+      res.status(400).json({ message: "فرمت تاریخ معتبر نیست (مثال: 1405/09/15 یا 2026-12-05)." });
+      return;
+    }
+    nextDate = parsedDate;
+  }
+
+  let nextTime = existing.time;
+  if (time !== undefined) {
+    const parsedTime = normalizeDefenseTime(time);
+    if (!parsedTime) {
+      res.status(400).json({ message: "فرمت ساعت معتبر نیست (مثال: 14:30)." });
+      return;
+    }
+    nextTime = parsedTime;
+  }
+
+  let nextLocation = existing.location;
+  if (location !== undefined) {
+    if (typeof location !== "string" || !location.trim() || location.trim().length > 150) {
+      res.status(400).json({ message: "مکان جلسه دفاع معتبر نیست." });
+      return;
+    }
+    nextLocation = location.trim();
+  }
+
+  let nextRefereeId = existing.referee_id;
+  if (refereeId !== undefined) {
+    if (refereeId === null || String(refereeId).trim() === "") {
+      nextRefereeId = null;
+    } else if (typeof refereeId === "string") {
+      const profRow = db
+        .prepare("SELECT id FROM professors WHERE id = ?")
+        .get(refereeId.trim()) as { id: string } | undefined;
+      if (!profRow) {
+        res.status(400).json({ message: "داور انتخاب‌شده یافت نشد." });
+        return;
+      }
+      nextRefereeId = profRow.id;
+    } else {
+      res.status(400).json({ message: "شناسه داور نامعتبر است." });
+      return;
+    }
+  }
+
+  db.prepare(`
+    UPDATE defense_sessions
+    SET status = ?, date = ?, time = ?, location = ?, referee_id = ?
+    WHERE id = ?
+  `).run(nextStatus, nextDate, nextTime, nextLocation, nextRefereeId, sessionId);
+
+  const updatedRow = db
+    .prepare(`
+      SELECT
+        ds.id,
+        ds.thesis_id,
+        t.title AS thesis_title,
+        (COALESCE(s.first_name, '') || ' ' || COALESCE(s.last_name, '')) AS student_name,
+        ds.date,
+        ds.time,
+        ds.location,
+        ds.referee_id,
+        (COALESCE(r.first_name, '') || ' ' || COALESCE(r.last_name, '')) AS referee_name,
+        ds.status,
+        ds.created_at
+      FROM defense_sessions ds
+      LEFT JOIN theses t ON t.id = ds.thesis_id
+      LEFT JOIN students s ON s.id = t.student_id
+      LEFT JOIN professors r ON r.id = ds.referee_id
+      WHERE ds.id = ?
+    `)
+    .get(sessionId) as unknown as DefenseSessionDbRow;
+
+  res.json({
+    session: formatDefenseSessionRow(updatedRow),
+    message: "وضعیت جلسه دفاع با موفقیت به‌روزرسانی شد.",
+  });
+});
+
+// DELETE /api/admin/defense-sessions/:id
+apiRouter.delete("/admin/defense-sessions/:id", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const sessionId = typeof req.params.id === "string" ? req.params.id.trim() : "";
+  if (!sessionId) {
+    res.status(400).json({ message: "شناسه جلسه دفاع نامعتبر است." });
+    return;
+  }
+
+  const db = getDb();
+  const result = db.prepare("DELETE FROM defense_sessions WHERE id = ?").run(sessionId);
+  if (result.changes === 0) {
+    res.status(404).json({ message: "جلسه دفاع مورد نظر یافت نشد." });
+    return;
+  }
+
+  res.json({ message: "جلسه دفاع با موفقیت حذف شد." });
+});
+
+// --- ADMIN NOTIFICATIONS CENTER (Protected by requireAdmin) ---
+
+type AdminNotificationType =
+  | "pending"
+  | "theses"
+  | "professors"
+  | "defense"
+  | "registrations"
+  | "system";
+
+interface AdminNotificationDbRow {
+  id: string;
+  type: AdminNotificationType;
+  title: string;
+  body: string;
+  target_modal: string | null;
+  dedupe_key: string | null;
+  is_read: number;
+  created_at: string;
+}
+
+function formatAdminNotificationRow(row: AdminNotificationDbRow) {
+  return {
+    id: row.id,
+    type: row.type,
+    title: row.title,
+    body: row.body,
+    targetModal: row.target_modal || null,
+    isRead: Number(row.is_read) === 1,
+    createdAt: row.created_at,
+  };
+}
+
+function createAdminNotification(
+  db: ReturnType<typeof getDb>,
+  params: {
+    type: AdminNotificationType;
+    title: string;
+    body: string;
+    targetModal: string | null;
+    dedupeKey?: string | null;
+    createdAt?: string;
+  }
+): void {
+  const id = crypto.randomUUID();
+  const createdAt = params.createdAt || new Date().toISOString();
+  const dedupeKey = params.dedupeKey?.trim() || null;
+
+  if (dedupeKey) {
+    db.prepare(`
+      INSERT OR IGNORE INTO admin_notifications (
+        id, type, title, body, target_modal, dedupe_key, is_read, created_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, 0, ?)
+    `).run(id, params.type, params.title, params.body, params.targetModal, dedupeKey, createdAt);
+    return;
+  }
+
+  db.prepare(`
+    INSERT INTO admin_notifications (
+      id, type, title, body, target_modal, dedupe_key, is_read, created_at
+    )
+    VALUES (?, ?, ?, ?, ?, NULL, 0, ?)
+  `).run(id, params.type, params.title, params.body, params.targetModal, createdAt);
+}
+
+function getTodayAndTomorrowDateStrings(): {
+  todayJalali: string;
+  tomorrowJalali: string;
+  todayGregorian: string;
+  tomorrowGregorian: string;
+} {
+  const now = new Date();
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+  const formatJalali = (d: Date): string => {
+    try {
+      const parts = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+        timeZone: "Asia/Tehran",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).formatToParts(d);
+      const y = normalizeDigitsOnly(parts.find((p) => p.type === "year")?.value || "");
+      const m = normalizeDigitsOnly(parts.find((p) => p.type === "month")?.value || "");
+      const day = normalizeDigitsOnly(parts.find((p) => p.type === "day")?.value || "");
+      if (y && m && day) return `${y}/${m.padStart(2, "0")}/${day.padStart(2, "0")}`;
+    } catch {
+      // ignore fallback
+    }
+    return "";
+  };
+
+  const formatGregorian = (d: Date): string => {
+    try {
+      return new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Tehran",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+        .format(d)
+        .replace(/-/g, "/");
+    } catch {
+      return d.toISOString().slice(0, 10).replace(/-/g, "/");
+    }
+  };
+
+  return {
+    todayJalali: formatJalali(now),
+    tomorrowJalali: formatJalali(tomorrow),
+    todayGregorian: formatGregorian(now),
+    tomorrowGregorian: formatGregorian(tomorrow),
+  };
+}
+
+function syncConditionalAdminNotifications(db: ReturnType<typeof getDb>, adminUserId: string): void {
+  // 1. Unread chat messages from non-admin users -> pending
+  const chatSummary = db
+    .prepare(`
+      SELECT COUNT(*) AS cnt, MAX(id) AS last_id, MAX(created_at) AS last_at
+      FROM chat_messages
+      WHERE user_id != ?
+    `)
+    .get(adminUserId) as { cnt: number; last_id: number | null; last_at: string | null } | undefined;
+
+  if (chatSummary && Number(chatSummary.cnt) > 0 && chatSummary.last_id) {
+    createAdminNotification(db, {
+      type: "pending",
+      title: "پیام‌های خوانده‌نشده در گفتگو",
+      body: `${chatSummary.cnt} پیام در بخش گفتگوی سامانه در انتظار بررسی است.`,
+      targetModal: "chat",
+      dedupeKey: `pending:chat:${chatSummary.last_id}`,
+      createdAt: chatSummary.last_at || undefined,
+    });
+  }
+
+  // 2. Theses without a supervisor -> theses
+  const unsupervisedTheses = db
+    .prepare(`
+      SELECT id, title, created_at
+      FROM theses
+      WHERE supervisor_id IS NULL AND status != 'دفاع شده'
+      ORDER BY created_at DESC
+      LIMIT 15
+    `)
+    .all() as Array<{ id: string; title: string; created_at: string }>;
+
+  for (const thesis of unsupervisedTheses) {
+    createAdminNotification(db, {
+      type: "theses",
+      title: "پایان‌نامه بدون استاد راهنما",
+      body: `پایان‌نامه «${thesis.title}» هنوز استاد راهنما ندارد.`,
+      targetModal: "thesis_list",
+      dedupeKey: `thesis:no_supervisor:${thesis.id}`,
+      createdAt: thesis.created_at,
+    });
+  }
+
+  // 3. Professors with full guidance capacity -> professors
+  const fullProfessors = db
+    .prepare(`
+      SELECT
+        p.id,
+        p.first_name,
+        p.last_name,
+        p.capacity,
+        COUNT(CASE WHEN t.id IS NOT NULL AND t.status != 'دفاع شده' THEN 1 END) AS active_count
+      FROM professors p
+      LEFT JOIN theses t ON t.supervisor_id = p.id
+      WHERE p.capacity > 0
+      GROUP BY p.id, p.first_name, p.last_name, p.capacity
+      HAVING active_count >= p.capacity
+    `)
+    .all() as Array<{
+      id: string;
+      first_name: string;
+      last_name: string;
+      capacity: number;
+      active_count: number;
+    }>;
+
+  for (const prof of fullProfessors) {
+    createAdminNotification(db, {
+      type: "professors",
+      title: "تکمیل ظرفیت استاد راهنما",
+      body: `ظرفیت راهنمایی ${prof.first_name} ${prof.last_name} تکمیل شده است (${prof.active_count} از ${prof.capacity}).`,
+      targetModal: "professor_capacity",
+      dedupeKey: `prof:full:${prof.id}:${prof.capacity}`,
+    });
+  }
+
+  // 4. Defense sessions scheduled for today or tomorrow -> defense
+  const { todayJalali, tomorrowJalali, todayGregorian, tomorrowGregorian } = getTodayAndTomorrowDateStrings();
+  const scheduledSessions = db
+    .prepare(`
+      SELECT ds.id, ds.date, ds.time, ds.location, t.title AS thesis_title
+      FROM defense_sessions ds
+      LEFT JOIN theses t ON t.id = ds.thesis_id
+      WHERE ds.status = 'برنامه‌ریزی‌شده'
+    `)
+    .all() as Array<{
+      id: string;
+      date: string;
+      time: string;
+      location: string;
+      thesis_title: string | null;
+    }>;
+
+  for (const ds of scheduledSessions) {
+    const normDate = normalizeDigitsOnly(ds.date).replace(/-/g, "/");
+    let dayLabel = "";
+    if (normDate === todayJalali || normDate === todayGregorian) {
+      dayLabel = "امروز";
+    } else if (normDate === tomorrowJalali || normDate === tomorrowGregorian) {
+      dayLabel = "فردا";
+    }
+    if (dayLabel) {
+      createAdminNotification(db, {
+        type: "defense",
+        title: `جلسه دفاع ${dayLabel}`,
+        body: `${ds.thesis_title ? `«${ds.thesis_title}» - ` : ""}${ds.date} ساعت ${ds.time} (${ds.location})`,
+        targetModal: "defense_sessions",
+        dedupeKey: `defense:upcoming:${ds.id}:${normDate}`,
+      });
+    }
+  }
+
+  // 5. Recent registrations in the last 24 hours (backfill safely without duplicates) -> registrations
+  const cutoff24hIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  const recentStudents = db
+    .prepare(`
+      SELECT id, first_name, last_name, student_number, created_at
+      FROM students
+      WHERE created_at >= ?
+      ORDER BY created_at DESC
+      LIMIT 15
+    `)
+    .all(cutoff24hIso) as Array<{
+      id: string;
+      first_name: string;
+      last_name: string;
+      student_number: string;
+      created_at: string;
+    }>;
+  for (const st of recentStudents) {
+    createAdminNotification(db, {
+      type: "registrations",
+      title: "ثبت‌نام دانشجوی جدید",
+      body: `${st.first_name} ${st.last_name} (شماره دانشجویی: ${st.student_number}) ثبت شد.`,
+      targetModal: "student_search",
+      dedupeKey: `reg:student:${st.id}`,
+      createdAt: st.created_at,
+    });
+  }
+
+  const recentProfessors = db
+    .prepare(`
+      SELECT id, first_name, last_name, academic_rank, created_at
+      FROM professors
+      WHERE created_at >= ?
+      ORDER BY created_at DESC
+      LIMIT 15
+    `)
+    .all(cutoff24hIso) as Array<{
+      id: string;
+      first_name: string;
+      last_name: string;
+      academic_rank: string;
+      created_at: string;
+    }>;
+  for (const pr of recentProfessors) {
+    createAdminNotification(db, {
+      type: "registrations",
+      title: "ثبت‌نام استاد جدید",
+      body: `${pr.first_name} ${pr.last_name} (${pr.academic_rank}) به لیست اساتید اضافه شد.`,
+      targetModal: "professor_list",
+      dedupeKey: `reg:professor:${pr.id}`,
+      createdAt: pr.created_at,
+    });
+  }
+
+  const recentEmployees = db
+    .prepare(`
+      SELECT id, first_name, last_name, position, created_at
+      FROM employees
+      WHERE created_at >= ?
+      ORDER BY created_at DESC
+      LIMIT 15
+    `)
+    .all(cutoff24hIso) as Array<{
+      id: string;
+      first_name: string;
+      last_name: string;
+      position: string | null;
+      created_at: string;
+    }>;
+  for (const emp of recentEmployees) {
+    createAdminNotification(db, {
+      type: "registrations",
+      title: "ثبت‌نام کارمند جدید",
+      body: `${emp.first_name} ${emp.last_name}${emp.position ? ` (${emp.position})` : ""} ثبت شد.`,
+      targetModal: "employee_list",
+      dedupeKey: `reg:employee:${emp.id}`,
+      createdAt: emp.created_at,
+    });
+  }
+}
+
+// GET /api/admin/notifications
+apiRouter.get("/admin/notifications", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  try {
+    const db = getDb();
+    syncConditionalAdminNotifications(db, req.user?.id || "");
+
+    const rows = db
+      .prepare(`
+        SELECT id, type, title, body, target_modal, dedupe_key, is_read, created_at
+        FROM admin_notifications
+        ORDER BY created_at DESC
+        LIMIT 50
+      `)
+      .all() as unknown as AdminNotificationDbRow[];
+
+    const unreadRow = db
+      .prepare("SELECT COUNT(*) AS count FROM admin_notifications WHERE is_read = 0")
+      .get() as { count: number } | undefined;
+
+    res.json({
+      notifications: rows.map(formatAdminNotificationRow),
+      unreadCount: Number(unreadRow?.count ?? 0),
+    });
+  } catch (err: any) {
+    console.error("[ADMIN NOTIFICATIONS ERROR]:", err);
+    res.status(500).json({ message: "خطا در دریافت اعلان‌های مدیریت" });
+  }
+});
+
+// PATCH /api/admin/notifications/read-all
+apiRouter.patch("/admin/notifications/read-all", requireAdmin, (_req: AuthenticatedRequest, res: Response): void => {
+  try {
+    const db = getDb();
+    db.prepare("UPDATE admin_notifications SET is_read = 1 WHERE is_read = 0").run();
+    res.json({
+      message: "همه اعلان‌ها به عنوان خوانده‌شده علامت‌گذاری شدند.",
+      unreadCount: 0,
+    });
+  } catch (err: any) {
+    console.error("[ADMIN NOTIFICATIONS READ-ALL ERROR]:", err);
+    res.status(500).json({ message: "خطا در علامت‌گذاری اعلان‌ها" });
+  }
+});
+
+// PATCH /api/admin/notifications/:id/read
+apiRouter.patch("/admin/notifications/:id/read", requireAdmin, (req: AuthenticatedRequest, res: Response): void => {
+  const notificationId = typeof req.params.id === "string" ? req.params.id.trim() : "";
+  if (!notificationId) {
+    res.status(400).json({ message: "شناسه اعلان نامعتبر است." });
+    return;
+  }
+
+  try {
+    const db = getDb();
+    const existing = db
+      .prepare("SELECT id FROM admin_notifications WHERE id = ?")
+      .get(notificationId) as { id: string } | undefined;
+
+    if (!existing) {
+      res.status(404).json({ message: "اعلان مورد نظر یافت نشد." });
+      return;
+    }
+
+    db.prepare("UPDATE admin_notifications SET is_read = 1 WHERE id = ?").run(notificationId);
+
+    const updated = db
+      .prepare(`
+        SELECT id, type, title, body, target_modal, dedupe_key, is_read, created_at
+        FROM admin_notifications
+        WHERE id = ?
+      `)
+      .get(notificationId) as unknown as AdminNotificationDbRow;
+
+    const unreadRow = db
+      .prepare("SELECT COUNT(*) AS count FROM admin_notifications WHERE is_read = 0")
+      .get() as { count: number } | undefined;
+
+    res.json({
+      notification: formatAdminNotificationRow(updated),
+      unreadCount: Number(unreadRow?.count ?? 0),
+    });
+  } catch (err: any) {
+    console.error("[ADMIN NOTIFICATION READ ERROR]:", err);
+    res.status(500).json({ message: "خطا در به‌روزرسانی وضعیت اعلان" });
+  }
+});
+

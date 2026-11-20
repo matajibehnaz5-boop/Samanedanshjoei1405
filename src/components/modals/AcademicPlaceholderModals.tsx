@@ -1,30 +1,14 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  FileText,
-  Users,
-  CalendarDays,
   FolderKanban,
   Megaphone,
-  UserCog,
   X,
   Clock,
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 
 const PLACEHOLDER_MODAL_CONFIG: Record<string, { title: string; icon: React.ReactNode }> = {
-  thesis_list: {
-    title: 'لیست پایان‌نامه‌ها',
-    icon: <FileText className="w-6 h-6" />,
-  },
-  professor_capacity: {
-    title: 'ظرفیت اساتید',
-    icon: <Users className="w-6 h-6" />,
-  },
-  defense_sessions: {
-    title: 'جلسات دفاع',
-    icon: <CalendarDays className="w-6 h-6" />,
-  },
   thesis_affairs: {
     title: 'امور پایان‌نامه‌ها',
     icon: <FolderKanban className="w-6 h-6" />,
@@ -32,10 +16,6 @@ const PLACEHOLDER_MODAL_CONFIG: Record<string, { title: string; icon: React.Reac
   public_announcements: {
     title: 'اعلانات عمومی',
     icon: <Megaphone className="w-6 h-6" />,
-  },
-  admin_users: {
-    title: 'کاربران',
-    icon: <UserCog className="w-6 h-6" />,
   },
 };
 

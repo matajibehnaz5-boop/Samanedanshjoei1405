@@ -38,6 +38,11 @@ export interface LoginParams {
   password: string;
 }
 
+export interface SsoLoginParams {
+  username: string;
+  password: string;
+}
+
 export interface ChangePasswordParams {
   currentPassword: string;
   newPassword: string;
@@ -163,7 +168,7 @@ export interface ProfessorThesis {
 
 export interface AdminOverviewActivity {
   id: string;
-  type: 'employee' | 'edu_group' | 'professor' | 'student';
+  type: 'employee' | 'edu_group' | 'professor' | 'student' | 'thesis' | 'defense_session';
   title: string;
   subtitle: string;
   createdAt: string;
@@ -239,6 +244,92 @@ export interface BulkAddStudentsResponse {
   errors: BulkStudentError[];
 }
 
+export type ThesisStatus = 'در حال انجام' | 'تأیید شده' | 'دفاع شده';
+
+export interface Thesis {
+  id: string;
+  title: string;
+  studentId: string | null;
+  studentName: string;
+  studentNumber: string;
+  supervisorId: string | null;
+  supervisorName: string;
+  status: ThesisStatus;
+  createdAt: string;
+}
+
+export interface CreateThesisParams {
+  title: string;
+  studentId?: string | null;
+  supervisorId?: string | null;
+  status: ThesisStatus;
+}
+
+export interface ProfessorCapacityItem {
+  id: string;
+  firstName: string;
+  lastName: string;
+  academicRank: string;
+  groupName: string;
+  totalCapacity: number;
+  currentThesesCount: number;
+  remainingCapacity: number;
+}
+
+export type DefenseSessionStatus = 'برنامه‌ریزی‌شده' | 'برگزار شد' | 'لغو';
+
+export interface DefenseSession {
+  id: string;
+  thesisId: string | null;
+  thesisTitle: string;
+  studentName: string;
+  date: string;
+  time: string;
+  location: string;
+  refereeId: string | null;
+  refereeName: string;
+  status: DefenseSessionStatus;
+  createdAt: string;
+}
+
+export interface CreateDefenseSessionParams {
+  thesisId: string;
+  date: string;
+  time: string;
+  location: string;
+  refereeId?: string | null;
+  status?: DefenseSessionStatus;
+}
+
+export interface UpdateDefenseSessionParams {
+  status?: DefenseSessionStatus;
+  date?: string;
+  time?: string;
+  location?: string;
+  refereeId?: string | null;
+}
+
+export interface AdminUserItem {
+  id: string;
+  email: string;
+  name: string;
+  studentId: string;
+  role: 'admin' | 'student' | string;
+  status: 'active' | 'locked';
+  isSelf: boolean;
+  createdAt: string;
+}
+
+export interface ResetUserPasswordResponse {
+  temporaryPassword: string;
+  message: string;
+}
+
+export interface AdminNotificationsResponse {
+  notifications: import('../types').AdminNotificationItem[];
+  unreadCount: number;
+}
+
 const ALLOWED_PROFILE_KEYS = [
   'name',
   'studentId',
@@ -299,10 +390,19 @@ function mapApiErrorMessage(status: number, serverMessage?: string, endpoint?: s
     return 'تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً چند دقیقه دیگر دوباره تلاش کنید.';
   }
   if (status === 401) {
+    if (endpoint?.includes('/auth/sso-login')) {
+      return msg && /[\u0600-\u06FF]/.test(msg) ? msg : 'نام کاربری یا رمز عبور اشتباه است.';
+    }
     if (endpoint?.includes('/auth/login')) {
       return 'ایمیل یا رمز عبور اشتباه است.';
     }
     return 'عدم دسترسی: لطفاً ابتدا وارد حساب کاربری خود شوید.';
+  }
+  if (status === 403) {
+    if (msg && /[\u0600-\u06FF]/.test(msg)) {
+      return msg;
+    }
+    return 'دسترسی غیرمجاز: فقط مدیر سیستم مجاز به انجام این عملیات است.';
   }
   if (status >= 500) {
     return 'خطای سرور در پردازش درخواست. لطفاً لحظاتی دیگر دوباره تلاش کنید.';
@@ -359,6 +459,13 @@ export const api = {
 
   async login(params: LoginParams): Promise<{ user: ApiUser }> {
     return request<{ user: ApiUser }>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async ssoLogin(params: SsoLoginParams): Promise<{ user: ApiUser }> {
+    return request<{ user: ApiUser }>('/api/auth/sso-login', {
       method: 'POST',
       body: JSON.stringify(params),
     });
@@ -564,6 +671,129 @@ export const api = {
   async getAdminOverview(): Promise<AdminOverviewResponse> {
     return request<AdminOverviewResponse>('/api/admin/overview', {
       method: 'GET',
+    });
+  },
+
+  // Theses (Admin Only)
+  async getTheses(params?: { q?: string; status?: string }): Promise<{ theses: Thesis[] }> {
+    const searchParams = new URLSearchParams();
+    if (params?.q && params.q.trim()) searchParams.set('q', params.q.trim());
+    if (params?.status && params.status.trim()) searchParams.set('status', params.status.trim());
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return request<{ theses: Thesis[] }>(`/api/admin/theses${query}`, {
+      method: 'GET',
+    });
+  },
+
+  async addThesis(params: CreateThesisParams): Promise<{ thesis: Thesis; message: string }> {
+    return request<{ thesis: Thesis; message: string }>('/api/admin/theses', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async deleteThesis(id: string): Promise<{ message: string }> {
+    return request<{ message: string }>(`/api/admin/theses/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Professor Capacity (Admin Only)
+  async getProfessorsCapacity(): Promise<{ professors: ProfessorCapacityItem[] }> {
+    return request<{ professors: ProfessorCapacityItem[] }>('/api/admin/professors/capacity', {
+      method: 'GET',
+    });
+  },
+
+  async updateProfessorCapacity(
+    id: string,
+    capacity: number
+  ): Promise<{ message: string; professor: ProfessorCapacityItem }> {
+    return request<{ message: string; professor: ProfessorCapacityItem }>(
+      `/api/admin/professors/${encodeURIComponent(id)}/capacity`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ capacity }),
+      }
+    );
+  },
+
+  // Defense Sessions (Admin Only)
+  async getDefenseSessions(status?: string): Promise<{ sessions: DefenseSession[] }> {
+    const query = status && status.trim() ? `?status=${encodeURIComponent(status.trim())}` : '';
+    return request<{ sessions: DefenseSession[] }>(`/api/admin/defense-sessions${query}`, {
+      method: 'GET',
+    });
+  },
+
+  async addDefenseSession(
+    params: CreateDefenseSessionParams
+  ): Promise<{ session: DefenseSession; message: string }> {
+    return request<{ session: DefenseSession; message: string }>('/api/admin/defense-sessions', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async updateDefenseSession(
+    id: string,
+    params: UpdateDefenseSessionParams
+  ): Promise<{ session: DefenseSession; message: string }> {
+    return request<{ session: DefenseSession; message: string }>(
+      `/api/admin/defense-sessions/${encodeURIComponent(id)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(params),
+      }
+    );
+  },
+
+  async deleteDefenseSession(id: string): Promise<{ message: string }> {
+    return request<{ message: string }>(`/api/admin/defense-sessions/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Admin Users Management (Admin Only)
+  async getAdminUsers(): Promise<{ users: AdminUserItem[] }> {
+    return request<{ users: AdminUserItem[] }>('/api/admin/users', {
+      method: 'GET',
+    });
+  },
+
+  async resetAdminUserPassword(id: string): Promise<ResetUserPasswordResponse> {
+    return request<ResetUserPasswordResponse>(
+      `/api/admin/users/${encodeURIComponent(id)}/reset-password`,
+      {
+        method: 'POST',
+        body: JSON.stringify({}),
+      }
+    );
+  },
+
+  // Admin Notifications Center (Admin Only)
+  async getAdminNotifications(): Promise<AdminNotificationsResponse> {
+    return request<AdminNotificationsResponse>('/api/admin/notifications', {
+      method: 'GET',
+    });
+  },
+
+  async markAdminNotificationRead(
+    id: string
+  ): Promise<{ notification: import('../types').AdminNotificationItem; unreadCount: number }> {
+    return request<{ notification: import('../types').AdminNotificationItem; unreadCount: number }>(
+      `/api/admin/notifications/${encodeURIComponent(id)}/read`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({}),
+      }
+    );
+  },
+
+  async markAllAdminNotificationsRead(): Promise<{ message: string; unreadCount: number }> {
+    return request<{ message: string; unreadCount: number }>('/api/admin/notifications/read-all', {
+      method: 'PATCH',
+      body: JSON.stringify({}),
     });
   },
 };
