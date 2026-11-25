@@ -244,24 +244,24 @@ export const AdminCartableModal: React.FC = () => {
     <AnimatePresence>
       <div
         dir="rtl"
-        className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 pb-[10vh] sm:pb-[6vh] bg-slate-950/80 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 pb-[10vh] sm:pb-[6vh] bg-[var(--backdrop)] backdrop-blur-sm"
       >
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 40, scale: 0.97 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="w-full max-w-4xl bg-[#1E293B] border border-slate-700/80 rounded-[24px] sm:rounded-[28px] shadow-2xl text-slate-100 flex flex-col max-h-[86dvh] overflow-hidden"
+          className="w-full max-w-4xl bg-[var(--surface)] border border-[var(--border-strong)] rounded-[24px] sm:rounded-[28px] shadow-2xl text-[var(--text)] flex flex-col max-h-[86dvh] overflow-hidden"
         >
           {/* Header */}
-          <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-slate-700/70 bg-[#172030] flex items-center justify-between gap-3 shrink-0">
+          <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-[var(--border)] bg-[var(--surface-header)] flex items-center justify-between gap-3 shrink-0">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
               <div className="p-2 sm:p-2.5 bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/30 shrink-0">
                 <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-base sm:text-lg font-bold text-slate-100 truncate">
+                  <h2 className="text-base sm:text-lg font-bold text-[var(--text)] truncate">
                     کارتابل ادمین
                   </h2>
                   {counts.pending > 0 && (
@@ -270,7 +270,7 @@ export const AdminCartableModal: React.FC = () => {
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] sm:text-xs text-slate-400 truncate mt-0.5">
+                <p className="text-[11px] sm:text-xs text-[var(--text-2)] truncate mt-0.5">
                   بررسی، تأیید یا رد کارها و درخواست‌های رسیده به مدیریت
                 </p>
               </div>
@@ -280,14 +280,14 @@ export const AdminCartableModal: React.FC = () => {
               type="button"
               onClick={closeModal}
               aria-label="بستن"
-              className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
+              className="p-2 rounded-full hover:bg-[var(--surface-hover)] text-[var(--text-2)] hover:text-[var(--text)] transition-colors cursor-pointer shrink-0"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Top Controls: Tabs & Search */}
-          <div className="px-3.5 py-2.5 sm:px-6 sm:py-3 border-b border-slate-700/60 bg-[#1A2436] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shrink-0">
+          <div className="px-3.5 py-2.5 sm:px-6 sm:py-3 border-b border-[var(--border-subtle)] bg-[var(--surface-sub)] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shrink-0">
             {/* Filter Tabs */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 sm:pb-0">
               <button
@@ -299,7 +299,7 @@ export const AdminCartableModal: React.FC = () => {
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
                   tab === 'all'
                     ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 hover:text-white'
+                    : 'bg-[var(--surface-2)] text-[var(--text-2)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)]'
                 }`}
               >
                 همه ({toPersianDigits(counts.all)})
@@ -313,7 +313,7 @@ export const AdminCartableModal: React.FC = () => {
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
                   tab === 'pending'
                     ? 'bg-amber-500 text-slate-950 shadow-sm'
-                    : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 hover:text-white'
+                    : 'bg-[var(--surface-2)] text-[var(--text-2)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)]'
                 }`}
               >
                 در انتظار ({toPersianDigits(counts.pending)})
@@ -327,7 +327,7 @@ export const AdminCartableModal: React.FC = () => {
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
                   tab === 'done'
                     ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 hover:text-white'
+                    : 'bg-[var(--surface-2)] text-[var(--text-2)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)]'
                 }`}
               >
                 انجام‌شده ({toPersianDigits(counts.done)})
@@ -336,13 +336,13 @@ export const AdminCartableModal: React.FC = () => {
 
             {/* Search Input */}
             <div className="relative w-full sm:w-64 shrink-0">
-              <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-[var(--text-muted)] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="جستجو در عنوان، فرستنده یا متن..."
-                className="w-full bg-[#111827]/80 border border-slate-700/80 rounded-xl pr-9 pl-3 py-1.5 sm:py-2 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl pr-9 pl-3 py-1.5 sm:py-2 text-xs text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--accent)]"
               />
             </div>
           </div>
@@ -350,18 +350,18 @@ export const AdminCartableModal: React.FC = () => {
           {/* Body: Master / Detail */}
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-5">
             {isLoading && items.length === 0 ? (
-              <div className="py-14 flex flex-col items-center justify-center gap-2.5 text-slate-400 text-xs sm:text-sm">
+              <div className="py-14 flex flex-col items-center justify-center gap-2.5 text-[var(--text-2)] text-xs sm:text-sm">
                 <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
                 <span>در حال بارگذاری موارد کارتابل...</span>
               </div>
             ) : filteredItems.length === 0 && !selectedItem ? (
               <div className="py-14 flex flex-col items-center justify-center gap-3 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-700/70 flex items-center justify-center text-slate-400">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)]">
                   <Inbox className="w-6 h-6" />
                 </div>
-                <p className="text-sm font-bold text-slate-200">کارتابل شما خالی است</p>
+                <p className="text-sm font-bold text-[var(--text)]">کارتابل شما خالی است</p>
                 {searchQuery.trim() && (
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-[var(--text-2)]">
                     موردی مطابق با عبارت «{searchQuery.trim()}» یافت نشد.
                   </p>
                 )}
@@ -375,7 +375,7 @@ export const AdminCartableModal: React.FC = () => {
                   } md:col-span-5 space-y-2`}
                 >
                   {filteredItems.length === 0 ? (
-                    <div className="p-6 rounded-2xl bg-slate-900/40 border border-slate-700/60 text-center text-xs text-slate-400">
+                    <div className="p-6 rounded-2xl bg-[var(--surface-item)] border border-[var(--border)] text-center text-xs text-[var(--text-2)]">
                       کارتابل شما خالی است
                     </div>
                   ) : (
@@ -394,7 +394,7 @@ export const AdminCartableModal: React.FC = () => {
                           className={`w-full text-right p-3 rounded-2xl border transition-all cursor-pointer flex flex-col gap-2 ${
                             isSelected
                               ? 'bg-indigo-600/15 border-indigo-500/70 shadow-md'
-                              : 'bg-[#151E2E] border-slate-700/70 hover:border-slate-500/70 hover:bg-[#192338]'
+                              : 'bg-[var(--surface-item)] border-[var(--border)] hover:border-[var(--accent)]/60 hover:bg-[var(--surface-hover)]'
                           }`}
                         >
                           <div className="flex items-start justify-between gap-2">
@@ -405,10 +405,10 @@ export const AdminCartableModal: React.FC = () => {
                                 <TypeIcon className="w-3.5 h-3.5" />
                               </div>
                               <div className="min-w-0">
-                                <h4 className="text-xs sm:text-[13px] font-bold text-slate-100 break-words leading-snug">
+                                <h4 className="text-xs sm:text-[13px] font-bold text-[var(--text)] break-words leading-snug">
                                   {item.title}
                                 </h4>
-                                <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-400">
+                                <div className="flex items-center gap-1.5 mt-1 text-[11px] text-[var(--text-2)]">
                                   <User className="w-3 h-3 shrink-0" />
                                   <span className="truncate">{item.sender}</span>
                                 </div>
@@ -422,14 +422,14 @@ export const AdminCartableModal: React.FC = () => {
                             </span>
                           </div>
 
-                          <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/[0.05]">
+                          <div className="flex items-center justify-between gap-2 pt-1 border-t border-[var(--border-subtle)]">
                             <span
                               className={`px-2 py-0.5 rounded-md border text-[10px] font-semibold ${typeMeta.badgeClass}`}
                             >
                               {typeMeta.label}
                             </span>
                             {relTime && (
-                              <span className="text-[10px] text-slate-400 flex items-center gap-1 shrink-0">
+                              <span className="text-[10px] text-[var(--text-muted)] flex items-center gap-1 shrink-0">
                                 <Clock className="w-3 h-3" />
                                 <span>{relTime}</span>
                               </span>
@@ -455,7 +455,7 @@ export const AdminCartableModal: React.FC = () => {
                       const relTime = formatRelativeTimeFa(selectedItem.createdAt);
 
                       return (
-                        <div className="p-3.5 sm:p-5 rounded-2xl bg-[#151E2E] border border-slate-700/80 space-y-4">
+                        <div className="p-3.5 sm:p-5 rounded-2xl bg-[var(--surface-item)] border border-[var(--border)] space-y-4">
                           {/* Mobile Back Button */}
                           <button
                             type="button"
@@ -467,7 +467,7 @@ export const AdminCartableModal: React.FC = () => {
                           </button>
 
                           {/* Detail Header */}
-                          <div className="space-y-2.5 pb-3 border-b border-slate-700/60">
+                          <div className="space-y-2.5 pb-3 border-b border-[var(--border)]">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span
@@ -483,32 +483,32 @@ export const AdminCartableModal: React.FC = () => {
                                 </span>
                               </div>
                               {relTime && (
-                                <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                                <span className="text-[11px] text-[var(--text-muted)] flex items-center gap-1">
                                   <Clock className="w-3.5 h-3.5" />
                                   <span>{relTime}</span>
                                 </span>
                               )}
                             </div>
 
-                            <h3 className="text-sm sm:text-base font-extrabold text-white break-words leading-relaxed">
+                            <h3 className="text-sm sm:text-base font-extrabold text-[var(--text)] break-words leading-relaxed">
                               {selectedItem.title}
                             </h3>
 
-                            <div className="text-xs text-slate-300 flex items-center gap-1.5">
-                              <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              <span className="text-slate-400">فرستنده:</span>
-                              <span className="font-bold text-slate-100">{selectedItem.sender}</span>
+                            <div className="text-xs text-[var(--text-2)] flex items-center gap-1.5">
+                              <User className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
+                              <span className="text-[var(--text-2)]">فرستنده:</span>
+                              <span className="font-bold text-[var(--text)]">{selectedItem.sender}</span>
                             </div>
                           </div>
 
                           {/* Body Description */}
-                          <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-700/60 text-xs sm:text-[13px] text-slate-200 leading-relaxed whitespace-pre-wrap break-words">
+                          <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-xs sm:text-[13px] text-[var(--text-strong)] leading-relaxed whitespace-pre-wrap break-words">
                             {selectedItem.body || 'توضیح اضافی ثبت نشده است.'}
                           </div>
 
                           {/* Decision Note Input */}
                           <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-300 block">
+                            <label className="text-xs font-bold text-[var(--text-2)] block">
                               توضیح تصمیم (در صورت رد الزامی است)
                             </label>
                             <textarea
@@ -518,7 +518,7 @@ export const AdminCartableModal: React.FC = () => {
                               value={decisionNote}
                               onChange={(e) => setDecisionNote(e.target.value)}
                               placeholder="یادداشت یا دلیل تأیید / رد را وارد کنید..."
-                              className="w-full bg-[#111827]/90 border border-slate-700/80 rounded-xl p-2.5 sm:p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none"
+                              className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl p-2.5 sm:p-3 text-xs text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--accent)] resize-none"
                             />
                           </div>
 
@@ -581,12 +581,12 @@ export const AdminCartableModal: React.FC = () => {
                       );
                     })()
                   ) : (
-                    <div className="p-8 rounded-2xl bg-[#151E2E]/70 border border-slate-700/60 flex flex-col items-center justify-center text-center gap-2 text-slate-400">
-                      <LayoutDashboard className="w-7 h-7 text-slate-500" />
-                      <p className="text-xs sm:text-sm font-semibold text-slate-300">
+                    <div className="p-8 rounded-2xl bg-[var(--surface-item)] border border-[var(--border)] flex flex-col items-center justify-center text-center gap-2 text-[var(--text-2)]">
+                      <LayoutDashboard className="w-7 h-7 text-[var(--text-muted)]" />
+                      <p className="text-xs sm:text-sm font-semibold text-[var(--text-strong)]">
                         یک مورد را برای مشاهده جزئیات انتخاب کنید
                       </p>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-[11px] text-[var(--text-2)]">
                         با کلیک روی هر ردیف، امکان تأیید، رد با توضیح یا رفتن به بخش مربوطه نمایش داده می‌شود.
                       </p>
                     </div>
@@ -597,11 +597,11 @@ export const AdminCartableModal: React.FC = () => {
           </div>
 
           {/* Footer */}
-          <div className="px-4 py-3 sm:px-6 border-t border-slate-700/70 bg-[#172030] flex items-center justify-end shrink-0">
+          <div className="px-4 py-3 sm:px-6 border-t border-[var(--border)] bg-[var(--surface-header)] flex items-center justify-end shrink-0">
             <button
               type="button"
               onClick={closeModal}
-              className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              className="px-5 py-2 bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-strong)] rounded-xl text-xs font-bold transition-colors cursor-pointer"
             >
               بستن
             </button>

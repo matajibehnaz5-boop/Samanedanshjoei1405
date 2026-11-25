@@ -19,6 +19,7 @@ import {
   Save,
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
+import { useFormAutosave } from '../../hooks/useFormAutosave';
 import {
   api,
   type EduGroup,
@@ -77,6 +78,53 @@ export const ProfessorAffairsModals: React.FC = () => {
   const [selectedSpecialtyId, setSelectedSpecialtyId] = useState('');
   const [capacity, setCapacity] = useState('5');
   const [submittingProfessor, setSubmittingProfessor] = useState(false);
+
+  const professorDraftValues = useMemo(
+    () => ({
+      firstName,
+      lastName,
+      nationalId,
+      personnelCode,
+      phone,
+      email,
+      academicRank,
+      selectedGroupId,
+      selectedSpecialtyId,
+      capacity,
+    }),
+    [
+      firstName,
+      lastName,
+      nationalId,
+      personnelCode,
+      phone,
+      email,
+      academicRank,
+      selectedGroupId,
+      selectedSpecialtyId,
+      capacity,
+    ]
+  );
+
+  const { clearDraft: clearProfessorDraft } = useFormAutosave({
+    formKey: 'professor_register',
+    isOpen: activeModal === 'professor_register' && studentProfile.role === 'admin',
+    values: professorDraftValues,
+    onRestore: (draft) => {
+      if (typeof draft.firstName === 'string') setFirstName(draft.firstName);
+      if (typeof draft.lastName === 'string') setLastName(draft.lastName);
+      if (typeof draft.nationalId === 'string') setNationalId(draft.nationalId);
+      if (typeof draft.personnelCode === 'string') setPersonnelCode(draft.personnelCode);
+      if (typeof draft.phone === 'string') setPhone(draft.phone);
+      if (typeof draft.email === 'string') setEmail(draft.email);
+      if (typeof draft.academicRank === 'string' && ACADEMIC_RANKS.includes(draft.academicRank as AcademicRank)) {
+        setAcademicRank(draft.academicRank as AcademicRank);
+      }
+      if (typeof draft.selectedGroupId === 'string') setSelectedGroupId(draft.selectedGroupId);
+      if (typeof draft.selectedSpecialtyId === 'string') setSelectedSpecialtyId(draft.selectedSpecialtyId);
+      if (typeof draft.capacity === 'string') setCapacity(draft.capacity);
+    },
+  });
 
   // List state
   const [searchQuery, setSearchQuery] = useState('');
@@ -273,6 +321,7 @@ export const ProfessorAffairsModals: React.FC = () => {
       setSelectedGroupId('');
       setSelectedSpecialtyId('');
       setCapacity('5');
+      clearProfessorDraft();
 
       showToast('استاد جدید با موفقیت ثبت شد.');
       setActiveModal('professor_list');

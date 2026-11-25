@@ -16,7 +16,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { api, type AdminOverviewResponse, type AdminOverviewActivity } from '../lib/api';
-import { useI18n, useModalActions, useModalState, useToastActions } from '../context/DashboardContext';
+import { useI18n, useLayoutSettings, useModalActions, useModalState, useToastActions } from '../context/DashboardContext';
 
 const emptyOverview: AdminOverviewResponse = {
   stats: {
@@ -35,6 +35,7 @@ const emptyOverview: AdminOverviewResponse = {
 
 export const AdminDashboardOverview: React.FC = React.memo(() => {
   const { language } = useI18n();
+  const { isCompactFrame } = useLayoutSettings();
   const { setActiveModal } = useModalActions();
   const { activeModal } = useModalState();
   const { showToast } = useToastActions();
@@ -180,7 +181,7 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
   return (
     <div className="flex flex-col gap-2.5 sm:gap-5 w-full min-w-0">
       {/* 2) ردیف کارت‌های آمار */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+      <div className={`grid grid-cols-2 ${isCompactFrame ? '' : 'lg:grid-cols-4'} gap-2 sm:gap-4`}>
         {statCards.map((card, index) => {
           const IconComponent = card.icon;
           return (
@@ -189,10 +190,10 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, delay: 0.05 * index }}
-              className={`bg-[#232D42]/85 border ${card.borderColor} rounded-xl sm:rounded-3xl p-[12px] sm:p-4 shadow-xl transition-all flex items-center justify-between gap-2 min-w-0`}
+              className={`bg-[var(--surface-2)]/85 border ${card.borderColor} rounded-xl sm:rounded-3xl p-[12px] sm:p-4 shadow-xl transition-all flex items-center justify-between gap-2 min-w-0`}
             >
               <div className="flex flex-col min-w-0">
-                <span className="text-[11px] sm:text-xs font-semibold text-[#BBC1D1] truncate">
+                <span className="text-[11px] sm:text-xs font-semibold text-[var(--text-2)] truncate">
                   {card.label}
                 </span>
                 <span className={`text-lg sm:text-2xl font-extrabold mt-0.5 sm:mt-1 leading-tight ${card.valueColor}`}>
@@ -208,25 +209,25 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
       </div>
 
       {/* 3) کارت «کارهای در انتظار» و 4) کارت «جلسات دفاع این هفته» */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-5">
+      <div className={`grid grid-cols-1 ${isCompactFrame ? '' : 'md:grid-cols-2'} gap-2.5 sm:gap-5`}>
         {/* 3) کارهای در انتظار */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.12 }}
-          className="bg-[#232D42]/85 border border-[#6366F1]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#6366F1]/60 transition-all flex flex-col justify-between min-w-0"
+          className="bg-[var(--surface-2)]/85 border border-[#6366F1]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#6366F1]/60 transition-all flex flex-col justify-between min-w-0"
         >
           <div>
-            <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-white/[0.08] gap-2">
+            <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-[var(--border)] gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#6366F1]/20 border border-[#6366F1]/40 flex items-center justify-center text-[#818CF8] shrink-0">
                   <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-[13px] sm:text-base font-bold text-white truncate">
+                  <h3 className="text-[13px] sm:text-base font-bold text-[var(--text)] truncate">
                     {isFa ? 'کارهای در انتظار' : 'Pending Tasks'}
                   </h3>
-                  <p className="text-[11px] text-[#BBC1D1] truncate">
+                  <p className="text-[11px] text-[var(--text-2)] truncate">
                     {isFa ? 'وضعیت درخواست‌ها و پیام‌های دریافتی' : 'Pending approvals and unread messages'}
                   </p>
                 </div>
@@ -237,7 +238,7 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
             </div>
 
             <div className="space-y-1.5 sm:space-y-2.5">
-              <div className="w-full min-h-[36px] px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[#1E293B]/70 border border-white/[0.06] text-xs font-semibold text-slate-200 flex items-center justify-between gap-2">
+              <div className="w-full min-h-[36px] px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-strong)] flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
                   <CheckCircle2 className="w-4 h-4 text-[#818CF8] shrink-0" />
                   <span className="text-[11.5px] sm:text-xs truncate">
@@ -249,7 +250,7 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
                 </span>
               </div>
 
-              <div className="w-full min-h-[36px] px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[#1E293B]/70 border border-white/[0.06] text-xs font-semibold text-slate-200 flex items-center justify-between gap-2">
+              <div className="w-full min-h-[36px] px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-strong)] flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
                   <MessageSquare className="w-4 h-4 text-[#38BDF8] shrink-0" />
                   <span className="text-[11.5px] sm:text-xs truncate">
@@ -269,19 +270,19 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.16 }}
-          className="bg-[#232D42]/85 border border-[#38BDF8]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#38BDF8]/60 transition-all flex flex-col justify-between min-w-0"
+          className="bg-[var(--surface-2)]/85 border border-[#38BDF8]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#38BDF8]/60 transition-all flex flex-col justify-between min-w-0"
         >
           <div>
-            <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-white/[0.08] gap-2">
+            <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-[var(--border)] gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#38BDF8]/20 border border-[#38BDF8]/40 flex items-center justify-center text-[#38BDF8] shrink-0">
                   <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-[13px] sm:text-base font-bold text-white truncate">
+                  <h3 className="text-[13px] sm:text-base font-bold text-[var(--text)] truncate">
                     {isFa ? 'جلسات دفاع این هفته' : 'Defense Sessions This Week'}
                   </h3>
-                  <p className="text-[11px] text-[#BBC1D1] truncate">
+                  <p className="text-[11px] text-[var(--text-2)] truncate">
                     {isFa ? 'خلاصه زمان‌بندی جلسات دفاع پیش‌رو' : 'Upcoming weekly defense schedule'}
                   </p>
                 </div>
@@ -292,8 +293,8 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
             </div>
 
             {overview.defenseSessions.length === 0 ? (
-              <div className="px-3 py-4 sm:py-6 rounded-xl sm:rounded-2xl bg-[#1E293B]/60 border border-white/[0.06] flex items-center justify-center text-center">
-                <span className="text-[11.5px] sm:text-xs font-semibold text-[#BBC1D1]">
+              <div className="px-3 py-4 sm:py-6 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] border border-[var(--border-subtle)] flex items-center justify-center text-center">
+                <span className="text-[11.5px] sm:text-xs font-semibold text-[var(--text-2)]">
                   {isFa ? 'جلسه‌ای ثبت نشده' : 'No defense sessions registered'}
                 </span>
               </div>
@@ -302,11 +303,11 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
                 {overview.defenseSessions.slice(0, 4).map((session) => (
                   <div
                     key={session.id}
-                    className="px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[#1E293B]/70 border border-white/[0.06] flex items-center justify-between gap-2 min-w-0"
+                    className="px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] border border-[var(--border-subtle)] flex items-center justify-between gap-2 min-w-0"
                   >
                     <div className="min-w-0">
-                      <div className="text-[11.5px] sm:text-xs font-bold text-white truncate">{session.title}</div>
-                      <div className="text-[10.5px] sm:text-[11px] text-[#BBC1D1] truncate">
+                      <div className="text-[11.5px] sm:text-xs font-bold text-[var(--text)] truncate">{session.title}</div>
+                      <div className="text-[10.5px] sm:text-[11px] text-[var(--text-2)] truncate">
                         {session.studentName}{session.location ? ` • ${session.location}` : ''}
                       </div>
                     </div>
@@ -326,18 +327,18 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
-        className="bg-[#232D42]/85 border border-[#34D399]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#34D399]/60 transition-all min-w-0"
+        className="bg-[var(--surface-2)]/85 border border-[#34D399]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#34D399]/60 transition-all min-w-0"
       >
-        <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-white/[0.08] gap-2">
+        <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-[var(--border)] gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#34D399]/20 border border-[#34D399]/40 flex items-center justify-center text-[#34D399] shrink-0">
               <History className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
-              <h3 className="text-[13px] sm:text-base font-bold text-white truncate">
+              <h3 className="text-[13px] sm:text-base font-bold text-[var(--text)] truncate">
                 {isFa ? 'آخرین فعالیت‌ها' : 'Recent Activities'}
               </h3>
-              <p className="text-[11px] text-[#BBC1D1] truncate">
+              <p className="text-[11px] text-[var(--text-2)] truncate">
                 {isFa ? '۵ مورد آخر ثبت‌شده در سامانه' : 'Last 5 recorded actions'}
               </p>
             </div>
@@ -348,7 +349,7 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
         </div>
 
         {overview.recentActivities.length === 0 ? (
-          <div className="px-3 py-4 rounded-xl sm:rounded-2xl bg-[#1E293B]/60 border border-white/[0.06] text-center text-[11.5px] sm:text-xs text-[#BBC1D1]">
+          <div className="px-3 py-4 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] border border-[var(--border-subtle)] text-center text-[11.5px] sm:text-xs text-[var(--text-2)]">
             {isFa ? 'فعلاً فعالیتی ثبت نشده است' : 'No recent activities yet'}
           </div>
         ) : (
@@ -359,22 +360,22 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
               return (
                 <div
                   key={`${activity.type}-${activity.id}`}
-                  className="px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[#1E293B]/70 border border-white/[0.06] flex items-center justify-between gap-2 min-w-0"
+                  className="px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] border border-[var(--border-subtle)] flex items-center justify-between gap-2 min-w-0"
                 >
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl border flex items-center justify-center shrink-0 ${badge.cls}`}>
                       <ActivityIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[11.5px] sm:text-xs font-bold text-slate-100 truncate">
+                      <div className="text-[11.5px] sm:text-xs font-bold text-[var(--text)] truncate">
                         {activity.title}
                       </div>
-                      <div className="text-[10.5px] sm:text-[11px] text-[#BBC1D1] truncate">
+                      <div className="text-[10.5px] sm:text-[11px] text-[var(--text-2)] truncate">
                         {activity.subtitle}
                       </div>
                     </div>
                   </div>
-                  <span className="text-[10px] sm:text-[11px] text-[#BBC1D1] shrink-0 dir-ltr">
+                  <span className="text-[10px] sm:text-[11px] text-[var(--text-2)] shrink-0 dir-ltr">
                     {formatActivityDate(activity.createdAt)}
                   </span>
                 </div>
@@ -389,29 +390,29 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.24 }}
-        className="bg-[#232D42]/85 border border-[#F59E0B]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#F59E0B]/60 transition-all min-w-0"
+        className="bg-[var(--surface-2)]/85 border border-[#F59E0B]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#F59E0B]/60 transition-all min-w-0"
       >
-        <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-white/[0.08] gap-2">
+        <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-[var(--border)] gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#F59E0B]/20 border border-[#F59E0B]/40 flex items-center justify-center text-[#F59E0B] shrink-0">
               <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
-              <h3 className="text-[13px] sm:text-base font-bold text-white truncate">
+              <h3 className="text-[13px] sm:text-base font-bold text-[var(--text)] truncate">
                 {isFa ? 'دسترسی سریع' : 'Quick Actions'}
               </h3>
-              <p className="text-[11px] text-[#BBC1D1] truncate">
+              <p className="text-[11px] text-[var(--text-2)] truncate">
                 {isFa ? 'ثبت سریع اطلاعات پایه در سامانه' : 'Quickly create new records'}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+        <div className={`grid grid-cols-2 ${isCompactFrame ? '' : 'sm:grid-cols-4'} gap-2 sm:gap-3`}>
           <button
             type="button"
             onClick={() => setActiveModal('employee_register')}
-            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[#1E293B]/80 hover:bg-[#34D399]/15 border border-white/[0.08] hover:border-[#34D399]/45 text-[11.5px] sm:text-xs font-bold text-slate-100 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer group"
+            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#34D399]/15 border border-[var(--border)] hover:border-[#34D399]/45 text-[11.5px] sm:text-xs font-bold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-center gap-1.5 transition-all cursor-pointer group"
           >
             <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#34D399] shrink-0" />
             <span className="truncate">{isFa ? '+ کارمند جدید' : '+ New Employee'}</span>
@@ -420,7 +421,7 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
           <button
             type="button"
             onClick={() => setActiveModal('professor_register')}
-            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[#1E293B]/80 hover:bg-[#6366F1]/15 border border-white/[0.08] hover:border-[#6366F1]/45 text-[11.5px] sm:text-xs font-bold text-slate-100 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer group"
+            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#6366F1]/15 border border-[var(--border)] hover:border-[#6366F1]/45 text-[11.5px] sm:text-xs font-bold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-center gap-1.5 transition-all cursor-pointer group"
           >
             <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#818CF8] shrink-0" />
             <span className="truncate">{isFa ? '+ استاد جدید' : '+ New Professor'}</span>
@@ -429,7 +430,7 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
           <button
             type="button"
             onClick={() => setActiveModal('student_register')}
-            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[#1E293B]/80 hover:bg-[#38BDF8]/15 border border-white/[0.08] hover:border-[#38BDF8]/45 text-[11.5px] sm:text-xs font-bold text-slate-100 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer group"
+            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#38BDF8]/15 border border-[var(--border)] hover:border-[#38BDF8]/45 text-[11.5px] sm:text-xs font-bold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-center gap-1.5 transition-all cursor-pointer group"
           >
             <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#38BDF8] shrink-0" />
             <span className="truncate">{isFa ? '+ دانشجوی جدید' : '+ New Student'}</span>
@@ -438,7 +439,7 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
           <button
             type="button"
             onClick={() => setActiveModal('edu_groups')}
-            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[#1E293B]/80 hover:bg-[#F59E0B]/15 border border-white/[0.08] hover:border-[#F59E0B]/45 text-[11.5px] sm:text-xs font-bold text-slate-100 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer group"
+            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#F59E0B]/15 border border-[var(--border)] hover:border-[#F59E0B]/45 text-[11.5px] sm:text-xs font-bold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-center gap-1.5 transition-all cursor-pointer group"
           >
             <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#F59E0B] shrink-0" />
             <span className="truncate">{isFa ? '+ گروه آموزشی' : '+ Edu Group'}</span>

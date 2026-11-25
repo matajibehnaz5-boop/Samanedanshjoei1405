@@ -55,7 +55,7 @@ export interface NotificationItem {
   message: string;
   time: string;
   read: boolean;
-  type: 'academic' | 'exam' | 'system';
+  type: 'academic' | 'exam' | 'system' | 'sms' | 'email';
 }
 
 export type AdminNotificationType =
@@ -64,7 +64,9 @@ export type AdminNotificationType =
   | 'professors'
   | 'defense'
   | 'registrations'
-  | 'system';
+  | 'system'
+  | 'sms'
+  | 'email';
 
 export interface AdminNotificationItem {
   id: string;

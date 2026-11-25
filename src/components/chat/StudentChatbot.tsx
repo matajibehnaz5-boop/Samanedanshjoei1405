@@ -212,33 +212,33 @@ export const StudentChatbot: React.FC = React.memo(() => {
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className={`fixed z-50 bottom-16 sm:bottom-24 ${
               isFa ? 'left-2.5 sm:left-6' : 'right-2.5 sm:right-6'
-            } w-[calc(100vw-1.25rem)] sm:w-[420px] max-w-full h-[460px] sm:h-[540px] max-h-[82dvh] bg-[#161F2E] border border-amber-500/30 rounded-xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col text-white font-['Vazirmatn',sans-serif]`}
+            } w-[calc(100vw-1.25rem)] sm:w-[420px] max-w-full h-[460px] sm:h-[540px] max-h-[82dvh] bg-[var(--chat-window-bg)] border border-[var(--chat-window-border)] rounded-xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col text-[var(--text)] font-['Vazirmatn',sans-serif]`}
             dir={isFa ? 'rtl' : 'ltr'}
           >
-            {/* Top Amber Decorative Bar */}
-            <div className="h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 w-full shrink-0" />
+            {/* Top Decorative Bar */}
+            <div className="h-1 bg-[image:var(--chat-topbar-bg)] w-full shrink-0" />
 
             {/* CHAT HEADER */}
-            <div className="p-2.5 sm:p-4 bg-[#111827] border-b border-white/10 flex items-center justify-between gap-2 sm:gap-3 shrink-0">
+            <div className="p-2.5 sm:p-4 bg-[var(--surface-chat-header)] border-b border-[var(--border)] flex items-center justify-between gap-2 sm:gap-3 shrink-0">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-amber-500/20 to-orange-500/30 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--status-amber-bg)] border border-[var(--status-amber-border)] flex items-center justify-center text-[var(--status-amber-text)] shrink-0 shadow-inner">
                   <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-[14px] sm:text-sm font-bold text-white flex items-center gap-1.5 truncate">
+                  <h3 className="text-[14px] sm:text-sm font-bold text-[var(--text)] flex items-center gap-1.5 truncate">
                     <span className="truncate">{t('chatbotTitle')}</span>
-                    <span className="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[10px] font-mono border border-amber-500/30 shrink-0">
+                    <span className="px-1.5 py-0.5 rounded-md bg-[var(--status-amber-bg)] text-[var(--status-amber-text)] text-[10px] font-mono border border-[var(--status-amber-border)] shrink-0">
                       Gemini AI
                     </span>
                   </h3>
-                  <p className="text-[11px] text-[#BBC1D1] truncate">{t('chatbotSubtitle')}</p>
+                  <p className="text-[11px] text-[var(--text-2)] truncate">{t('chatbotSubtitle')}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-1 shrink-0">
                 <button
                   onClick={handleClearHistory}
-                  className="min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-white/5 transition-colors cursor-pointer"
+                  className="min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center p-1.5 sm:p-2 rounded-xl text-[var(--text-muted)] hover:text-rose-400 hover:bg-white/5 transition-colors cursor-pointer"
                   title={t('chatbotClearHistory')}
                 >
                   <Trash2 className="w-4 h-4" />
@@ -246,7 +246,7 @@ export const StudentChatbot: React.FC = React.memo(() => {
 
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                  className="min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center p-1.5 sm:p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-white/5 transition-colors cursor-pointer"
                   title={t('close')}
                 >
                   <X className="w-4 h-4" />
@@ -255,7 +255,7 @@ export const StudentChatbot: React.FC = React.memo(() => {
             </div>
 
             {/* CHAT THREAD MESSAGES */}
-            <div className="flex-1 p-2.5 sm:p-4 overflow-y-auto space-y-2.5 sm:space-y-4 custom-scrollbar bg-[#161F2E]">
+            <div className="flex-1 p-2.5 sm:p-4 overflow-y-auto space-y-2.5 sm:space-y-4 custom-scrollbar bg-[var(--chat-window-bg)]">
               {messages.map((msg) => {
                 const isUser = msg.role === 'user';
 
@@ -269,8 +269,8 @@ export const StudentChatbot: React.FC = React.memo(() => {
                     {/* Avatar */}
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${
                       isUser
-                        ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
-                        : 'bg-[#1E293B] border-white/10 text-amber-400'
+                        ? 'bg-[var(--status-info-bg)] border-[var(--status-info-border)] text-[var(--accent)]'
+                        : 'bg-[var(--chat-bot-bg)] border-[var(--chat-bot-border)] text-amber-400'
                     }`}>
                       {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                     </div>
@@ -278,14 +278,14 @@ export const StudentChatbot: React.FC = React.memo(() => {
                     {/* Bubble */}
                     <div className={`max-w-[80%] rounded-2xl p-3 text-xs leading-relaxed ${
                       isUser
-                        ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-white rounded-tr-none'
-                        : 'bg-[#1E293B] border border-white/10 text-slate-200 rounded-tl-none shadow-md'
+                        ? 'chat-user-bubble bg-[image:var(--chat-user-bg)] border border-[var(--chat-user-border)] text-[var(--chat-user-text)] rounded-tr-none'
+                        : 'bg-[var(--chat-bot-bg)] border border-[var(--chat-bot-border)] text-[var(--chat-bot-text)] rounded-tl-none shadow-md'
                     }`}>
                       <div className="whitespace-pre-wrap">
                         {renderFormattedText(msg.text)}
                       </div>
 
-                      <div className={`text-[10px] text-slate-400 mt-1.5 flex items-center ${isUser ? 'justify-start' : 'justify-end'}`}>
+                      <div className={`text-[10px] opacity-75 mt-1.5 flex items-center ${isUser ? 'justify-start' : 'justify-end'}`}>
                         <span>{msg.timestamp}</span>
                       </div>
                     </div>
@@ -300,11 +300,11 @@ export const StudentChatbot: React.FC = React.memo(() => {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex items-start gap-2.5"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-[#1E293B] border border-white/10 flex items-center justify-center text-amber-400 shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-[var(--chat-bot-bg)] border border-[var(--chat-bot-border)] flex items-center justify-center text-amber-400 shrink-0">
                     <Bot className="w-4 h-4 animate-spin" />
                   </div>
 
-                  <div className="bg-[#1E293B] border border-white/10 rounded-2xl rounded-tl-none p-3 text-xs text-amber-300 flex items-center gap-2">
+                  <div className="bg-[var(--chat-bot-bg)] border border-[var(--chat-bot-border)] rounded-2xl rounded-tl-none p-3 text-xs text-amber-300 flex items-center gap-2">
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
                     <span>{t('chatbotThinking')}</span>
                   </div>
@@ -316,7 +316,7 @@ export const StudentChatbot: React.FC = React.memo(() => {
 
             {/* SUGGESTED QUESTIONS PILLS */}
             {messages.length <= 3 && !isLoading && (
-              <div className="p-2.5 bg-[#111827]/80 border-t border-white/5 space-y-1.5 shrink-0">
+              <div className="p-2.5 bg-[var(--surface-chat-header)] border-t border-[var(--border)] space-y-1.5 shrink-0">
                 <div className="text-[10px] font-bold text-amber-400 flex items-center gap-1">
                   <HelpCircle className="w-3 h-3" />
                   <span>{t('chatbotQuickQuestions')}</span>
@@ -326,7 +326,7 @@ export const StudentChatbot: React.FC = React.memo(() => {
                     <button
                       key={i}
                       onClick={() => handleSendMessage(q)}
-                      className="px-2.5 py-1 rounded-lg bg-[#1E293B] hover:bg-amber-500/20 border border-white/10 hover:border-amber-500/30 text-[11px] text-slate-300 hover:text-amber-300 transition-all cursor-pointer text-start truncate max-w-full"
+                      className="px-2.5 py-1 rounded-lg bg-[var(--chat-bot-bg)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[11px] text-[var(--text-2)] hover:text-[var(--text)] transition-all cursor-pointer text-start truncate max-w-full"
                     >
                       {q}
                     </button>
@@ -341,7 +341,7 @@ export const StudentChatbot: React.FC = React.memo(() => {
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="p-2 sm:p-3 bg-[#111827] border-t border-white/10 flex items-center gap-2 shrink-0"
+              className="p-2 sm:p-3 bg-[var(--surface-chat-header)] border-t border-[var(--border)] flex items-center gap-2 shrink-0"
             >
               <input
                 ref={inputRef}
@@ -350,15 +350,15 @@ export const StudentChatbot: React.FC = React.memo(() => {
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder={t('chatbotInputPlaceholder')}
                 disabled={isLoading}
-                className="flex-1 h-[36px] sm:h-auto bg-[#1E293B] border border-white/10 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2.5 text-sm sm:text-xs text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-colors min-w-0"
+                className="flex-1 h-[36px] sm:h-auto bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2.5 text-sm sm:text-xs text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--accent)] transition-colors min-w-0"
               />
 
               <button
                 type="submit"
                 disabled={!inputMessage.trim() || isLoading}
-                className={`w-[36px] h-[36px] sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-slate-950 font-bold transition-all shrink-0 cursor-pointer ${
+                className={`w-[36px] h-[36px] sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-bold transition-all shrink-0 cursor-pointer ${
                   inputMessage.trim() && !isLoading
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:scale-105 active:scale-95 shadow-md shadow-amber-500/20'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:scale-105 active:scale-95 shadow-md shadow-amber-500/20'
                     : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
                 }`}
               >

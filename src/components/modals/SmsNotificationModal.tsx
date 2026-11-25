@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   MessageSquare, 
@@ -21,6 +21,7 @@ import {
   FileQuestion
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
+import { useFormAutosave } from '../../hooks/useFormAutosave';
 
 interface SmsItem {
   id: string;
@@ -245,6 +246,42 @@ export const SmsNotificationModal: React.FC = () => {
     financial: true,
     welfare: true,
     emergency: true,
+  });
+
+  const smsDraftValues = useMemo(
+    () => ({
+      searchQuery,
+      channels,
+      categories,
+    }),
+    [searchQuery, channels, categories]
+  );
+
+  useFormAutosave({
+    formKey: 'sms_notification',
+    isOpen: activeModal === 'sms_notification',
+    values: smsDraftValues,
+    onRestore: (draft) => {
+      if (typeof draft.searchQuery === 'string') setSearchQuery(draft.searchQuery);
+      if (draft.channels && typeof draft.channels === 'object') {
+        setChannels((prev) => ({
+          sms: typeof draft.channels?.sms === 'boolean' ? draft.channels.sms : prev.sms,
+          email: typeof draft.channels?.email === 'boolean' ? draft.channels.email : prev.email,
+        }));
+      }
+      if (draft.categories && typeof draft.categories === 'object') {
+        setCategories((prev) => ({
+          academic:
+            typeof draft.categories?.academic === 'boolean' ? draft.categories.academic : prev.academic,
+          financial:
+            typeof draft.categories?.financial === 'boolean' ? draft.categories.financial : prev.financial,
+          welfare:
+            typeof draft.categories?.welfare === 'boolean' ? draft.categories.welfare : prev.welfare,
+          emergency:
+            typeof draft.categories?.emergency === 'boolean' ? draft.categories.emergency : prev.emergency,
+        }));
+      }
+    },
   });
 
   if (activeModal !== 'sms_notification') return null;

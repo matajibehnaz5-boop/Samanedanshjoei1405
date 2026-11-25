@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Settings,
@@ -11,97 +11,142 @@ import {
   Save,
   Smartphone,
   Monitor,
+  RotateCcw,
 } from 'lucide-react';
-import { useDashboard } from '../../context/DashboardContext';
+import { useDashboard, useSettings } from '../../context/DashboardContext';
 
 export const SettingsModal: React.FC = () => {
-  const { activeModal, closeModal, showToast, isCompactFrame, setIsCompactFrame } = useDashboard();
+  const { activeModal, closeModal, showToast } = useDashboard();
+  const {
+    settings,
+    updatePreviewSettings,
+    saveSettings,
+    resetToDefaults,
+    discardPreview,
+  } = useSettings();
 
-  // Settings toggle states
-  const [smsNotify, setSmsNotify] = useState(true);
-  const [emailNotify, setEmailNotify] = useState(false);
-  const [showOnlineStatus, setShowOnlineStatus] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [autoSave, setAutoSave] = useState(true);
+  const isOpen = activeModal === 'settings';
 
-  if (activeModal !== 'settings') return null;
+  const handleCloseWithoutSave = () => {
+    discardPreview();
+    closeModal();
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        discardPreview();
+        closeModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, discardPreview, closeModal]);
+
+  useEffect(() => {
+    return () => {
+      discardPreview();
+    };
+  }, [discardPreview]);
+
+  if (!isOpen) return null;
 
   const handleSaveSettings = () => {
-    showToast('تنظیمات با موفقیت ذخیره شد');
+    saveSettings(settings);
+    showToast('تنظیمات ذخیره شد');
     closeModal();
+  };
+
+  const handleResetDefaults = () => {
+    resetToDefaults();
+    showToast('تنظیمات به پیش‌فرض بازنشانی شد');
   };
 
   const toggleItems = [
     {
       id: 'sms',
       title: 'اعلان‌های پیامکی',
-      description: 'دریافت پیامک‌های یادآوری و اطلاع‌رسانی',
+      description: 'نمایش اعلان‌های پیامکی در زنگ و پنل اعلان‌ها',
       icon: MessageSquare,
       iconBg: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-      value: smsNotify,
-      onChange: () => setSmsNotify((prev) => !prev),
+      value: settings.smsNotify,
+      onChange: () =>
+        updatePreviewSettings((prev) => ({ ...prev, smsNotify: !prev.smsNotify })),
     },
     {
       id: 'email',
       title: 'اعلان‌های ایمیل',
-      description: 'ارسال خبرنامه‌ها و اطلاعیه‌های آموزشی',
+      description: 'نمایش اعلان‌های ایمیلی در زنگ و پنل اعلان‌ها',
       icon: Mail,
       iconBg: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-      value: emailNotify,
-      onChange: () => setEmailNotify((prev) => !prev),
+      value: settings.emailNotify,
+      onChange: () =>
+        updatePreviewSettings((prev) => ({ ...prev, emailNotify: !prev.emailNotify })),
     },
     {
       id: 'online',
       title: 'نمایش وضعیت آنلاین',
-      description: 'مشاهده وضعیت حضور شما توسط همکلاسی‌ها',
+      description: 'نمایش نقطه‌ی سبز وضعیت کنار آواتار و هدر',
       icon: Radio,
       iconBg: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-      value: showOnlineStatus,
-      onChange: () => setShowOnlineStatus((prev) => !prev),
+      value: settings.showOnlineStatus,
+      onChange: () =>
+        updatePreviewSettings((prev) => ({ ...prev, showOnlineStatus: !prev.showOnlineStatus })),
     },
     {
       id: 'night',
       title: 'حالت شب',
-      description: 'کاهش نور صفحه برای مطالعه در محیط‌های کم‌نور',
+      description: 'تغییر بین تم تیره (روشن) و تم آبی فیروزه‌ای روشن (خاموش)',
       icon: Moon,
       iconBg: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
-      value: darkMode,
-      onChange: () => setDarkMode((prev) => !prev),
+      value: settings.darkMode,
+      onChange: () =>
+        updatePreviewSettings((prev) => ({ ...prev, darkMode: !prev.darkMode })),
     },
     {
       id: 'autosave',
       title: 'ذخیره خودکار',
-      description: 'ذخیره خودکار پیش‌نویس‌ها و اطلاعات فرم‌ها',
+      description: 'نگهداری و بازیابی خودکار پیش‌نویس فرم‌ها در مرورگر',
       icon: Save,
       iconBg: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-      value: autoSave,
-      onChange: () => setAutoSave((prev) => !prev),
+      value: settings.autoSave,
+      onChange: () =>
+        updatePreviewSettings((prev) => ({ ...prev, autoSave: !prev.autoSave })),
     },
   ];
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-slate-950/80 backdrop-blur-sm">
+      <div
+        dir="rtl"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) handleCloseWithoutSave();
+        }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[var(--backdrop)] backdrop-blur-sm"
+      >
         <motion.div
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
-          className="w-full max-w-lg bg-[#1E293B] border border-slate-700/80 rounded-[28px] p-6 shadow-2xl text-slate-100 max-h-[85dvh] overflow-y-auto"
+          className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-strong)] rounded-[28px] p-6 shadow-[var(--card-shadow)] text-[var(--text-strong)] max-h-[85dvh] overflow-y-auto overflow-x-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-slate-700/60">
+          <div className="flex items-center justify-between pb-4 border-b border-[var(--border)]">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-slate-800 text-slate-200 rounded-xl border border-slate-700">
+              <div className="p-2.5 bg-[var(--surface-2)] text-[var(--text-strong)] rounded-xl border border-[var(--border)]">
                 <Settings className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-slate-100">تنظیمات سامانه</h2>
-                <p className="text-xs text-slate-400">سفارشی‌سازی رابط کاربری و اعلان‌ها</p>
+                <h2 className="text-lg font-bold text-[var(--text)]">تنظیمات سامانه</h2>
+                <p className="text-xs text-[var(--text-2)]">سفارشی‌سازی رابط کاربری و اعلان‌ها</p>
               </div>
             </div>
             <button
-              onClick={closeModal}
-              className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              type="button"
+              onClick={handleCloseWithoutSave}
+              aria-label="بستن"
+              className="p-2 rounded-full hover:bg-[var(--surface-hover)] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -114,7 +159,7 @@ export const SettingsModal: React.FC = () => {
                 <Lightbulb className="w-5 h-5" />
               </div>
               <p className="text-xs sm:text-sm font-medium leading-relaxed">
-                برای تجربه بهتر، اعلان‌های پیامکی و ایمیل را فعال کنید.
+                با تغییر هر گزینه پیش‌نمایش زنده روی سامانه اعمال می‌شود؛ برای ثبت نهایی ذخیره را بزنید.
               </p>
             </div>
 
@@ -126,18 +171,18 @@ export const SettingsModal: React.FC = () => {
                   <div
                     key={item.id}
                     onClick={item.onChange}
-                    className="p-3.5 bg-slate-900/60 hover:bg-slate-900/80 active:bg-slate-900 rounded-2xl border border-slate-800 transition-all flex items-center justify-between gap-3 cursor-pointer select-none group"
+                    className="p-3.5 bg-[var(--surface-item)] hover:bg-[var(--surface-hover)] rounded-2xl border border-[var(--border)] transition-all flex items-center justify-between gap-3 cursor-pointer select-none group"
                   >
                     {/* Icon + Title on the right */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center border shrink-0 transition-transform group-hover:scale-105 ${item.iconBg}`}
                       >
                         <IconComponent className="w-5 h-5" />
                       </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-slate-100">{item.title}</h4>
-                        <p className="text-[11px] text-slate-400">{item.description}</p>
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-bold text-[var(--text)]">{item.title}</h4>
+                        <p className="text-[11px] text-[var(--text-2)]">{item.description}</p>
                       </div>
                     </div>
 
@@ -146,7 +191,7 @@ export const SettingsModal: React.FC = () => {
                       role="switch"
                       aria-checked={item.value}
                       className={`relative w-12 h-7 rounded-full transition-colors duration-300 p-1 flex items-center shrink-0 dir-ltr ${
-                        item.value ? 'bg-indigo-600' : 'bg-slate-700'
+                        item.value ? 'bg-[var(--switch-on-bg)]' : 'bg-[var(--switch-off-bg)]'
                       }`}
                     >
                       <motion.div
@@ -161,45 +206,64 @@ export const SettingsModal: React.FC = () => {
             </div>
 
             {/* Mobile / Fullscreen Frame Mode option */}
-            <div className="p-3.5 bg-slate-900/60 rounded-2xl border border-slate-800 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-slate-800 text-indigo-400 border border-slate-700 flex items-center justify-center shrink-0">
-                  {isCompactFrame ? <Smartphone className="w-5 h-5" /> : <Monitor className="w-5 h-5" />}
+            <div className="p-3.5 bg-[var(--surface-item)] rounded-2xl border border-[var(--border)] flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-[var(--surface-2)] text-[var(--accent)] border border-[var(--border)] flex items-center justify-center shrink-0">
+                  {settings.isCompactFrame ? (
+                    <Smartphone className="w-5 h-5" />
+                  ) : (
+                    <Monitor className="w-5 h-5" />
+                  )}
                 </div>
-                <div>
-                  <h4 className="text-sm font-bold text-slate-100">حالت نمایش قاب موبایل</h4>
-                  <p className="text-[11px] text-slate-400">تغییر عرض صفحه نمایش (موبایل / عریض)</p>
+                <div className="min-w-0">
+                  <h4 className="text-sm font-bold text-[var(--text)]">حالت نمایش قاب موبایل</h4>
+                  <p className="text-[11px] text-[var(--text-2)]">
+                    تغییر عرض صفحه در دسکتاپ (ستون ۴۲۰px / تمام‌عرض)
+                  </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => {
-                  setIsCompactFrame((prev) => !prev);
-                  showToast('حالت نمایش تغییر یافت');
+                  updatePreviewSettings((prev) => ({
+                    ...prev,
+                    isCompactFrame: !prev.isCompactFrame,
+                  }));
                 }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer shrink-0 ${
-                  isCompactFrame
+                  settings.isCompactFrame
                     ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500/40'
-                    : 'bg-slate-800 text-slate-300 border-slate-700'
+                    : 'bg-[var(--surface-2)] text-[var(--text-2)] border-[var(--border)]'
                 }`}
               >
-                {isCompactFrame ? 'قاب موبایل' : 'تمام‌صفحه'}
+                {settings.isCompactFrame ? 'قاب موبایل' : 'عرض کامل'}
               </button>
             </div>
 
-            {/* 4. Gradient Save Button & 5. Helper Text */}
-            <div className="pt-3 space-y-2">
-              <button
-                type="button"
-                onClick={handleSaveSettings}
-                className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-sm font-bold transition-all shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
-              >
-                <Save className="w-5 h-5" />
-                <span>ذخیره تنظیمات</span>
-              </button>
+            {/* Actions: Save & Reset to Default */}
+            <div className="pt-3 space-y-2.5">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  type="button"
+                  onClick={handleSaveSettings}
+                  className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-sm font-bold transition-all shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  <Save className="w-5 h-5" />
+                  <span>ذخیره تنظیمات</span>
+                </button>
 
-              <p className="text-center text-xs text-slate-400/80">
-                تغییرات خود را اعمال کنید و سپس ذخیره کنید
+                <button
+                  type="button"
+                  onClick={handleResetDefaults}
+                  className="py-3 px-4 rounded-2xl bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-strong)] text-xs sm:text-sm font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>بازنشانی به پیش‌فرض</span>
+                </button>
+              </div>
+
+              <p className="text-center text-xs text-[var(--text-muted)]">
+                در صورت بستن بدون ذخیره، تغییرات به حالت قبلی بازمی‌گردند
               </p>
             </div>
           </div>
@@ -208,6 +272,3 @@ export const SettingsModal: React.FC = () => {
     </AnimatePresence>
   );
 };
-
-
-

@@ -12,6 +12,8 @@ import {
   Loader2,
   Inbox,
   Megaphone,
+  MessageSquare,
+  Mail,
 } from 'lucide-react';
 import { AdminNotificationItem, AdminNotificationType } from '../types';
 
@@ -73,6 +75,18 @@ const CATEGORY_META: Record<
     icon: Settings2,
     badgeClass: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
     iconBoxClass: 'bg-slate-600/25 text-slate-200 border-slate-500/30',
+  },
+  sms: {
+    label: 'پیامک',
+    icon: MessageSquare,
+    badgeClass: 'bg-blue-500/15 text-blue-300 border-blue-500/30',
+    iconBoxClass: 'bg-blue-500/15 text-blue-300 border-blue-500/30',
+  },
+  email: {
+    label: 'ایمیل',
+    icon: Mail,
+    badgeClass: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+    iconBoxClass: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
   },
 };
 
@@ -168,13 +182,13 @@ export const AdminNotificationCenter: React.FC<AdminNotificationCenterProps> = R
             transition={{ duration: 0.16, ease: 'easeOut' }}
             className={`fixed inset-x-2 top-[54px] sm:inset-x-auto sm:absolute sm:top-full sm:mt-2 ${
               isRtlLayout ? 'sm:left-6 sm:right-auto' : 'sm:right-6 sm:left-auto'
-            } sm:w-[390px] max-h-[70dvh] bg-[#1E293B] border border-white/[0.12] rounded-xl sm:rounded-2xl shadow-2xl text-right text-slate-100 z-50 flex flex-col overflow-hidden`}
+            } sm:w-[390px] max-h-[70dvh] bg-[var(--surface)] border border-[var(--border)] rounded-xl sm:rounded-2xl shadow-2xl text-right text-[var(--text)] z-50 flex flex-col overflow-hidden`}
           >
             {/* Header */}
-            <div className="px-3 py-2.5 sm:px-4 sm:py-3 border-b border-white/[0.08] bg-[#162032] flex items-center justify-between gap-2 shrink-0">
+            <div className="px-3 py-2.5 sm:px-4 sm:py-3 border-b border-[var(--border)] bg-[var(--surface-header)] flex items-center justify-between gap-2 shrink-0">
               <div className="flex items-center gap-2 min-w-0">
                 <Bell className="w-4 h-4 text-amber-300 shrink-0" />
-                <h3 className="text-xs sm:text-sm font-bold text-white truncate">اعلان‌ها</h3>
+                <h3 className="text-xs sm:text-sm font-bold text-[var(--text)] truncate">اعلان‌ها</h3>
                 {unreadCount > 0 && (
                   <span className="px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/35 text-[10px] font-bold shrink-0">
                     {toPersianDigits(unreadCount)} خوانده‌نشده
@@ -198,7 +212,7 @@ export const AdminNotificationCenter: React.FC<AdminNotificationCenterProps> = R
             </div>
 
             {/* Filter Bar + Create Announcement Action */}
-            <div className="px-3 py-2 sm:px-4 border-b border-white/[0.06] bg-[#192336] flex flex-wrap items-center justify-between gap-1.5 shrink-0">
+            <div className="px-3 py-2 sm:px-4 border-b border-[var(--border-subtle)] bg-[var(--surface-sub)] flex flex-wrap items-center justify-between gap-1.5 shrink-0">
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
@@ -206,7 +220,7 @@ export const AdminNotificationCenter: React.FC<AdminNotificationCenterProps> = R
                   className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer ${
                     filter === 'all'
                       ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05] border border-transparent'
+                      : 'text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--surface-hover)] border border-transparent'
                   }`}
                 >
                   همه ({toPersianDigits(notifications.length)})
@@ -217,7 +231,7 @@ export const AdminNotificationCenter: React.FC<AdminNotificationCenterProps> = R
                   className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer ${
                     filter === 'unread'
                       ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.05] border border-transparent'
+                      : 'text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--surface-hover)] border border-transparent'
                   }`}
                 >
                   خوانده‌نشده ({toPersianDigits(unreadCount)})
@@ -237,14 +251,14 @@ export const AdminNotificationCenter: React.FC<AdminNotificationCenterProps> = R
             {/* Scrollable Notifications List */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden p-2 sm:p-2.5 space-y-1.5">
               {isLoading && notifications.length === 0 ? (
-                <div className="py-10 flex flex-col items-center justify-center gap-2 text-slate-400 text-xs">
+                <div className="py-10 flex flex-col items-center justify-center gap-2 text-[var(--text-2)] text-xs">
                   <Loader2 className="w-5 h-5 animate-spin text-sky-400" />
                   <span>در حال بارگذاری اعلان‌ها...</span>
                 </div>
               ) : filteredNotifications.length === 0 ? (
-                <div className="py-10 flex flex-col items-center justify-center gap-2 text-slate-400 text-xs">
-                  <Inbox className="w-7 h-7 text-slate-500" />
-                  <span className="font-semibold text-slate-300">اعلان جدیدی ندارید</span>
+                <div className="py-10 flex flex-col items-center justify-center gap-2 text-[var(--text-2)] text-xs">
+                  <Inbox className="w-7 h-7 text-[var(--text-muted)]" />
+                  <span className="font-semibold text-[var(--text-strong)]">اعلان جدیدی ندارید</span>
                 </div>
               ) : (
                 filteredNotifications.map((item) => {
@@ -259,8 +273,8 @@ export const AdminNotificationCenter: React.FC<AdminNotificationCenterProps> = R
                       onClick={() => onSelectNotification(item)}
                       className={`w-full text-right p-2.5 rounded-xl border transition-all cursor-pointer flex items-start gap-2.5 group ${
                         item.isRead
-                          ? 'bg-slate-900/40 border-white/[0.05] hover:bg-slate-900/75 hover:border-white/[0.12] text-slate-300'
-                          : 'bg-[#232D42] border-sky-500/30 hover:border-sky-400/60 text-white shadow-sm'
+                          ? 'bg-[var(--surface-item)] border-[var(--border-subtle)] hover:bg-[var(--surface-hover)] hover:border-[var(--border)] text-[var(--text-2)]'
+                          : 'bg-[var(--surface-2)] border-sky-500/30 hover:border-sky-400/60 text-[var(--text)] shadow-sm'
                       }`}
                     >
                       <div
@@ -278,11 +292,11 @@ export const AdminNotificationCenter: React.FC<AdminNotificationCenterProps> = R
                             <span className="truncate">{item.title}</span>
                           </span>
                           {relTime && (
-                            <span className="text-[10px] text-slate-400 shrink-0">{relTime}</span>
+                            <span className="text-[10px] text-[var(--text-muted)] shrink-0">{relTime}</span>
                           )}
                         </div>
 
-                        <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed line-clamp-2">
+                        <p className="text-[11px] text-[var(--text-2)] mt-0.5 leading-relaxed line-clamp-2">
                           {item.body}
                         </p>
 

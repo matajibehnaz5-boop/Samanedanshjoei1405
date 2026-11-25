@@ -20,7 +20,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useAuth, useI18n, useLayoutSettings, useModalActions, useNotifications, useToastActions } from '../context/DashboardContext';
+import { useAuth, useI18n, useLayoutSettings, useModalActions, useNotifications, useSettings, useToastActions } from '../context/DashboardContext';
 import { UserAvatar } from './UserAvatar';
 import { AdminNotificationCenter } from './AdminNotificationCenter';
 import { api } from '../lib/api';
@@ -28,11 +28,12 @@ import { AdminNotificationItem } from '../types';
 
 export const HeaderBar: React.FC = React.memo(() => {
   const { setActiveModal, closeModal } = useModalActions();
-  const { instituteName } = useLayoutSettings();
+  const { instituteName, isCompactFrame } = useLayoutSettings();
   const { isLoggedIn, studentProfile, handleLogout, setCurrentPage } = useAuth();
   const { language, toggleLanguage, t } = useI18n();
   const { notificationCount: unreadCount } = useNotifications();
   const { showToast } = useToastActions();
+  const { settings, userStorageScope } = useSettings();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEduOpen, setIsEduOpen] = useState(false);
   const [isProfOpen, setIsProfOpen] = useState(false);
@@ -138,12 +139,95 @@ export const HeaderBar: React.FC = React.memo(() => {
     });
   };
 
+  const [readChannelIds, setReadChannelIds] = useState<Record<string, boolean>>(() => {
+    try {
+      const raw = localStorage.getItem(`admin_channel_notifs_read:${userStorageScope}`);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(`admin_channel_notifs_read:${userStorageScope}`);
+      setReadChannelIds(raw ? JSON.parse(raw) : {});
+    } catch {
+      setReadChannelIds({});
+    }
+  }, [userStorageScope]);
+
+  const markChannelNotificationRead = useCallback(
+    (id: string) => {
+      setReadChannelIds((prev) => {
+        const next = { ...prev, [id]: true };
+        try {
+          localStorage.setItem(`admin_channel_notifs_read:${userStorageScope}`, JSON.stringify(next));
+        } catch {
+          // ignore
+        }
+        return next;
+      });
+    },
+    [userStorageScope]
+  );
+
+  const visibleAdminNotifications = React.useMemo(() => {
+    const channelItems: AdminNotificationItem[] = [];
+    if (settings.smsNotify) {
+      channelItems.push({
+        id: 'admin-ch-sms',
+        type: 'sms',
+        title: 'گزارش اعلان‌های پیامکی',
+        body: 'سرویس اطلاع‌رسانی پیامکی برای یادآوری جلسات دفاع و درخواست‌ها فعال است.',
+        targetModal: 'sms_notification',
+        isRead: Boolean(readChannelIds['admin-ch-sms']),
+        createdAt: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
+      });
+    }
+    if (settings.emailNotify) {
+      channelItems.push({
+        id: 'admin-ch-email',
+        type: 'email',
+        title: 'گزارش اعلان‌های ایمیل',
+        body: 'خلاصه گزارش‌های آموزشی و اطلاعیه‌های سامانه به ایمیل مدیریت ارسال می‌شود.',
+        targetModal: 'settings',
+        isRead: Boolean(readChannelIds['admin-ch-email']),
+        createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+      });
+    }
+
+    const filteredServer = adminNotifications.filter((item) => {
+      if (item.type === 'sms' && !settings.smsNotify) return false;
+      if (item.type === 'email' && !settings.emailNotify) return false;
+      return true;
+    });
+
+    return [...channelItems, ...filteredServer];
+  }, [adminNotifications, settings.smsNotify, settings.emailNotify, readChannelIds]);
+
+  const visibleAdminUnreadCount = React.useMemo(() => {
+    const hiddenServerUnread = adminNotifications.filter(
+      (item) =>
+        !item.isRead &&
+        ((item.type === 'sms' && !settings.smsNotify) ||
+          (item.type === 'email' && !settings.emailNotify))
+    ).length;
+    const channelUnread =
+      (settings.smsNotify && !readChannelIds['admin-ch-sms'] ? 1 : 0) +
+      (settings.emailNotify && !readChannelIds['admin-ch-email'] ? 1 : 0);
+
+    return Math.max(0, adminUnreadCount - hiddenServerUnread) + channelUnread;
+  }, [adminNotifications, adminUnreadCount, settings.smsNotify, settings.emailNotify, readChannelIds]);
+
   const handleMarkAllAdminRead = async () => {
     setIsMarkingAllNotifs(true);
     try {
       await api.markAllAdminNotificationsRead();
       setAdminNotifications((prev) => prev.map((item) => ({ ...item, isRead: true })));
       setAdminUnreadCount(0);
+      if (settings.smsNotify) markChannelNotificationRead('admin-ch-sms');
+      if (settings.emailNotify) markChannelNotificationRead('admin-ch-email');
       showToast('همه اعلان‌ها به عنوان خوانده‌شده علامت‌گذاری شدند');
     } catch (err: any) {
       showToast(err?.message || 'خطا در به‌روزرسانی اعلان‌ها');
@@ -154,6 +238,13 @@ export const HeaderBar: React.FC = React.memo(() => {
 
   const handleSelectAdminNotification = async (item: AdminNotificationItem) => {
     setIsAdminNotifOpen(false);
+    if (item.id === 'admin-ch-sms' || item.id === 'admin-ch-email') {
+      markChannelNotificationRead(item.id);
+      if (item.targetModal) {
+        setActiveModal(item.targetModal);
+      }
+      return;
+    }
     if (!item.isRead) {
       setAdminNotifications((prev) =>
         prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n))
@@ -173,7 +264,7 @@ export const HeaderBar: React.FC = React.memo(() => {
     }
   };
 
-  const displayedBellCount = isAdminUser ? adminUnreadCount : unreadCount;
+  const displayedBellCount = isAdminUser ? visibleAdminUnreadCount : unreadCount;
 
   // Close drawer on ESC key
   useEffect(() => {
@@ -189,8 +280,8 @@ export const HeaderBar: React.FC = React.memo(() => {
   }, [isDrawerOpen]);
 
   return (
-    <header className="w-full bg-gradient-to-r from-[#2A2550] via-[#222340] to-[#1A2332] border-b border-white/10 shadow-md relative z-30">
-      <div className="max-w-4xl mx-auto px-[8px] sm:px-6 h-[48px] sm:h-15 flex items-center justify-between gap-[4px] sm:gap-3 text-white relative">
+    <header className="w-full bg-[image:var(--header-bg)] border-b border-[var(--header-border)] shadow-[var(--header-shadow)] relative z-30">
+      <div className={`${isCompactFrame ? 'max-w-[420px]' : 'max-w-full sm:px-8'} mx-auto px-[8px] sm:px-6 h-[48px] sm:h-15 flex items-center justify-between gap-[4px] sm:gap-3 text-[var(--text)] relative transition-all duration-300`}>
         
         {/* Right Side (RTL Start): Hamburger Menu Button (☰) + Title + Status Dot */}
         <div className="flex items-center gap-[4px] sm:gap-3 flex-1 min-w-0">
@@ -201,9 +292,9 @@ export const HeaderBar: React.FC = React.memo(() => {
             onClick={() => setIsDrawerOpen(true)}
             aria-label={t('topMenu')}
             title={t('topMenu')}
-            className="w-[32px] h-[32px] sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0"
+            className="w-[32px] h-[32px] sm:w-8 sm:h-8 rounded-lg bg-[var(--header-btn-bg)] hover:bg-[var(--header-btn-hover)] border border-[var(--header-btn-border)] flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0"
           >
-            <Menu className="w-4 h-4 text-white stroke-[2.2] group-hover:text-secondary transition-colors" />
+            <Menu className="w-4 h-4 text-[var(--text)] stroke-[2.2] group-hover:text-secondary transition-colors" />
           </motion.button>
 
           {/* Title & Active Status Indicator Dot */}
@@ -220,23 +311,27 @@ export const HeaderBar: React.FC = React.memo(() => {
               dir="rtl"
               title="صفحه اصلی مدیریت"
             >
-              <h1 className="text-[12px] sm:text-base font-bold text-white whitespace-nowrap sm:truncate sm:max-w-none leading-none">
+              <h1 className="text-[12px] sm:text-base font-bold text-[var(--text)] whitespace-nowrap sm:truncate sm:max-w-none leading-none">
                 {language === 'fa' ? 'سامانه مدیریت دانشجویی' : 'Student Management System'}
               </h1>
-              <span className="relative flex h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 shrink-0" title={language === 'fa' ? 'سامانه آنلاین' : 'System Online'}>
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 [transform:translateZ(0)]" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 bg-emerald-500 shadow-[0_0_8px_#10B981]" />
-              </span>
+              {settings.showOnlineStatus && (
+                <span className="relative flex h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 shrink-0" title={language === 'fa' ? 'سامانه آنلاین' : 'System Online'}>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 [transform:translateZ(0)]" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 bg-emerald-500 shadow-[0_0_8px_#10B981]" />
+                </span>
+              )}
             </button>
           ) : (
             <div className="flex items-center gap-[4px] sm:gap-2 flex-1 min-w-0" dir="rtl">
-              <h1 className="text-[12px] sm:text-base font-bold text-white whitespace-nowrap sm:truncate sm:max-w-none leading-none">
+              <h1 className="text-[12px] sm:text-base font-bold text-[var(--text)] whitespace-nowrap sm:truncate sm:max-w-none leading-none">
                 {language === 'fa' ? 'سامانه مدیریت دانشجویی' : 'Student Management System'}
               </h1>
-              <span className="relative flex h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 shrink-0" title={language === 'fa' ? 'سامانه آنلاین' : 'System Online'}>
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 [transform:translateZ(0)]" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 bg-emerald-500 shadow-[0_0_8px_#10B981]" />
-              </span>
+              {settings.showOnlineStatus && (
+                <span className="relative flex h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 shrink-0" title={language === 'fa' ? 'سامانه آنلاین' : 'System Online'}>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 [transform:translateZ(0)]" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2.5 sm:w-2.5 bg-emerald-500 shadow-[0_0_8px_#10B981]" />
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -252,7 +347,7 @@ export const HeaderBar: React.FC = React.memo(() => {
             title={language === 'fa' ? 'مشخصات فردی' : 'User Profile'}
             className="hidden sm:flex min-w-0 min-h-0 items-center justify-center cursor-pointer transition-transform shrink-0 rounded-full"
           >
-            <UserAvatar size="xs" showStatus={isLoggedIn} />
+            <UserAvatar size="xs" showStatus={isLoggedIn && settings.showOnlineStatus} />
           </motion.button>
 
           {/* Notification Bell Button (🔔) */}
@@ -263,11 +358,11 @@ export const HeaderBar: React.FC = React.memo(() => {
             onClick={isAdminUser ? handleToggleAdminNotifs : () => setActiveModal('notifications')}
             aria-label={language === 'fa' ? 'اعلانات' : 'Notifications'}
             title={language === 'fa' ? 'اعلانات و پیام‌ها' : 'Notifications'}
-            className="w-[30px] h-[30px] sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0 relative"
+            className="w-[30px] h-[30px] sm:w-8 sm:h-8 rounded-lg bg-[var(--header-btn-bg)] hover:bg-[var(--header-btn-hover)] border border-[var(--header-btn-border)] flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0 relative"
           >
-            <Bell className="w-[16px] h-[16px] sm:w-4 sm:h-4 text-white stroke-[2] group-hover:text-amber-300 transition-colors" />
+            <Bell className="w-[16px] h-[16px] sm:w-4 sm:h-4 text-[var(--text)] stroke-[2] group-hover:text-amber-300 transition-colors" />
             {displayedBellCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 flex min-w-[14px] h-3.5 sm:min-w-[15px] sm:h-3.5 px-0.5 items-center justify-center rounded-full bg-rose-500 text-[8px] sm:text-[9px] font-extrabold text-white ring-1 sm:ring-2 ring-[#222340]">
+              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 flex min-w-[14px] h-3.5 sm:min-w-[15px] sm:h-3.5 px-0.5 items-center justify-center rounded-full bg-rose-500 text-[8px] sm:text-[9px] font-extrabold text-white ring-1 sm:ring-2 ring-[var(--header-ring)]">
                 {displayedBellCount > 99 ? '99+' : displayedBellCount}
               </span>
             )}
@@ -279,7 +374,7 @@ export const HeaderBar: React.FC = React.memo(() => {
             whileTap={{ scale: 0.95 }}
             onClick={toggleLanguage}
             title={language === 'fa' ? 'Switch to English' : 'تغییر به فارسی'}
-            className="h-[30px] sm:h-7 px-1.5 sm:px-2 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 flex items-center gap-1 text-[10.5px] sm:text-[11px] font-bold transition-all cursor-pointer shadow-sm text-white shrink-0"
+            className="h-[30px] sm:h-7 px-1.5 sm:px-2 rounded-lg bg-[var(--header-btn-bg)] hover:bg-[var(--header-btn-hover)] border border-[var(--header-btn-border)] flex items-center gap-1 text-[10.5px] sm:text-[11px] font-bold transition-all cursor-pointer shadow-sm text-[var(--text)] shrink-0"
           >
             <Globe className="hidden sm:block w-3 h-3 text-secondary shrink-0" />
             <span className={language === 'fa' ? 'text-secondary font-extrabold' : 'opacity-60'}>FA</span>
@@ -294,8 +389,8 @@ export const HeaderBar: React.FC = React.memo(() => {
             isOpen={isAdminNotifOpen}
             onClose={() => setIsAdminNotifOpen(false)}
             bellButtonRef={bellButtonRef}
-            notifications={adminNotifications}
-            unreadCount={adminUnreadCount}
+            notifications={visibleAdminNotifications}
+            unreadCount={visibleAdminUnreadCount}
             isLoading={isLoadingAdminNotifs}
             isMarkingAll={isMarkingAllNotifs}
             onMarkAllRead={handleMarkAllAdminRead}
@@ -321,7 +416,7 @@ export const HeaderBar: React.FC = React.memo(() => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
               onClick={() => setIsDrawerOpen(false)}
-              className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md [transform:translateZ(0)]"
+              className="fixed inset-0 z-50 bg-[var(--backdrop)] backdrop-blur-md [transform:translateZ(0)]"
             />
 
             {/* Drawer Panel (Slide-in) */}
@@ -366,7 +461,7 @@ export const HeaderBar: React.FC = React.memo(() => {
                     className="w-full flex items-center justify-between p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low border border-outline/30 hover:border-primary/50 transition-all cursor-pointer group shadow-sm"
                   >
                     <div className="flex items-center gap-2.5 sm:gap-3">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--surface-glass)] border border-[var(--border)] flex items-center justify-center shrink-0">
                         <User className="w-4 h-4 sm:w-5 sm:h-5 text-on-primary" />
                       </div>
                       <div className="flex flex-col text-start">
@@ -756,15 +851,17 @@ export const HeaderBar: React.FC = React.memo(() => {
                           className="w-full flex items-center justify-between p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low border border-outline/25 hover:border-primary/40 transition-all cursor-pointer group shadow-sm text-right"
                         >
                           <div className="flex items-center gap-2.5 sm:gap-3">
-                            <UserAvatar size="sm" showStatus={true} />
+                            <UserAvatar size="sm" showStatus={settings.showOnlineStatus} />
                             <div className="flex flex-col text-right">
                               <span className="text-xs sm:text-sm font-bold text-on-primary">
                                 {studentProfile.name || 'کاربر'}
                               </span>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-                                <span className="text-[11px] sm:text-xs text-outline font-medium">وضعیت: آنلاین</span>
-                              </div>
+                              {settings.showOnlineStatus && (
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                                  <span className="text-[11px] sm:text-xs text-outline font-medium">وضعیت: آنلاین</span>
+                                </div>
+                              )}
                             </div>
                           </div>
                           <span className="text-xs text-primary font-medium group-hover:underline">مشاهده</span>

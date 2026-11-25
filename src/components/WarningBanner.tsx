@@ -15,7 +15,7 @@ export const WarningBanner: React.FC = React.memo(() => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -10, scale: 0.95 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full min-h-[60px] bg-gradient-to-r from-[#23324D] via-[#1F2B41] to-[#1C2436] border border-white/[0.08] rounded-[22px] px-4 py-3 shadow-[0_10px_25px_rgba(0,0,0,0.25)] backdrop-blur-md flex items-center justify-between gap-3 text-white relative overflow-hidden group"
+          className="w-full min-h-[60px] bg-gradient-to-r from-[#23324D] via-[#1F2B41] to-[#1C2436] border border-[var(--border)] rounded-[22px] px-4 py-3 shadow-[var(--card-shadow)] backdrop-blur-md flex items-center justify-between gap-3 text-[var(--text)] relative overflow-hidden group"
         >
           {/* Gentle background glow */}
           <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#5EA8FF]/15 rounded-full blur-2xl pointer-events-none animate-pulse [transform:translateZ(0)]" />
@@ -24,8 +24,8 @@ export const WarningBanner: React.FC = React.memo(() => {
           {/* Left / Right Content in RTL: Sparkles + Title + Subtitle */}
           <div className="flex items-center gap-3 min-w-0 z-10">
             {/* ✨ Large Sparkles Icon Container with soft glow */}
-            <div className="w-10 h-10 bg-[#232D42] border border-white/[0.12] rounded-2xl flex items-center justify-center shrink-0 shadow-md relative">
-              <Sparkles className="w-5 h-5 text-white stroke-[2] icon-white-glow drop-shadow-[0_0_8px_rgba(94,168,255,0.7)]" />
+            <div className="w-10 h-10 bg-[var(--surface-2)] border border-[var(--border)] rounded-2xl flex items-center justify-center shrink-0 shadow-md relative">
+              <Sparkles className="w-5 h-5 text-[var(--text)] stroke-[2] icon-white-glow drop-shadow-[0_0_8px_rgba(94,168,255,0.7)]" />
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#35D07F] rounded-full animate-ping" />
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#35D07F] rounded-full" />
             </div>
@@ -33,11 +33,11 @@ export const WarningBanner: React.FC = React.memo(() => {
             {/* Text details */}
             <div className="flex flex-col text-right min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-white tracking-tight flex items-center gap-1">
+                <span className="text-sm font-bold text-[var(--text)] tracking-tight flex items-center gap-1">
                   ✨ دستیار هوشمند AI
                 </span>
               </div>
-              <p className="text-[11px] sm:text-[12px] text-[#BBC1D1] leading-tight truncate mt-0.5">
+              <p className="text-[11px] sm:text-[12px] text-[var(--text-2)] leading-tight truncate mt-0.5">
                 هوش مصنوعی اطلاعیه‌ها، پیشنهادها و پیام‌های مهم سامانه را به‌صورت هوشمند نمایش می‌دهد.
               </p>
             </div>
@@ -55,9 +55,9 @@ export const WarningBanner: React.FC = React.memo(() => {
             <button
               onClick={() => setIsVisible(false)}
               aria-label="بستن اطلاعیه"
-              className="p-1.5 rounded-xl text-[#BBC1D1] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--surface-glass-hover)] transition-colors cursor-pointer"
             >
-              <X className="w-4 h-4 text-white stroke-[2] icon-white-glow" />
+              <X className="w-4 h-4 stroke-[2] icon-white-glow" />
             </button>
           </div>
         </motion.div>

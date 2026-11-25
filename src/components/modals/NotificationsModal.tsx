@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Bell, X, CheckCheck, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Bell, X, CheckCheck, Info, AlertTriangle, CheckCircle2, MessageSquare, Mail } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 
 export const NotificationsModal: React.FC = () => {
@@ -10,27 +10,27 @@ export const NotificationsModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-slate-950/80 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[var(--backdrop)] backdrop-blur-sm">
         <motion.div
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
-          className="w-full max-w-lg bg-[#1E293B] border border-slate-700/80 rounded-[28px] p-6 shadow-2xl text-slate-100 max-h-[85dvh] overflow-y-auto"
+          className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-strong)] rounded-[28px] p-6 shadow-2xl text-[var(--text)] max-h-[85dvh] overflow-y-auto"
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-slate-700/60">
+          <div className="flex items-center justify-between pb-4 border-b border-[var(--border)]">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-slate-800 text-slate-200 rounded-xl border border-slate-700">
+              <div className="p-2.5 bg-[var(--surface-2)] text-[var(--text-strong)] rounded-xl border border-[var(--border)]">
                 <Bell className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-slate-100">اعلانات و پیام‌های سیستم</h2>
-                <p className="text-xs text-slate-400">آخرین رویدادهای آموزشی و اداری</p>
+                <h2 className="text-lg font-bold text-[var(--text)]">اعلانات و پیام‌های سیستم</h2>
+                <p className="text-xs text-[var(--text-2)]">آخرین رویدادهای آموزشی و اداری</p>
               </div>
             </div>
             <button
               onClick={closeModal}
-              className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+              className="p-2 rounded-full hover:bg-[var(--surface-hover)] text-[var(--text-2)] hover:text-[var(--text)] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -38,7 +38,7 @@ export const NotificationsModal: React.FC = () => {
 
           {/* Action Bar */}
           <div className="mt-4 flex items-center justify-between">
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-[var(--text-2)]">
               {notifications.filter(n => !n.read).length} خوانده‌نشده
             </span>
             <button
@@ -55,42 +55,62 @@ export const NotificationsModal: React.FC = () => {
 
           {/* Notifications List */}
           <div className="mt-4 space-y-3">
-            {notifications.map((item) => (
-              <div
-                key={item.id}
-                className={`p-4 rounded-2xl border transition-colors ${
-                  item.read
-                    ? 'bg-slate-900/40 border-slate-800 text-slate-300'
-                    : 'bg-slate-900/90 border-slate-700 text-slate-100 shadow-md'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-xl bg-slate-800 shrink-0 mt-0.5">
-                      {item.type === 'academic' && <Info className="w-4 h-4 text-sky-400" />}
-                      {item.type === 'exam' && <AlertTriangle className="w-4 h-4 text-amber-400" />}
-                      {item.type === 'system' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                        {item.title}
-                        {!item.read && (
-                          <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
-                        )}
-                      </h4>
-                      <p className="text-xs text-slate-300 mt-1 leading-relaxed">{item.message}</p>
-                    </div>
-                  </div>
-                  <span className="text-[11px] text-slate-400 shrink-0">{item.time}</span>
-                </div>
+            {notifications.length === 0 ? (
+              <div className="py-10 text-center text-xs text-[var(--text-2)] bg-[var(--surface-item)] rounded-2xl border border-[var(--border)]">
+                اعلانی برای نمایش وجود ندارد.
               </div>
-            ))}
+            ) : (
+              notifications.map((item) => (
+                <div
+                  key={item.id}
+                  className={`p-4 rounded-2xl border transition-colors ${
+                    item.read
+                      ? 'bg-[var(--surface-item)] border-[var(--border-subtle)] text-[var(--text-2)]'
+                      : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text)] shadow-md'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-xl bg-[var(--surface-3)] shrink-0 mt-0.5">
+                        {item.type === 'academic' && <Info className="w-4 h-4 text-sky-400" />}
+                        {item.type === 'exam' && <AlertTriangle className="w-4 h-4 text-amber-400" />}
+                        {item.type === 'system' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+                        {item.type === 'sms' && <MessageSquare className="w-4 h-4 text-blue-400" />}
+                        {item.type === 'email' && <Mail className="w-4 h-4 text-emerald-400" />}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="text-sm font-bold text-[var(--text)] flex items-center gap-2">
+                            {item.title}
+                            {!item.read && (
+                              <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
+                            )}
+                          </h4>
+                          {item.type === 'sms' && (
+                            <span className="px-1.5 py-0.5 rounded-md bg-blue-500/15 text-blue-300 border border-blue-500/30 text-[10px] font-semibold">
+                              پیامک
+                            </span>
+                          )}
+                          {item.type === 'email' && (
+                            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold">
+                              ایمیل
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[var(--text-2)] mt-1 leading-relaxed">{item.message}</p>
+                      </div>
+                    </div>
+                    <span className="text-[11px] text-[var(--text-muted)] shrink-0">{item.time}</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-800 flex justify-end">
+          <div className="mt-6 pt-4 border-t border-[var(--border)] flex justify-end">
             <button
               onClick={closeModal}
-              className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-sm font-bold transition-colors cursor-pointer"
+              className="px-5 py-2.5 bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-strong)] rounded-xl text-sm font-bold transition-colors cursor-pointer"
             >
               بستن
             </button>

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, User as UserIcon } from 'lucide-react';
-import { useAuth, useI18n, useToastActions } from '../context/DashboardContext';
+import { useAuth, useI18n, useSettings, useToastActions } from '../context/DashboardContext';
 
 export interface UserAvatarProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -26,6 +26,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = React.memo(({
   const { studentProfile, updateStudentProfile } = useAuth();
   const { showToast } = useToastActions();
   const { language } = useI18n();
+  const { settings } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageError, setImageError] = useState(false);
 
@@ -196,7 +197,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = React.memo(({
       </div>
 
       {/* Online Status Indicator */}
-      {showStatus && (
+      {showStatus && settings.showOnlineStatus && (
         <span
           className={`absolute ${currentSize.status} bg-emerald-500 rounded-full border-2 border-[#1E293B] shadow-[0_0_8px_#10B981] pointer-events-none z-10`}
           title={language === 'fa' ? 'وضعیت: آنلاین' : 'Status: Online'}

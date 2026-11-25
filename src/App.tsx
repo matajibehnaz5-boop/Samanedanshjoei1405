@@ -13,7 +13,7 @@ const DashboardContent: React.FC = React.memo(() => {
   const { isCompactFrame } = useLayoutSettings();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1e1b4b] via-[#1e293b] to-[#0f172a] text-white flex flex-col justify-between font-['Vazirmatn',sans-serif] selection:bg-[#5EA8FF] selection:text-white relative overflow-hidden">
+    <div className="min-h-screen bg-[image:var(--bg-page-login)] text-[var(--text)] flex flex-col justify-between font-['Vazirmatn',sans-serif] selection:bg-[var(--accent)] selection:text-white relative overflow-hidden">
       
       {/* Floating Animated Background Ambient Blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 isolate [contain:strict] [transform:translateZ(0)]">
@@ -62,15 +62,15 @@ const DashboardContent: React.FC = React.memo(() => {
       <div
         aria-hidden="true"
         className={`fixed inset-y-0 left-0 right-0 mx-auto w-full pointer-events-none z-[1] backdrop-blur-xl transition-all duration-300 [transform:translateZ(0)] [contain:strict] ${
-          isCompactFrame ? 'max-w-md' : 'max-w-4xl'
+          isCompactFrame ? 'max-w-[420px]' : 'max-w-none'
         }`}
       />
 
       {/* Main Layout Container */}
       <div className={`w-full transition-all duration-300 flex flex-col min-h-screen relative z-10 ${
         isCompactFrame 
-          ? 'max-w-md mx-auto border-x border-white/[0.08] shadow-2xl bg-gradient-to-b from-[#1e1b4b]/80 via-[#1e293b]/80 to-[#0f172a]/80' 
-          : 'max-w-4xl mx-auto bg-gradient-to-b from-[#1e1b4b]/60 via-[#1e293b]/60 to-[#0f172a]/60'
+          ? 'max-w-[420px] mx-auto border-x border-[var(--border)] shadow-2xl bg-[image:var(--bg-page-login-overlay-compact)]' 
+          : 'max-w-none bg-[image:var(--bg-page-login-overlay)]'
       }`}>
 
         {/* Top Header Bar */}

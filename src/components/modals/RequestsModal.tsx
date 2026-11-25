@@ -20,6 +20,7 @@ import {
   Check
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
+import { useFormAutosave } from '../../hooks/useFormAutosave';
 import { api } from '../../lib/api';
 
 export interface RequestItem {
@@ -124,6 +125,26 @@ export const RequestsModal: React.FC = () => {
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [detailsText, setDetailsText] = useState<string>('');
 
+  const requestDraftValues = useMemo(
+    () => ({
+      selectedType,
+      selectedCourseId,
+      detailsText,
+    }),
+    [selectedType, selectedCourseId, detailsText]
+  );
+
+  const { clearDraft: clearRequestDraft } = useFormAutosave({
+    formKey: 'student_requests',
+    isOpen: activeModal === 'student_requests',
+    values: requestDraftValues,
+    onRestore: (draft) => {
+      if (typeof draft.selectedType === 'string') setSelectedType(draft.selectedType);
+      if (typeof draft.selectedCourseId === 'string') setSelectedCourseId(draft.selectedCourseId);
+      if (typeof draft.detailsText === 'string') setDetailsText(draft.detailsText);
+    },
+  });
+
   if (activeModal !== 'student_requests') return null;
 
   const handleSelectTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -211,6 +232,7 @@ export const RequestsModal: React.FC = () => {
     setSelectedType('');
     setSelectedCourseId('');
     setDetailsText('');
+    clearRequestDraft();
 
     showToast(t('requestSuccessToast', { code: trackingCode }));
   };

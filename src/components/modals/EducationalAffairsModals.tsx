@@ -18,6 +18,7 @@ import {
   BadgeCheck,
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
+import { useFormAutosave } from '../../hooks/useFormAutosave';
 import { api, type EduGroup, type EduField, type Employee } from '../../lib/api';
 
 function normalizeDigits(str: string): string {
@@ -82,6 +83,62 @@ export const EducationalAffairsModals: React.FC = () => {
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [selectedFieldId, setSelectedFieldId] = useState('');
   const [submittingEmployee, setSubmittingEmployee] = useState(false);
+
+  const eduGroupDraftValues = useMemo(
+    () => ({ groupName, groupHead }),
+    [groupName, groupHead]
+  );
+
+  const { clearDraft: clearGroupDraft } = useFormAutosave({
+    formKey: 'edu_groups',
+    isOpen: activeModal === 'edu_groups' && studentProfile.role === 'admin',
+    values: eduGroupDraftValues,
+    onRestore: (draft) => {
+      if (typeof draft.groupName === 'string') setGroupName(draft.groupName);
+      if (typeof draft.groupHead === 'string') setGroupHead(draft.groupHead);
+    },
+  });
+
+  const eduFieldDraftValues = useMemo(() => ({ fieldName }), [fieldName]);
+
+  const { clearDraft: clearFieldDraft } = useFormAutosave({
+    formKey: 'edu_fields',
+    isOpen: activeModal === 'edu_fields' && studentProfile.role === 'admin',
+    values: eduFieldDraftValues,
+    onRestore: (draft) => {
+      if (typeof draft.fieldName === 'string') setFieldName(draft.fieldName);
+    },
+  });
+
+  const employeeDraftValues = useMemo(
+    () => ({
+      firstName,
+      lastName,
+      nationalId,
+      personnelCode,
+      phone,
+      position,
+      selectedGroupId,
+      selectedFieldId,
+    }),
+    [firstName, lastName, nationalId, personnelCode, phone, position, selectedGroupId, selectedFieldId]
+  );
+
+  const { clearDraft: clearEmployeeDraft } = useFormAutosave({
+    formKey: 'employee_register',
+    isOpen: activeModal === 'employee_register' && studentProfile.role === 'admin',
+    values: employeeDraftValues,
+    onRestore: (draft) => {
+      if (typeof draft.firstName === 'string') setFirstName(draft.firstName);
+      if (typeof draft.lastName === 'string') setLastName(draft.lastName);
+      if (typeof draft.nationalId === 'string') setNationalId(draft.nationalId);
+      if (typeof draft.personnelCode === 'string') setPersonnelCode(draft.personnelCode);
+      if (typeof draft.phone === 'string') setPhone(draft.phone);
+      if (typeof draft.position === 'string') setPosition(draft.position);
+      if (typeof draft.selectedGroupId === 'string') setSelectedGroupId(draft.selectedGroupId);
+      if (typeof draft.selectedFieldId === 'string') setSelectedFieldId(draft.selectedFieldId);
+    },
+  });
 
   // Employee List state
   const [searchQuery, setSearchQuery] = useState('');
@@ -181,6 +238,7 @@ export const EducationalAffairsModals: React.FC = () => {
       });
       setGroupName('');
       setGroupHead('');
+      clearGroupDraft();
       showToast('گروه آموزشی با موفقیت ثبت شد.');
       await fetchGroups();
     } catch (err: any) {
@@ -217,6 +275,7 @@ export const EducationalAffairsModals: React.FC = () => {
         name: fieldName.trim(),
       });
       setFieldName('');
+      clearFieldDraft();
       showToast('رشته تحصیلی با موفقیت ثبت شد.');
       await fetchFields();
     } catch (err: any) {
@@ -274,6 +333,7 @@ export const EducationalAffairsModals: React.FC = () => {
       setPosition('');
       setSelectedGroupId('');
       setSelectedFieldId('');
+      clearEmployeeDraft();
 
       showToast('کارمند جدید با موفقیت ثبت شد.');
       setActiveModal('employee_list');

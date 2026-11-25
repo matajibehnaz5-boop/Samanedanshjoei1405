@@ -72,23 +72,23 @@ export const SsoLoginModal: React.FC = () => {
     <AnimatePresence>
       <div
         dir="rtl"
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[#0F172A]/80 backdrop-blur-md"
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[var(--backdrop)] backdrop-blur-md"
       >
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 50 }}
-          className="w-full max-w-lg bg-[#1C2436] border border-white/[0.08] rounded-xl sm:rounded-[30px] p-[14px] sm:p-6 shadow-2xl text-white max-h-[85dvh] overflow-y-auto overflow-x-hidden"
+          className="w-full max-w-lg bg-[var(--surface-card)] border border-[var(--border)] rounded-xl sm:rounded-[30px] p-[14px] sm:p-6 shadow-2xl text-[var(--text)] max-h-[85dvh] overflow-y-auto overflow-x-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between gap-2 pb-3 sm:pb-4 border-b border-white/[0.08]">
+          <div className="flex items-center justify-between gap-2 pb-3 sm:pb-4 border-b border-[var(--border)]">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#232D42] rounded-xl sm:rounded-2xl border border-white/[0.08] flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-5 h-5 text-white stroke-[2] icon-white-glow" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--surface-2)] rounded-xl sm:rounded-2xl border border-[var(--border)] flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-5 h-5 stroke-[2] icon-white-glow" />
               </div>
               <div className="min-w-0">
-                <h2 className="text-[15px] sm:text-lg font-bold text-white truncate">درگاه ورود (SSO)</h2>
-                <p className="text-[11px] sm:text-xs text-[#BBC1D1] truncate">
+                <h2 className="text-[15px] sm:text-lg font-bold text-[var(--text)] truncate">درگاه ورود (SSO)</h2>
+                <p className="text-[11px] sm:text-xs text-[var(--text-2)] truncate">
                   سامانه احراز هویت متمرکز دانشگاهی
                 </p>
               </div>
@@ -97,9 +97,9 @@ export const SsoLoginModal: React.FC = () => {
               type="button"
               onClick={closeModal}
               aria-label="بستن"
-              className="p-2 rounded-full hover:bg-white/10 text-[#BBC1D1] hover:text-white transition-colors cursor-pointer shrink-0"
+              className="p-2 rounded-full hover:bg-[var(--surface-hover)] text-[var(--text-2)] hover:text-[var(--text)] transition-colors cursor-pointer shrink-0"
             >
-              <X className="w-5 h-5 text-white stroke-[2] icon-white-glow" />
+              <X className="w-5 h-5 stroke-[2] icon-white-glow" />
             </button>
           </div>
 
@@ -107,18 +107,18 @@ export const SsoLoginModal: React.FC = () => {
             <>
               {/* Step 1: Single IdP Selection */}
               <div className="mt-3 sm:mt-5 space-y-2 sm:space-y-3">
-                <p className="text-[11px] sm:text-xs font-bold text-[#BBC1D1] uppercase tracking-wider">
+                <p className="text-[11px] sm:text-xs font-bold text-[var(--text-2)] uppercase tracking-wider">
                   سرویس‌دهنده هویت یکپارچه را انتخاب کنید:
                 </p>
 
-                <label className="p-[12px] sm:p-4 rounded-xl sm:rounded-2xl border bg-[#35D07F]/15 border-[#35D07F]/50 text-white flex items-center justify-between gap-2 cursor-pointer transition-all">
+                <label className="p-[12px] sm:p-4 rounded-xl sm:rounded-2xl border bg-[var(--status-green-bg)] border-[var(--status-green-border)] text-[var(--text)] flex items-center justify-between gap-2 cursor-pointer transition-all">
                   <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                    <Building2 className="w-5 h-5 text-white shrink-0 stroke-[2] icon-white-glow" />
+                    <Building2 className="w-5 h-5 shrink-0 stroke-[2] icon-white-glow" />
                     <div className="min-w-0">
-                      <h4 className="text-xs sm:text-sm font-bold text-white">
+                      <h4 className="text-xs sm:text-sm font-bold text-[var(--text)]">
                         سامانه مرکزی دولت و علوم (پنجره واحد)
                       </h4>
-                      <p className="text-[11px] sm:text-xs text-[#BBC1D1]">
+                      <p className="text-[11px] sm:text-xs text-[var(--text-2)]">
                         احراز هویت یکپارچه حساب دانشجویی
                       </p>
                     </div>
@@ -135,21 +135,21 @@ export const SsoLoginModal: React.FC = () => {
 
               {/* User Account Profile Preview (Only if profile exists) */}
               {studentProfile.name ? (
-                <div className="mt-4 sm:mt-5 p-3 sm:p-4 bg-[#232D42] rounded-xl sm:rounded-2xl border border-white/[0.08] text-xs space-y-1.5">
-                  <span className="text-[#BBC1D1] block">پروفایل شناسایی شده:</span>
-                  <div className="font-bold text-white text-sm">{studentProfile.name}</div>
-                  <div className="text-[#BBC1D1]">
+                <div className="mt-4 sm:mt-5 p-3 sm:p-4 bg-[var(--surface-2)] rounded-xl sm:rounded-2xl border border-[var(--border)] text-xs space-y-1.5">
+                  <span className="text-[var(--text-2)] block">پروفایل شناسایی شده:</span>
+                  <div className="font-bold text-[var(--text)] text-sm">{studentProfile.name}</div>
+                  <div className="text-[var(--text-2)]">
                     {studentProfile.field} | {studentProfile.institute}
                   </div>
                 </div>
               ) : null}
 
               {/* Continue Action Button */}
-              <div className="mt-5 sm:mt-6 pt-3 sm:pt-4 border-t border-white/[0.08] flex items-center justify-between gap-2.5 sm:gap-3">
+              <div className="mt-5 sm:mt-6 pt-3 sm:pt-4 border-t border-[var(--border)] flex items-center justify-between gap-2.5 sm:gap-3">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 sm:px-5 py-2.5 bg-[#232D42] hover:bg-[#232D42]/80 text-[#BBC1D1] hover:text-white rounded-full text-xs sm:text-sm font-medium transition-colors cursor-pointer"
+                  className="px-4 sm:px-5 py-2.5 bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text)] rounded-full text-xs sm:text-sm font-medium transition-colors cursor-pointer"
                 >
                   انصراف
                 </button>
@@ -159,9 +159,9 @@ export const SsoLoginModal: React.FC = () => {
                   onClick={handleProceedToCredentials}
                   className="flex-1 py-2.5 px-3 bg-[#35D07F] hover:bg-[#35D07F]/90 text-white rounded-full text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#35D07F]/20 hover:scale-[1.02]"
                 >
-                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-white stroke-[2] icon-white-glow shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-white stroke-[2] shrink-0" />
                   <span>تأیید و ورود یکپارچه SSO</span>
-                  <ArrowRight className="w-4 h-4 text-white stroke-[2] icon-white-glow rotate-180 shrink-0" />
+                  <ArrowRight className="w-4 h-4 text-white stroke-[2] rotate-180 shrink-0" />
                 </button>
               </div>
             </>
@@ -169,14 +169,14 @@ export const SsoLoginModal: React.FC = () => {
             /* Step 2: Student Username & Password Form (Always empty by default) */
             <form onSubmit={handleSubmitCredentials} autoComplete="off" className="mt-4 sm:mt-5 space-y-3 sm:space-y-4">
               {errorMsg && (
-                <div className="p-2.5 sm:p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-200 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <div className="p-2.5 sm:p-3 rounded-xl bg-[var(--status-red-bg)] border border-[var(--status-red-border)] text-[var(--status-red-text)] text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-[var(--status-red-text)] shrink-0" />
                   <span>{errorMsg}</span>
                 </div>
               )}
 
               <div>
-                <label className="text-xs font-semibold text-[#BBC1D1] block mb-1.5">
+                <label className="text-xs font-semibold text-[var(--text-2)] block mb-1.5">
                   نام کاربری *
                 </label>
                 <div className="relative">
@@ -187,14 +187,14 @@ export const SsoLoginModal: React.FC = () => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="نام کاربری دانشجویی را وارد کنید"
-                    className="w-full bg-[#232D42] border border-white/[0.1] focus:border-[#35D07F] rounded-xl px-3.5 py-2.5 pr-9 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors dir-ltr text-right"
+                    className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] focus:border-[var(--accent)] rounded-xl px-3.5 py-2.5 pr-9 text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none transition-colors dir-ltr text-right"
                   />
-                  <User className="w-4 h-4 text-[#BBC1D1] absolute right-3 top-1/2 -translate-y-1/2" />
+                  <User className="w-4 h-4 text-[var(--text-muted)] absolute right-3 top-1/2 -translate-y-1/2" />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-[#BBC1D1] block mb-1.5">
+                <label className="text-xs font-semibold text-[var(--text-2)] block mb-1.5">
                   رمز عبور *
                 </label>
                 <div className="relative">
@@ -205,21 +205,21 @@ export const SsoLoginModal: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="رمز عبور را وارد کنید"
-                    className="w-full bg-[#232D42] border border-white/[0.1] focus:border-[#35D07F] rounded-xl px-3.5 py-2.5 pr-9 pl-9 text-sm text-white placeholder-slate-500 focus:outline-none transition-colors dir-ltr text-right"
+                    className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] focus:border-[var(--accent)] rounded-xl px-3.5 py-2.5 pr-9 pl-9 text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none transition-colors dir-ltr text-right"
                   />
-                  <Lock className="w-4 h-4 text-[#BBC1D1] absolute right-3 top-1/2 -translate-y-1/2" />
+                  <Lock className="w-4 h-4 text-[var(--text-muted)] absolute right-3 top-1/2 -translate-y-1/2" />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
                     aria-label={showPassword ? 'مخفی کردن رمز عبور' : 'نمایش رمز عبور'}
-                    className="p-1 text-[#BBC1D1] hover:text-white absolute left-2.5 top-1/2 -translate-y-1/2 cursor-pointer"
+                    className="p-1 text-[var(--text-2)] hover:text-[var(--text)] absolute left-2.5 top-1/2 -translate-y-1/2 cursor-pointer"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
-              <div className="mt-5 pt-3 sm:pt-4 border-t border-white/[0.08] flex items-center justify-between gap-2.5 sm:gap-3">
+              <div className="mt-5 pt-3 sm:pt-4 border-t border-[var(--border)] flex items-center justify-between gap-2.5 sm:gap-3">
                 <button
                   type="button"
                   onClick={() => {
@@ -228,7 +228,7 @@ export const SsoLoginModal: React.FC = () => {
                     setPassword('');
                     setStep('idp');
                   }}
-                  className="px-4 sm:px-5 py-2.5 bg-[#232D42] hover:bg-[#232D42]/80 text-[#BBC1D1] hover:text-white rounded-full text-xs sm:text-sm font-medium transition-colors cursor-pointer"
+                  className="px-4 sm:px-5 py-2.5 bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text)] rounded-full text-xs sm:text-sm font-medium transition-colors cursor-pointer"
                 >
                   بازگشت
                 </button>

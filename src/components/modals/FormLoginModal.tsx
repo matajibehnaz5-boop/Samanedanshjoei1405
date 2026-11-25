@@ -46,48 +46,48 @@ export const FormLoginModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[#0F172A]/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[var(--backdrop)] backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 50 }}
-          className="w-full max-w-lg bg-[#1C2436] border border-white/[0.08] rounded-[30px] p-6 shadow-2xl text-white max-h-[85dvh] overflow-y-auto"
+          className="w-full max-w-lg bg-[var(--surface-card)] border border-[var(--border)] rounded-[30px] p-6 shadow-2xl text-[var(--text)] max-h-[85dvh] overflow-y-auto"
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+          <div className="flex items-center justify-between pb-4 border-b border-[var(--border)]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#232D42] rounded-2xl border border-white/[0.08] flex items-center justify-center shrink-0">
-                <UserCheck className="w-5 h-5 text-white stroke-[2] icon-white-glow" />
+              <div className="w-10 h-10 bg-[var(--surface-2)] rounded-2xl border border-[var(--border)] flex items-center justify-center shrink-0">
+                <UserCheck className="w-5 h-5 stroke-[2] icon-white-glow" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white">
+                <h2 className="text-lg font-bold text-[var(--text)]">
                   {mode === 'login' ? 'ورود به حساب کاربری' : 'ثبت‌نام دانشجوی جدید'}
                 </h2>
-                <p className="text-xs text-[#BBC1D1]">
+                <p className="text-xs text-[var(--text-2)]">
                   {mode === 'login' ? 'ورود امن با ایمیل و رمز عبور' : 'ایجاد حساب کاربری جدید در سامانه'}
                 </p>
               </div>
             </div>
             <button
               onClick={closeModal}
-              className="p-2 rounded-full hover:bg-white/10 text-[#BBC1D1] hover:text-white transition-colors cursor-pointer"
+              className="p-2 rounded-full hover:bg-[var(--surface-hover)] text-[var(--text-2)] hover:text-[var(--text)] transition-colors cursor-pointer"
             >
-              <X className="w-5 h-5 text-white stroke-[2] icon-white-glow" />
+              <X className="w-5 h-5 stroke-[2] icon-white-glow" />
             </button>
           </div>
 
           {/* Mode Switcher Tabs */}
-          <div className="grid grid-cols-2 gap-2 mt-4 p-1 bg-[#232D42] rounded-2xl border border-white/[0.08]">
+          <div className="grid grid-cols-2 gap-2 mt-4 p-1 bg-[var(--surface-2)] rounded-2xl border border-[var(--border)]">
             <button
               type="button"
               onClick={() => {
                 setMode('login');
                 setErrorMsg('');
               }}
-              className={`py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 mode === 'login'
                   ? 'bg-[#5EA8FF] text-white shadow-md'
-                  : 'text-[#BBC1D1] hover:text-white'
+                  : 'text-[var(--text-2)] hover:text-[var(--text)]'
               }`}
             >
               ورود به حساب
@@ -98,10 +98,10 @@ export const FormLoginModal: React.FC = () => {
                 setMode('signup');
                 setErrorMsg('');
               }}
-              className={`py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 mode === 'signup'
                   ? 'bg-[#5EA8FF] text-white shadow-md'
-                  : 'text-[#BBC1D1] hover:text-white'
+                  : 'text-[var(--text-2)] hover:text-[var(--text)]'
               }`}
             >
               ثبت‌نام جدید
@@ -114,7 +114,7 @@ export const FormLoginModal: React.FC = () => {
               <>
                 {/* Full Name */}
                 <div>
-                  <label className="text-[11px] sm:text-xs font-semibold text-[#BBC1D1] block mb-1 sm:mb-1.5">
+                  <label className="text-[11px] sm:text-xs font-semibold text-[var(--text-2)] block mb-1 sm:mb-1.5">
                     نام و نام خانوادگی:
                   </label>
                   <div className="relative">
@@ -123,15 +123,15 @@ export const FormLoginModal: React.FC = () => {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="نام کامل خود را وارد کنید"
-                      className="w-full bg-[#232D42] border border-white/[0.08] rounded-xl sm:rounded-2xl px-3.5 py-2 sm:px-4 sm:py-3 pl-10 text-sm text-white placeholder-[#BBC1D1]/50 focus:outline-none focus:border-[#5EA8FF] transition-colors"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl sm:rounded-2xl px-3.5 py-2 sm:px-4 sm:py-3 pl-10 text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                     />
-                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-white absolute left-3 top-1/2 -translate-y-1/2 stroke-[2] icon-white-glow" />
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2 stroke-[2] icon-white-glow" />
                   </div>
                 </div>
 
                 {/* Student ID */}
                 <div>
-                  <label className="text-[11px] sm:text-xs font-semibold text-[#BBC1D1] block mb-1 sm:mb-1.5">
+                  <label className="text-[11px] sm:text-xs font-semibold text-[var(--text-2)] block mb-1 sm:mb-1.5">
                     شماره دانشجویی / کد ملی:
                   </label>
                   <div className="relative">
@@ -140,9 +140,9 @@ export const FormLoginModal: React.FC = () => {
                       value={studentId}
                       onChange={(e) => setStudentId(e.target.value)}
                       placeholder="شماره دانشجویی"
-                      className="w-full bg-[#232D42] border border-white/[0.08] rounded-xl sm:rounded-2xl px-3.5 py-2 sm:px-4 sm:py-3 pl-10 text-sm text-white placeholder-[#BBC1D1]/50 focus:outline-none focus:border-[#5EA8FF] dir-ltr text-right transition-colors"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl sm:rounded-2xl px-3.5 py-2 sm:px-4 sm:py-3 pl-10 text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--accent)] dir-ltr text-right transition-colors"
                     />
-                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-white absolute left-3 top-1/2 -translate-y-1/2 stroke-[2] icon-white-glow" />
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2 stroke-[2] icon-white-glow" />
                   </div>
                 </div>
               </>
@@ -150,7 +150,7 @@ export const FormLoginModal: React.FC = () => {
 
             {/* Email Field */}
             <div>
-              <label className="text-[11px] sm:text-xs font-semibold text-[#BBC1D1] block mb-1 sm:mb-1.5">
+              <label className="text-[11px] sm:text-xs font-semibold text-[var(--text-2)] block mb-1 sm:mb-1.5">
                 ایمیل کاربری:
               </label>
               <div className="relative">
@@ -159,15 +159,15 @@ export const FormLoginModal: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@domain.com"
-                  className="w-full bg-[#232D42] border border-white/[0.08] rounded-xl sm:rounded-2xl px-3.5 py-2 sm:px-4 sm:py-3 pl-10 text-sm text-white placeholder-[#BBC1D1]/50 focus:outline-none focus:border-[#5EA8FF] dir-ltr text-left transition-colors"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl sm:rounded-2xl px-3.5 py-2 sm:px-4 sm:py-3 pl-10 text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--accent)] dir-ltr text-left transition-colors"
                 />
-                <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-white absolute left-3 top-1/2 -translate-y-1/2 stroke-[2] icon-white-glow" />
+                <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2 stroke-[2] icon-white-glow" />
               </div>
             </div>
 
             {/* Password Field */}
             <div>
-              <label className="text-[11px] sm:text-xs font-semibold text-[#BBC1D1] block mb-1 sm:mb-1.5">
+              <label className="text-[11px] sm:text-xs font-semibold text-[var(--text-2)] block mb-1 sm:mb-1.5">
                 رمز عبور:
               </label>
               <div className="relative">
@@ -176,36 +176,36 @@ export const FormLoginModal: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="رمز عبور (حداقل ۶ کاراکتر)"
-                  className="w-full bg-[#232D42] border border-white/[0.08] rounded-xl sm:rounded-2xl px-3.5 py-2 sm:px-4 sm:py-3 pl-10 text-sm text-white placeholder-[#BBC1D1]/50 focus:outline-none focus:border-[#5EA8FF] dir-ltr text-left transition-colors"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl sm:rounded-2xl px-3.5 py-2 sm:px-4 sm:py-3 pl-10 text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--accent)] dir-ltr text-left transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-white hover:text-white/80 transition-colors"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-2)] hover:text-[var(--text)] transition-colors cursor-pointer"
                 >
                   {showPassword ? (
-                    <EyeOff className="w-4 h-4 sm:w-5 sm:h-5 text-white stroke-[2] icon-white-glow" />
+                    <EyeOff className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2] icon-white-glow" />
                   ) : (
-                    <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-white stroke-[2] icon-white-glow" />
+                    <Eye className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2] icon-white-glow" />
                   )}
                 </button>
               </div>
             </div>
 
             {errorMsg && (
-              <div className="flex items-center gap-2 text-xs font-semibold text-red-400 bg-red-950/40 p-3 rounded-2xl border border-red-800/50">
-                <ShieldAlert className="w-4 h-4 text-red-400 shrink-0" />
+              <div className="flex items-center gap-2 text-xs font-semibold text-[var(--status-red-text)] bg-[var(--status-red-bg)] p-3 rounded-2xl border border-[var(--status-red-border)]">
+                <ShieldAlert className="w-4 h-4 text-[var(--status-red-text)] shrink-0" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
             {/* Actions */}
-            <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between gap-3">
+            <div className="pt-3 border-t border-[var(--border)] flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={closeModal}
                 disabled={loading}
-                className="px-5 py-2.5 bg-[#232D42] hover:bg-[#232D42]/80 text-[#BBC1D1] hover:text-white rounded-full text-sm font-medium transition-colors cursor-pointer disabled:opacity-50"
+                className="px-5 py-2.5 bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text)] rounded-full text-sm font-medium transition-colors cursor-pointer disabled:opacity-50"
               >
                 انصراف
               </button>

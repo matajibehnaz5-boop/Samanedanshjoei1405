@@ -52,28 +52,28 @@ export const LoginHelpModals: React.FC = () => {
         onClick={(e) => {
           if (e.target === e.currentTarget) closeModal();
         }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[10vh] sm:pb-[6vh] bg-slate-950/80 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[10vh] sm:pb-[6vh] bg-[var(--backdrop)] backdrop-blur-sm"
       >
         <motion.div
           initial={{ opacity: 0, y: 36, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 36, scale: 0.97 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="w-full max-w-lg bg-[#1E293B] border border-slate-700/80 rounded-[24px] sm:rounded-[28px] shadow-2xl text-slate-100 flex flex-col max-h-[85dvh] overflow-hidden"
+          className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-strong)] rounded-[24px] sm:rounded-[28px] shadow-2xl text-[var(--text)] flex flex-col max-h-[85dvh] overflow-hidden"
         >
           {activeModal === 'forgot_password' ? (
             <>
               {/* Header */}
-              <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-slate-700/70 bg-[#172030] flex items-center justify-between gap-3 shrink-0">
+              <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-[var(--border)] bg-[var(--surface-header)] flex items-center justify-between gap-3 shrink-0">
                 <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                   <div className="p-2 sm:p-2.5 bg-amber-500/15 text-amber-300 rounded-xl border border-amber-500/30 shrink-0">
                     <KeyRound className="w-5 h-5" />
                   </div>
                   <div className="min-w-0">
-                    <h2 className="text-base sm:text-lg font-bold text-slate-100 truncate">
+                    <h2 className="text-base sm:text-lg font-bold text-[var(--text)] truncate">
                       بازیابی رمز عبور
                     </h2>
-                    <p className="text-[11px] sm:text-xs text-slate-400 truncate mt-0.5">
+                    <p className="text-[11px] sm:text-xs text-[var(--text-2)] truncate mt-0.5">
                       راهنمای دریافت رمز موقت و نکات امنیتی
                     </p>
                   </div>
@@ -82,7 +82,7 @@ export const LoginHelpModals: React.FC = () => {
                   type="button"
                   onClick={closeModal}
                   aria-label="بستن"
-                  className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
+                  className="p-2 rounded-full hover:bg-[var(--surface-hover)] text-[var(--text-2)] hover:text-[var(--text)] transition-colors cursor-pointer shrink-0"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -100,33 +100,33 @@ export const LoginHelpModals: React.FC = () => {
 
                 {/* Steps */}
                 <div className="space-y-2.5">
-                  <h3 className="text-xs font-extrabold text-slate-300">مراحل بازیابی رمز عبور</h3>
+                  <h3 className="text-xs font-extrabold text-[var(--text-2)]">مراحل بازیابی رمز عبور</h3>
 
-                  <div className="p-3 rounded-2xl bg-[#151E2E] border border-slate-700/70 flex items-start gap-2.5">
+                  <div className="p-3 rounded-2xl bg-[var(--surface-item)] border border-[var(--border)] flex items-start gap-2.5">
                     <div className="p-1.5 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-500/30 shrink-0 mt-0.5">
                       <GraduationCap className="w-4 h-4" />
                     </div>
-                    <div className="text-xs text-slate-200 leading-relaxed">
+                    <div className="text-xs text-[var(--text-strong)] leading-relaxed">
                       <span className="font-bold text-sky-300">دانشجو: </span>
                       به اداره‌ی آموزش دانشکده مراجعه کنید یا با شماره‌ی تماس اداره‌ی آموزش درخواست رمز جدید دهید؛ رمز موقت جدید برای شما صادر می‌شود.
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-2xl bg-[#151E2E] border border-slate-700/70 flex items-start gap-2.5">
+                  <div className="p-3 rounded-2xl bg-[var(--surface-item)] border border-[var(--border)] flex items-start gap-2.5">
                     <div className="p-1.5 rounded-lg bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 shrink-0 mt-0.5">
                       <UserCog className="w-4 h-4" />
                     </div>
-                    <div className="text-xs text-slate-200 leading-relaxed">
+                    <div className="text-xs text-[var(--text-strong)] leading-relaxed">
                       <span className="font-bold text-indigo-300">اساتید و کارمندان: </span>
                       با مدیر سامانه (ادمین) تماس بگیرید.
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-2xl bg-[#151E2E] border border-slate-700/70 flex items-start gap-2.5">
+                  <div className="p-3 rounded-2xl bg-[var(--surface-item)] border border-[var(--border)] flex items-start gap-2.5">
                     <div className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0 mt-0.5">
                       <RefreshCw className="w-4 h-4" />
                     </div>
-                    <div className="text-xs text-slate-200 leading-relaxed">
+                    <div className="text-xs text-[var(--text-strong)] leading-relaxed">
                       پس از ورود با رمز موقت، حتماً از بخش{' '}
                       <span className="font-bold text-emerald-300">«کارتابل من ← تغییر رمز عبور»</span>{' '}
                       رمز را عوض کنید.
@@ -144,12 +144,12 @@ export const LoginHelpModals: React.FC = () => {
                 </div>
 
                 {/* Contact Section */}
-                <div className="p-3.5 sm:p-4 rounded-2xl bg-[#151E2E] border border-slate-700/80 space-y-2.5">
-                  <div className="flex items-center gap-2 text-xs sm:text-[13px] font-bold text-white">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-[var(--surface-item)] border border-[var(--border)] space-y-2.5">
+                  <div className="flex items-center gap-2 text-xs sm:text-[13px] font-bold text-[var(--text)]">
                     <Building2 className="w-4 h-4 text-sky-400 shrink-0" />
                     <span>{EDU_OFFICE_CONTACT.officeTitle}</span>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-slate-300">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-[var(--text-2)]">
                     <a
                       href={EDU_OFFICE_CONTACT.phoneHref}
                       className="inline-flex items-center gap-1.5 hover:text-sky-300 transition-colors"
@@ -173,11 +173,11 @@ export const LoginHelpModals: React.FC = () => {
               </div>
 
               {/* Footer */}
-              <div className="px-4 py-3 sm:px-6 border-t border-slate-700/70 bg-[#172030] flex justify-end shrink-0">
+              <div className="px-4 py-3 sm:px-6 border-t border-[var(--border)] bg-[var(--surface-header)] flex justify-end shrink-0">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="w-full sm:w-auto px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                  className="w-full sm:w-auto px-5 py-2 bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-strong)] rounded-xl text-xs font-bold transition-colors cursor-pointer"
                 >
                   بستن
                 </button>
@@ -186,16 +186,16 @@ export const LoginHelpModals: React.FC = () => {
           ) : (
             <>
               {/* Header */}
-              <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-slate-700/70 bg-[#172030] flex items-center justify-between gap-3 shrink-0">
+              <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-[var(--border)] bg-[var(--surface-header)] flex items-center justify-between gap-3 shrink-0">
                 <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                   <div className="p-2 sm:p-2.5 bg-sky-500/15 text-sky-300 rounded-xl border border-sky-500/30 shrink-0">
                     <HelpCircle className="w-5 h-5" />
                   </div>
                   <div className="min-w-0">
-                    <h2 className="text-base sm:text-lg font-bold text-slate-100 truncate">
+                    <h2 className="text-base sm:text-lg font-bold text-[var(--text)] truncate">
                       راهنمای ورود
                     </h2>
-                    <p className="text-[11px] sm:text-xs text-slate-400 truncate mt-0.5">
+                    <p className="text-[11px] sm:text-xs text-[var(--text-2)] truncate mt-0.5">
                       نحوه‌ی ورود به درگاه دانشجویی و پنل مدیریت
                     </p>
                   </div>
@@ -204,7 +204,7 @@ export const LoginHelpModals: React.FC = () => {
                   type="button"
                   onClick={closeModal}
                   aria-label="بستن"
-                  className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
+                  className="p-2 rounded-full hover:bg-[var(--surface-hover)] text-[var(--text-2)] hover:text-[var(--text)] transition-colors cursor-pointer shrink-0"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -213,23 +213,23 @@ export const LoginHelpModals: React.FC = () => {
               {/* Scrollable Body */}
               <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6 space-y-3">
                 {/* SSO Login */}
-                <div className="p-3.5 rounded-2xl bg-[#151E2E] border border-emerald-500/25 space-y-1.5">
+                <div className="p-3.5 rounded-2xl bg-[var(--surface-item)] border border-emerald-500/25 space-y-1.5">
                   <div className="flex items-center gap-2 text-xs sm:text-[13px] font-bold text-emerald-300">
                     <ShieldCheck className="w-4 h-4 shrink-0" />
                     <span>ورود (SSO)</span>
                   </div>
-                  <p className="text-xs text-slate-200 leading-relaxed">
+                  <p className="text-xs text-[var(--text-strong)] leading-relaxed">
                     ویژه‌ی دانشجویان؛ گزینه را بزنید، نام کاربری و رمز عبوری که اداره‌ی آموزش به شما داده را وارد کنید و «ورود به پنل دانشجو» را بزنید.
                   </p>
                 </div>
 
                 {/* Form Login */}
-                <div className="p-3.5 rounded-2xl bg-[#151E2E] border border-indigo-500/25 space-y-1.5">
+                <div className="p-3.5 rounded-2xl bg-[var(--surface-item)] border border-indigo-500/25 space-y-1.5">
                   <div className="flex items-center gap-2 text-xs sm:text-[13px] font-bold text-indigo-300">
                     <UserCheck className="w-4 h-4 shrink-0" />
                     <span>ورود (فرم)</span>
                   </div>
-                  <p className="text-xs text-slate-200 leading-relaxed">
+                  <p className="text-xs text-[var(--text-strong)] leading-relaxed">
                     ویژه‌ی مدیر سامانه و کارکنان؛ شناسه و رمز را وارد کنید.
                   </p>
                 </div>
@@ -246,23 +246,23 @@ export const LoginHelpModals: React.FC = () => {
                 </div>
 
                 {/* Browser */}
-                <div className="p-3.5 rounded-2xl bg-[#151E2E] border border-slate-700/70 space-y-1.5">
+                <div className="p-3.5 rounded-2xl bg-[var(--surface-item)] border border-[var(--border)] space-y-1.5">
                   <div className="flex items-center gap-2 text-xs sm:text-[13px] font-bold text-sky-300">
                     <Globe className="w-4 h-4 shrink-0" />
                     <span>مرورگر</span>
                   </div>
-                  <p className="text-xs text-slate-200 leading-relaxed">
+                  <p className="text-xs text-[var(--text-strong)] leading-relaxed">
                     از نسخه‌ی به‌روز Chrome/Edge/Firefox استفاده کنید.
                   </p>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="px-4 py-3 sm:px-6 border-t border-slate-700/70 bg-[#172030] flex justify-end shrink-0">
+              <div className="px-4 py-3 sm:px-6 border-t border-[var(--border)] bg-[var(--surface-header)] flex justify-end shrink-0">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="w-full sm:w-auto px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                  className="w-full sm:w-auto px-5 py-2 bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-strong)] rounded-xl text-xs font-bold transition-colors cursor-pointer"
                 >
                   بستن
                 </button>

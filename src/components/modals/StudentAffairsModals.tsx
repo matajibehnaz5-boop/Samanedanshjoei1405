@@ -20,6 +20,7 @@ import {
   CopyCheck,
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
+import { useFormAutosave } from '../../hooks/useFormAutosave';
 import {
   api,
   type EduGroup,
@@ -96,6 +97,34 @@ export const StudentAffairsModals: React.FC = () => {
   const [selectedFieldId, setSelectedFieldId] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [submittingStudent, setSubmittingStudent] = useState(false);
+
+  const studentDraftValues = useMemo(
+    () => ({
+      firstName,
+      lastName,
+      nationalId,
+      studentNumber,
+      phone,
+      selectedFieldId,
+      selectedGroupId,
+    }),
+    [firstName, lastName, nationalId, studentNumber, phone, selectedFieldId, selectedGroupId]
+  );
+
+  const { clearDraft: clearStudentDraft } = useFormAutosave({
+    formKey: 'student_register',
+    isOpen: activeModal === 'student_register' && studentProfile.role === 'admin',
+    values: studentDraftValues,
+    onRestore: (draft) => {
+      if (typeof draft.firstName === 'string') setFirstName(draft.firstName);
+      if (typeof draft.lastName === 'string') setLastName(draft.lastName);
+      if (typeof draft.nationalId === 'string') setNationalId(draft.nationalId);
+      if (typeof draft.studentNumber === 'string') setStudentNumber(draft.studentNumber);
+      if (typeof draft.phone === 'string') setPhone(draft.phone);
+      if (typeof draft.selectedFieldId === 'string') setSelectedFieldId(draft.selectedFieldId);
+      if (typeof draft.selectedGroupId === 'string') setSelectedGroupId(draft.selectedGroupId);
+    },
+  });
 
   // 3 & 4) Search & Delete shared state
   const [searchInput, setSearchInput] = useState('');
@@ -353,6 +382,7 @@ export const StudentAffairsModals: React.FC = () => {
       setPhone('');
       setSelectedFieldId('');
       setSelectedGroupId('');
+      clearStudentDraft();
       showToast('دانشجو جدید با موفقیت ثبت شد.');
     } catch (err: any) {
       showToast(err?.message || 'خطا در ثبت اطلاعات دانشجو');

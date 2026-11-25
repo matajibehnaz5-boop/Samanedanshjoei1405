@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { ActiveModal, DashboardContextType, NotificationItem, ChatMessage, StudentProfile } from '../types';
 import { api, type ApiUser, type ApiChatMessage } from '../lib/api';
 import { translations, Language } from '../lib/translations';
+import { SettingsProvider, useSettings } from './SettingsContext';
+
+export { useSettings };
 
 const defaultProfile: StudentProfile = {
   name: '',
@@ -42,6 +45,22 @@ const defaultNotifications: NotificationItem[] = [
     time: 'دیروز',
     read: true,
     type: 'system',
+  },
+  {
+    id: '4',
+    title: 'اطلاعیه پیامکی شهریه',
+    message: 'یادآوری پیامکی: مهلت پرداخت قسط دوم شهریه تا پایان هفته جاری است.',
+    time: '۲۰ دقیقه پیش',
+    read: false,
+    type: 'sms',
+  },
+  {
+    id: '5',
+    title: 'خبرنامه ایمیلی آموزش',
+    message: 'تقویم آموزشی و برنامه امتحانات پایان‌ترم به ایمیل شما ارسال شد.',
+    time: '۲ ساعت پیش',
+    read: false,
+    type: 'email',
   },
 ];
 
@@ -244,6 +263,16 @@ const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
 const ModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+  const { discardPreview } = useSettings();
+  const prevModalRef = useRef<ActiveModal>(null);
+
+  useEffect(() => {
+    if (prevModalRef.current === 'settings' && activeModal !== 'settings') {
+      discardPreview();
+    }
+    prevModalRef.current = activeModal;
+  }, [activeModal, discardPreview]);
+
   const closeModal = useCallback(() => setActiveModal(null), []);
 
   const actionsValue = useMemo(() => ({ setActiveModal, closeModal }), [closeModal]);
@@ -258,11 +287,22 @@ const ModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
 const LayoutSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [instituteName, setInstituteName] = useState<string>('موسسه آموزشی نمونه');
-  const [isCompactFrame, setIsCompactFrame] = useState<boolean>(true);
+  const { settings, updatePreviewSettings } = useSettings();
+
+  const isCompactFrame = settings.isCompactFrame;
+  const setIsCompactFrame = useCallback(
+    (compact: boolean | ((prev: boolean) => boolean)) => {
+      updatePreviewSettings((prev) => ({
+        ...prev,
+        isCompactFrame: typeof compact === 'function' ? compact(prev.isCompactFrame) : compact,
+      }));
+    },
+    [updatePreviewSettings]
+  );
 
   const value = useMemo(
     () => ({ instituteName, setInstituteName, isCompactFrame, setIsCompactFrame }),
-    [instituteName, isCompactFrame]
+    [instituteName, isCompactFrame, setIsCompactFrame]
   );
 
   return <LayoutSettingsContext.Provider value={value}>{children}</LayoutSettingsContext.Provider>;
@@ -271,6 +311,7 @@ const LayoutSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
 const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { showToast } = useToastActions();
   const { setActiveModal, closeModal } = useModalActions();
+  const { setUserScope } = useSettings();
 
   const [studentProfile, setStudentProfile] = useState<StudentProfile>(defaultProfile);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -281,6 +322,18 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const studentProfileRef = useRef(studentProfile);
   studentProfileRef.current = studentProfile;
+
+  useEffect(() => {
+    if (isLoggedIn && currentUserId) {
+      const rolePrefix = studentProfile.role === 'admin' ? 'admin' : 'student';
+      setUserScope(`${rolePrefix}:${currentUserId}`);
+    } else if (isLoggedIn) {
+      const rolePrefix = studentProfile.role === 'admin' ? 'admin' : 'student';
+      setUserScope(`${rolePrefix}:${studentProfile.studentId || 'session'}`);
+    } else {
+      setUserScope('guest');
+    }
+  }, [isLoggedIn, currentUserId, studentProfile.role, studentProfile.studentId, setUserScope]);
 
   // 1. Session Restoration on App Load (Call GET /api/me)
   useEffect(() => {
@@ -535,7 +588,18 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 };
 
 const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(defaultNotifications);
+  const [rawNotifications, setRawNotifications] = useState<NotificationItem[]>(defaultNotifications);
+  const { settings } = useSettings();
+
+  const notifications = useMemo(
+    () =>
+      rawNotifications.filter((n) => {
+        if (n.type === 'sms' && !settings.smsNotify) return false;
+        if (n.type === 'email' && !settings.emailNotify) return false;
+        return true;
+      }),
+    [rawNotifications, settings.smsNotify, settings.emailNotify]
+  );
 
   const notificationCount = useMemo(
     () => notifications.filter((n) => !n.read).length,
@@ -543,8 +607,11 @@ const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   );
 
   const markNotificationsRead = useCallback(() => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  }, []);
+    const visibleIds = new Set(notifications.map((n) => n.id));
+    setRawNotifications((prev) =>
+      prev.map((n) => (visibleIds.has(n.id) ? { ...n, read: true } : n))
+    );
+  }, [notifications]);
 
   const value = useMemo(
     () => ({ notifications, notificationCount, markNotificationsRead }),
@@ -670,15 +737,17 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   return (
     <I18nProvider>
       <ToastProvider>
-        <ModalProvider>
-          <LayoutSettingsProvider>
-            <AuthProvider>
-              <NotificationsProvider>
-                <ChatProvider>{children}</ChatProvider>
-              </NotificationsProvider>
-            </AuthProvider>
-          </LayoutSettingsProvider>
-        </ModalProvider>
+        <SettingsProvider>
+          <ModalProvider>
+            <LayoutSettingsProvider>
+              <AuthProvider>
+                <NotificationsProvider>
+                  <ChatProvider>{children}</ChatProvider>
+                </NotificationsProvider>
+              </AuthProvider>
+            </LayoutSettingsProvider>
+          </ModalProvider>
+        </SettingsProvider>
       </ToastProvider>
     </I18nProvider>
   );
