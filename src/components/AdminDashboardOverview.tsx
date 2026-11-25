@@ -125,54 +125,54 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
       label: isFa ? 'دانشجویان' : 'Students',
       value: overview.stats.studentsCount,
       icon: GraduationCap,
-      borderColor: 'border-[#38BDF8]/30 hover:border-[#38BDF8]/60',
-      iconBg: 'bg-[#38BDF8]/20 border-[#38BDF8]/40 text-[#38BDF8]',
-      valueColor: 'text-[#38BDF8]',
+      borderColor: 'border-[var(--dash-sky-border)] hover:border-[var(--dash-sky-border-hover)]',
+      iconBg: 'bg-[var(--dash-sky-bg)] border-[var(--dash-sky-border)] text-[var(--dash-sky-text)]',
+      valueColor: 'text-[var(--dash-sky-text)]',
     },
     {
       id: 'professors',
       label: isFa ? 'اساتید' : 'Professors',
       value: overview.stats.professorsCount,
       icon: UserCheck,
-      borderColor: 'border-[#6366F1]/30 hover:border-[#6366F1]/60',
-      iconBg: 'bg-[#6366F1]/20 border-[#6366F1]/40 text-[#818CF8]',
-      valueColor: 'text-[#818CF8]',
+      borderColor: 'border-[var(--dash-indigo-border)] hover:border-[var(--dash-indigo-border-hover)]',
+      iconBg: 'bg-[var(--dash-indigo-bg)] border-[var(--dash-indigo-border)] text-[var(--dash-indigo-text)]',
+      valueColor: 'text-[var(--dash-indigo-text)]',
     },
     {
       id: 'employees',
       label: isFa ? 'کارمندان' : 'Employees',
       value: overview.stats.employeesCount,
       icon: Briefcase,
-      borderColor: 'border-[#34D399]/30 hover:border-[#34D399]/60',
-      iconBg: 'bg-[#34D399]/20 border-[#34D399]/40 text-[#34D399]',
-      valueColor: 'text-[#34D399]',
+      borderColor: 'border-[var(--dash-emerald-border)] hover:border-[var(--dash-emerald-border-hover)]',
+      iconBg: 'bg-[var(--dash-emerald-bg)] border-[var(--dash-emerald-border)] text-[var(--dash-emerald-text)]',
+      valueColor: 'text-[var(--dash-emerald-text)]',
     },
     {
       id: 'theses',
       label: isFa ? 'پایان‌نامه‌های فعال' : 'Active Theses',
       value: overview.stats.activeThesesCount,
       icon: FileText,
-      borderColor: 'border-[#F59E0B]/30 hover:border-[#F59E0B]/60',
-      iconBg: 'bg-[#F59E0B]/20 border-[#F59E0B]/40 text-[#F59E0B]',
-      valueColor: 'text-[#F59E0B]',
+      borderColor: 'border-[var(--dash-amber-border)] hover:border-[var(--dash-amber-border-hover)]',
+      iconBg: 'bg-[var(--dash-amber-bg)] border-[var(--dash-amber-border)] text-[var(--dash-amber-text)]',
+      valueColor: 'text-[var(--dash-amber-text)]',
     },
   ];
 
   const getActivityBadge = (type: AdminOverviewActivity['type']) => {
     switch (type) {
       case 'employee':
-        return { icon: Briefcase, cls: 'bg-[#34D399]/15 text-[#34D399] border-[#34D399]/30' };
+        return { icon: Briefcase, cls: 'bg-[var(--dash-emerald-bg)] text-[var(--dash-emerald-text)] border-[var(--dash-emerald-border)]' };
       case 'professor':
-        return { icon: UserCheck, cls: 'bg-[#6366F1]/15 text-[#818CF8] border-[#6366F1]/30' };
+        return { icon: UserCheck, cls: 'bg-[var(--dash-indigo-bg)] text-[var(--dash-indigo-text)] border-[var(--dash-indigo-border)]' };
       case 'student':
-        return { icon: Users, cls: 'bg-[#38BDF8]/15 text-[#38BDF8] border-[#38BDF8]/30' };
+        return { icon: Users, cls: 'bg-[var(--dash-sky-bg)] text-[var(--dash-sky-text)] border-[var(--dash-sky-border)]' };
       case 'thesis':
-        return { icon: FileText, cls: 'bg-[#818CF8]/15 text-[#818CF8] border-[#818CF8]/30' };
+        return { icon: FileText, cls: 'bg-[var(--dash-indigo-bg)] text-[var(--dash-indigo-text)] border-[var(--dash-indigo-border)]' };
       case 'defense_session':
-        return { icon: CalendarDays, cls: 'bg-[#38BDF8]/15 text-[#38BDF8] border-[#38BDF8]/30' };
+        return { icon: CalendarDays, cls: 'bg-[var(--dash-sky-bg)] text-[var(--dash-sky-text)] border-[var(--dash-sky-border)]' };
       case 'edu_group':
       default:
-        return { icon: Layers, cls: 'bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/30' };
+        return { icon: Layers, cls: 'bg-[var(--dash-amber-bg)] text-[var(--dash-amber-text)] border-[var(--dash-amber-border)]' };
     }
   };
 
@@ -215,12 +215,12 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.12 }}
-          className="bg-[var(--surface-2)]/85 border border-[#6366F1]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#6366F1]/60 transition-all flex flex-col justify-between min-w-0"
+          className="bg-[var(--surface-2)]/85 border border-[var(--dash-indigo-border)] rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[var(--dash-indigo-border-hover)] transition-all flex flex-col justify-between min-w-0"
         >
           <div>
             <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-[var(--border)] gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#6366F1]/20 border border-[#6366F1]/40 flex items-center justify-center text-[#818CF8] shrink-0">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--dash-indigo-bg)] border border-[var(--dash-indigo-border)] flex items-center justify-center text-[var(--dash-indigo-text)] shrink-0">
                   <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="min-w-0">
@@ -232,7 +232,7 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
                   </p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[#6366F1]/20 text-[#818CF8] border border-[#6366F1]/30 rounded-full text-[11px] sm:text-xs font-bold shrink-0">
+              <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[var(--dash-indigo-bg)] text-[var(--dash-indigo-text)] border border-[var(--dash-indigo-border)] rounded-full text-[11px] sm:text-xs font-bold shrink-0">
                 {formatNumber(totalPending)} {isFa ? 'مورد' : 'items'}
               </span>
             </div>
@@ -240,24 +240,24 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
             <div className="space-y-1.5 sm:space-y-2.5">
               <div className="w-full min-h-[36px] px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-strong)] flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-                  <CheckCircle2 className="w-4 h-4 text-[#818CF8] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[var(--dash-indigo-text)] shrink-0" />
                   <span className="text-[11.5px] sm:text-xs truncate">
                     {isFa ? 'درخواست‌های منتظر تأیید' : 'Requests pending approval'}
                   </span>
                 </div>
-                <span className="px-2 py-0.5 rounded-lg bg-[#6366F1]/15 border border-[#6366F1]/30 text-[#818CF8] text-[11px] font-bold shrink-0">
+                <span className="px-2 py-0.5 rounded-lg bg-[var(--dash-indigo-bg)] border border-[var(--dash-indigo-border)] text-[var(--dash-indigo-text)] text-[11px] font-bold shrink-0">
                   {formatNumber(overview.pending.pendingRequestsCount)}
                 </span>
               </div>
 
               <div className="w-full min-h-[36px] px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-strong)] flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-                  <MessageSquare className="w-4 h-4 text-[#38BDF8] shrink-0" />
+                  <MessageSquare className="w-4 h-4 text-[var(--dash-sky-text)] shrink-0" />
                   <span className="text-[11.5px] sm:text-xs truncate">
                     {isFa ? 'پیام‌های خوانده‌نشده' : 'Unread messages'}
                   </span>
                 </div>
-                <span className="px-2 py-0.5 rounded-lg bg-[#38BDF8]/15 border border-[#38BDF8]/30 text-[#38BDF8] text-[11px] font-bold shrink-0">
+                <span className="px-2 py-0.5 rounded-lg bg-[var(--dash-sky-bg)] border border-[var(--dash-sky-border)] text-[var(--dash-sky-text)] text-[11px] font-bold shrink-0">
                   {formatNumber(overview.pending.unreadMessagesCount)}
                 </span>
               </div>
@@ -270,12 +270,12 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.16 }}
-          className="bg-[var(--surface-2)]/85 border border-[#38BDF8]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#38BDF8]/60 transition-all flex flex-col justify-between min-w-0"
+          className="bg-[var(--surface-2)]/85 border border-[var(--dash-sky-border)] rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[var(--dash-sky-border-hover)] transition-all flex flex-col justify-between min-w-0"
         >
           <div>
             <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-[var(--border)] gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#38BDF8]/20 border border-[#38BDF8]/40 flex items-center justify-center text-[#38BDF8] shrink-0">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--dash-sky-bg)] border border-[var(--dash-sky-border)] flex items-center justify-center text-[var(--dash-sky-text)] shrink-0">
                   <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="min-w-0">
@@ -287,7 +287,7 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
                   </p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[#38BDF8]/20 text-[#38BDF8] border border-[#38BDF8]/30 rounded-full text-[11px] sm:text-xs font-bold shrink-0">
+              <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[var(--dash-sky-bg)] text-[var(--dash-sky-text)] border border-[var(--dash-sky-border)] rounded-full text-[11px] sm:text-xs font-bold shrink-0">
                 {formatNumber(overview.defenseSessions.length)} {isFa ? 'جلسه' : 'sessions'}
               </span>
             </div>
@@ -311,7 +311,7 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
                         {session.studentName}{session.location ? ` • ${session.location}` : ''}
                       </div>
                     </div>
-                    <span className="text-[10.5px] sm:text-[11px] font-semibold text-[#38BDF8] shrink-0 dir-ltr">
+                    <span className="text-[10.5px] sm:text-[11px] font-semibold text-[var(--dash-sky-text)] shrink-0 dir-ltr">
                       {session.dateTime}
                     </span>
                   </div>
@@ -327,11 +327,11 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
-        className="bg-[var(--surface-2)]/85 border border-[#34D399]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#34D399]/60 transition-all min-w-0"
+        className="bg-[var(--surface-2)]/85 border border-[var(--dash-emerald-border)] rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[var(--dash-emerald-border-hover)] transition-all min-w-0"
       >
         <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-[var(--border)] gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#34D399]/20 border border-[#34D399]/40 flex items-center justify-center text-[#34D399] shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--dash-emerald-bg)] border border-[var(--dash-emerald-border)] flex items-center justify-center text-[var(--dash-emerald-text)] shrink-0">
               <History className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
@@ -343,7 +343,7 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
               </p>
             </div>
           </div>
-          <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[#34D399]/20 text-[#34D399] border border-[#34D399]/30 rounded-full text-[11px] sm:text-xs font-bold shrink-0">
+          <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[var(--dash-emerald-bg)] text-[var(--dash-emerald-text)] border border-[var(--dash-emerald-border)] rounded-full text-[11px] sm:text-xs font-bold shrink-0">
             {formatNumber(overview.recentActivities.length)} {isFa ? 'مورد' : 'items'}
           </span>
         </div>
@@ -390,11 +390,11 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.24 }}
-        className="bg-[var(--surface-2)]/85 border border-[#F59E0B]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#F59E0B]/60 transition-all min-w-0"
+        className="bg-[var(--surface-2)]/85 border border-[var(--dash-amber-border)] rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[var(--dash-amber-border-hover)] transition-all min-w-0"
       >
         <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-[var(--border)] gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#F59E0B]/20 border border-[#F59E0B]/40 flex items-center justify-center text-[#F59E0B] shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--dash-amber-bg)] border border-[var(--dash-amber-border)] flex items-center justify-center text-[var(--dash-amber-text)] shrink-0">
               <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
@@ -412,36 +412,36 @@ export const AdminDashboardOverview: React.FC = React.memo(() => {
           <button
             type="button"
             onClick={() => setActiveModal('employee_register')}
-            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#34D399]/15 border border-[var(--border)] hover:border-[#34D399]/45 text-[11.5px] sm:text-xs font-bold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-center gap-1.5 transition-all cursor-pointer group"
+            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-emerald-bg-hover)] border border-[var(--border)] hover:border-[var(--dash-emerald-border-hover)] text-[11.5px] sm:text-xs font-bold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-center gap-1.5 transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
-            <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#34D399] shrink-0" />
+            <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--dash-emerald-text)] shrink-0" />
             <span className="truncate">{isFa ? '+ کارمند جدید' : '+ New Employee'}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveModal('professor_register')}
-            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#6366F1]/15 border border-[var(--border)] hover:border-[#6366F1]/45 text-[11.5px] sm:text-xs font-bold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-center gap-1.5 transition-all cursor-pointer group"
+            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-indigo-bg-hover)] border border-[var(--border)] hover:border-[var(--dash-indigo-border-hover)] text-[11.5px] sm:text-xs font-bold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-center gap-1.5 transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
-            <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#818CF8] shrink-0" />
+            <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--dash-indigo-text)] shrink-0" />
             <span className="truncate">{isFa ? '+ استاد جدید' : '+ New Professor'}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveModal('student_register')}
-            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#38BDF8]/15 border border-[var(--border)] hover:border-[#38BDF8]/45 text-[11.5px] sm:text-xs font-bold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-center gap-1.5 transition-all cursor-pointer group"
+            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-sky-bg-hover)] border border-[var(--border)] hover:border-[var(--dash-sky-border-hover)] text-[11.5px] sm:text-xs font-bold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-center gap-1.5 transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
-            <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#38BDF8] shrink-0" />
+            <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--dash-sky-text)] shrink-0" />
             <span className="truncate">{isFa ? '+ دانشجوی جدید' : '+ New Student'}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveModal('edu_groups')}
-            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#F59E0B]/15 border border-[var(--border)] hover:border-[#F59E0B]/45 text-[11.5px] sm:text-xs font-bold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-center gap-1.5 transition-all cursor-pointer group"
+            className="min-h-[36px] sm:min-h-[42px] px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-amber-bg-hover)] border border-[var(--border)] hover:border-[var(--dash-amber-border-hover)] text-[11.5px] sm:text-xs font-bold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-center gap-1.5 transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
-            <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#F59E0B] shrink-0" />
+            <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--dash-amber-text)] shrink-0" />
             <span className="truncate">{isFa ? '+ گروه آموزشی' : '+ Edu Group'}</span>
           </button>
         </div>

@@ -122,11 +122,11 @@ export const AcademicCalendarWidget: React.FC = React.memo(() => {
   const getCategoryIcon = (category: CalendarEventCategory) => {
     switch (category) {
       case 'classes':
-        return <BookOpen className="w-4 h-4 text-[#38BDF8] shrink-0" />;
+        return <BookOpen className="w-4 h-4 text-[var(--dash-sky-text)] shrink-0" />;
       case 'add_drop':
-        return <RefreshCw className="w-4 h-4 text-[#818CF8] shrink-0" />;
+        return <RefreshCw className="w-4 h-4 text-[var(--dash-indigo-text)] shrink-0" />;
       case 'exams':
-        return <FileCheck2 className="w-4 h-4 text-[#F59E0B] shrink-0" />;
+        return <FileCheck2 className="w-4 h-4 text-[var(--dash-amber-text)] shrink-0" />;
     }
   };
 
@@ -134,22 +134,22 @@ export const AcademicCalendarWidget: React.FC = React.memo(() => {
     switch (status) {
       case 'active':
         return {
-          dotClass: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.75)]',
-          textClass: 'text-emerald-300',
+          dotClass: 'bg-[var(--ok)] shadow-[0_0_8px_rgba(52,211,153,0.65)]',
+          textClass: 'text-[var(--ok)]',
           labelFa: 'در جریان',
           labelEn: 'Active Now',
         };
       case 'passed':
         return {
-          dotClass: 'bg-slate-400/70',
-          textClass: 'text-slate-400',
+          dotClass: 'bg-[var(--text-muted)]',
+          textClass: 'text-[var(--text-2)]',
           labelFa: 'برگزار شده',
           labelEn: 'Completed',
         };
       case 'upcoming':
         return {
-          dotClass: 'bg-sky-400',
-          textClass: 'text-sky-300',
+          dotClass: 'bg-[var(--accent)]',
+          textClass: 'text-[var(--accent)]',
           labelFa: 'پیشِ رو',
           labelEn: 'Upcoming',
         };
@@ -201,10 +201,10 @@ export const AcademicCalendarWidget: React.FC = React.memo(() => {
                 role="tab"
                 aria-selected={isSelected}
                 onClick={() => setActiveFilter(tab.id)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                   isSelected
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-[var(--text-2)] hover:text-[var(--text)] hover:bg-white/5'
+                    ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] shadow-sm'
+                    : 'text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--menu-hover-bg)]'
                 }`}
               >
                 {isFa ? tab.labelFa : tab.labelEn}

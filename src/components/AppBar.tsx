@@ -7,7 +7,7 @@ export const AppBar: React.FC = React.memo(() => {
   const { showToast } = useToastActions();
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-[#0F172A] border-b border-white/[0.08] px-4 py-2.5 shadow-md">
+    <header className="sticky top-0 z-30 w-full bg-[var(--bg)] border-b border-[var(--border)] px-4 py-2.5 shadow-md">
       <div className="max-w-md mx-auto flex items-center justify-between">
         
         {/* Left Side: Close (X) Icon */}
@@ -17,14 +17,14 @@ export const AppBar: React.FC = React.memo(() => {
             setActiveModal('close_confirm');
           }}
           aria-label="بستن"
-          className="p-2 rounded-full text-[#BBC1D1] hover:text-white hover:bg-white/10 active:scale-95 transition-all duration-200 cursor-pointer"
+          className="p-2 rounded-full text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--header-btn-hover)] active:scale-95 transition-all duration-200 cursor-pointer"
         >
-          <X className="w-5 h-5 text-white stroke-[2] icon-white-glow" />
+          <X className="w-5 h-5 text-[var(--text)] stroke-[2] icon-white-glow" />
         </button>
 
         {/* Center: Subtitle Only */}
         <div className="flex items-center justify-center text-center">
-          <span className="text-xs font-mono text-[#35D07F] tracking-wider dir-ltr select-none font-semibold">
+          <span className="text-xs font-mono text-[var(--ok)] tracking-wider dir-ltr select-none font-semibold">
             oneapp.dev
           </span>
         </div>
@@ -34,17 +34,17 @@ export const AppBar: React.FC = React.memo(() => {
           <button
             onClick={() => setActiveModal('dropdown')}
             aria-label="انتخاب موسسه"
-            className="p-2 rounded-full text-[#BBC1D1] hover:text-white hover:bg-white/10 active:scale-95 transition-all duration-200 cursor-pointer"
+            className="p-2 rounded-full text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--header-btn-hover)] active:scale-95 transition-all duration-200 cursor-pointer"
           >
-            <ChevronDown className="w-5 h-5 text-white stroke-[2] icon-white-glow" />
+            <ChevronDown className="w-5 h-5 text-[var(--text)] stroke-[2] icon-white-glow" />
           </button>
 
           <button
             onClick={() => setActiveModal('three_dot')}
             aria-label="منوی بیشتر"
-            className="p-2 rounded-full text-[#BBC1D1] hover:text-white hover:bg-white/10 active:scale-95 transition-all duration-200 cursor-pointer"
+            className="p-2 rounded-full text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--header-btn-hover)] active:scale-95 transition-all duration-200 cursor-pointer"
           >
-            <MoreVertical className="w-5 h-5 text-white stroke-[2] icon-white-glow" />
+            <MoreVertical className="w-5 h-5 text-[var(--text)] stroke-[2] icon-white-glow" />
           </button>
         </div>
 

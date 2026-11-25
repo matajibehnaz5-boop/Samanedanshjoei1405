@@ -93,7 +93,7 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
           }}
           className="absolute -top-16 -right-16 sm:right-10 w-[450px] h-[450px] sm:w-[550px] sm:h-[550px] pointer-events-none will-change-[transform,opacity] [transform:translateZ(0)]"
         >
-          <div className="w-full h-full bg-gradient-to-br from-[#3B82F6] to-[#60A5FA] rounded-full blur-[130px] [transform:translateZ(0)]" />
+          <div className="w-full h-full bg-[image:var(--dashboard-blob-1)] rounded-full blur-[130px] [transform:translateZ(0)]" />
         </motion.div>
         <motion.div
           animate={{
@@ -110,7 +110,7 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
           }}
           className="absolute bottom-10 -left-20 sm:left-10 w-[400px] h-[400px] sm:w-[500px] sm:h-[500px] pointer-events-none will-change-[transform,opacity] [transform:translateZ(0)]"
         >
-          <div className="w-full h-full bg-gradient-to-tr from-[#6366F1] via-[#3B82F6] to-[#38BDF8] rounded-full blur-[140px] [transform:translateZ(0)]" />
+          <div className="w-full h-full bg-[image:var(--dashboard-blob-2)] rounded-full blur-[140px] [transform:translateZ(0)]" />
         </motion.div>
       </div>
 
@@ -158,7 +158,7 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
             className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-xl sm:rounded-3xl p-[12px] sm:p-6 shadow-[var(--card-shadow)] relative overflow-hidden flex flex-col gap-2 sm:gap-4"
           >
             {/* Ambient inner glow */}
-            <div className="absolute top-0 left-0 w-48 h-48 bg-[#5EA8FF]/10 rounded-full blur-3xl pointer-events-none [transform:translateZ(0)]" />
+            <div className="absolute top-0 left-0 w-48 h-48 bg-[var(--dashboard-welcome-glow)] rounded-full blur-3xl pointer-events-none [transform:translateZ(0)]" />
 
             <div className={`flex flex-col ${isCompactFrame ? '' : 'sm:flex-row sm:items-center'} items-start justify-between gap-2.5 sm:gap-5 relative z-10`}>
               <div className="flex items-center gap-2.5 sm:gap-4">
@@ -249,13 +249,13 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.1 }}
-              className="bg-[var(--surface-2)]/85 border border-[#6366F1]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#6366F1]/60 transition-all flex flex-col justify-between"
+              className="bg-[var(--surface-2)]/85 border border-[var(--dash-indigo-border)] rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[var(--dash-indigo-border-hover)] transition-all flex flex-col justify-between"
             >
               <div className="[content-visibility:auto] [contain-intrinsic-size:auto_240px]">
                 {/* Header */}
                 <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-[var(--border)]">
                   <div className="flex items-center gap-2.5 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#6366F1]/20 border border-[#6366F1]/40 flex items-center justify-center text-[#818CF8]">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--dash-indigo-bg)] border border-[var(--dash-indigo-border)] flex items-center justify-center text-[var(--dash-indigo-text)]">
                       <FolderKanban className="w-5 h-5" />
                     </div>
                     <div>
@@ -263,7 +263,7 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
                       <p className="text-[11px] text-[var(--text-2)]">{t('cartableDesc')}</p>
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[#6366F1]/20 text-[#818CF8] border border-[#6366F1]/30 rounded-full text-[11px] sm:text-xs font-bold">
+                  <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[var(--dash-indigo-bg)] text-[var(--dash-indigo-text)] border border-[var(--dash-indigo-border)] rounded-full text-[11px] sm:text-xs font-bold">
                     {t('itemsCount', { count: 3 })}
                   </span>
                 </div>
@@ -272,35 +272,35 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
                 <div className="space-y-1.5 sm:space-y-2.5">
                   <button
                     onClick={() => setActiveModal('change_password')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#6366F1]/15 border border-[var(--border-subtle)] hover:border-[#6366F1]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-indigo-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-indigo-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <Lock className="w-4 h-4 text-[#818CF8] group-hover:scale-110 transition-transform" />
+                      <Lock className="w-4 h-4 text-[var(--dash-indigo-text)] group-hover:scale-110 transition-transform" />
                       <span>{t('changePassword')}</span>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#818CF8]">{t('enterSection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-indigo-text)]">{t('enterSection')}</span>
                   </button>
 
                   <button
                     onClick={() => setActiveModal('notice_board')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#6366F1]/15 border border-[var(--border-subtle)] hover:border-[#6366F1]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-indigo-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-indigo-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <Megaphone className="w-4 h-4 text-[#818CF8] group-hover:scale-110 transition-transform" />
+                      <Megaphone className="w-4 h-4 text-[var(--dash-indigo-text)] group-hover:scale-110 transition-transform" />
                       <span>{t('noticeBoard')}</span>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#818CF8]">{t('enterSection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-indigo-text)]">{t('enterSection')}</span>
                   </button>
 
                   <button
                     onClick={() => setActiveModal('sms_notification')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#6366F1]/15 border border-[var(--border-subtle)] hover:border-[#6366F1]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-indigo-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-indigo-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <Send className="w-4 h-4 text-[#818CF8] group-hover:scale-110 transition-transform" />
+                      <Send className="w-4 h-4 text-[var(--dash-indigo-text)] group-hover:scale-110 transition-transform" />
                       <span>{t('sendSms')}</span>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#818CF8]">{t('enterSection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-indigo-text)]">{t('enterSection')}</span>
                   </button>
                 </div>
               </div>
@@ -312,13 +312,13 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.15 }}
-              className="bg-[var(--surface-2)]/85 border border-[#38BDF8]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#38BDF8]/60 transition-all flex flex-col justify-between"
+              className="bg-[var(--surface-2)]/85 border border-[var(--dash-sky-border)] rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[var(--dash-sky-border-hover)] transition-all flex flex-col justify-between"
             >
               <div className="[content-visibility:auto] [contain-intrinsic-size:auto_330px]">
                 {/* Header */}
                 <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-[var(--border)]">
                   <div className="flex items-center gap-2.5 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#38BDF8]/20 border border-[#38BDF8]/40 flex items-center justify-center text-[#38BDF8]">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--dash-sky-bg)] border border-[var(--dash-sky-border)] flex items-center justify-center text-[var(--dash-sky-text)]">
                       <BookOpen className="w-5 h-5" />
                     </div>
                     <div>
@@ -326,7 +326,7 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
                       <p className="text-[11px] text-[var(--text-2)]">{t('academicDesc')}</p>
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[#38BDF8]/20 text-[#38BDF8] border border-[#38BDF8]/30 rounded-full text-[11px] sm:text-xs font-bold">
+                  <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[var(--dash-sky-bg)] text-[var(--dash-sky-text)] border border-[var(--dash-sky-border)] rounded-full text-[11px] sm:text-xs font-bold">
                     {t('itemsCount', { count: 5 })}
                   </span>
                 </div>
@@ -335,62 +335,62 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
                 <div className="space-y-1.5 sm:space-y-2">
                   <button
                     onClick={() => setActiveModal('course_registration')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#38BDF8]/15 border border-[var(--border-subtle)] hover:border-[#38BDF8]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-sky-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-sky-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <CheckSquare className="w-4 h-4 text-[#38BDF8] group-hover:scale-110 transition-transform shrink-0" />
+                      <CheckSquare className="w-4 h-4 text-[var(--dash-sky-text)] group-hover:scale-110 transition-transform shrink-0" />
                       <div className="flex flex-col text-start">
                         <span>{t('courseRegistration')}</span>
-                        <span className="text-[11px] font-bold text-[#38BDF8] mt-0.5">
+                        <span className="text-[11px] font-bold text-[var(--dash-sky-text)] mt-0.5">
                           {t('currentSemesterName')}
                         </span>
                       </div>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#38BDF8] shrink-0">{t('viewSection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-sky-text)] shrink-0">{t('viewSection')}</span>
                   </button>
 
                   <button
                     onClick={() => setActiveModal('transcript')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#38BDF8]/15 border border-[var(--border-subtle)] hover:border-[#38BDF8]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-sky-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-sky-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <Award className="w-4 h-4 text-[#38BDF8] group-hover:scale-110 transition-transform" />
+                      <Award className="w-4 h-4 text-[var(--dash-sky-text)] group-hover:scale-110 transition-transform" />
                       <span>{t('reportCard')}</span>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#38BDF8]">{t('viewSection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-sky-text)]">{t('viewSection')}</span>
                   </button>
 
                   <button
                     onClick={() => setActiveModal('weekly_schedule')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#38BDF8]/15 border border-[var(--border-subtle)] hover:border-[#38BDF8]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-sky-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-sky-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <Calendar className="w-4 h-4 text-[#38BDF8] group-hover:scale-110 transition-transform" />
+                      <Calendar className="w-4 h-4 text-[var(--dash-sky-text)] group-hover:scale-110 transition-transform" />
                       <span>{t('weeklySchedule')}</span>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#38BDF8]">{t('viewSection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-sky-text)]">{t('viewSection')}</span>
                   </button>
 
                   <button
                     onClick={() => setActiveModal('student_requests')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#38BDF8]/15 border border-[var(--border-subtle)] hover:border-[#38BDF8]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-sky-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-sky-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <FileText className="w-4 h-4 text-[#38BDF8] group-hover:scale-110 transition-transform" />
+                      <FileText className="w-4 h-4 text-[var(--dash-sky-text)] group-hover:scale-110 transition-transform" />
                       <span>{t('requests')}</span>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#38BDF8]">{t('viewSection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-sky-text)]">{t('viewSection')}</span>
                   </button>
 
                   <button
                     onClick={() => setActiveModal('registration_certificate')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#38BDF8]/15 border border-[var(--border-subtle)] hover:border-[#38BDF8]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-sky-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-sky-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <ShieldCheck className="w-4 h-4 text-[#38BDF8] group-hover:scale-110 transition-transform" />
+                      <ShieldCheck className="w-4 h-4 text-[var(--dash-sky-text)] group-hover:scale-110 transition-transform" />
                       <span>{t('registrationCertificate')}</span>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#38BDF8]">{t('viewSection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-sky-text)]">{t('viewSection')}</span>
                   </button>
                 </div>
               </div>
@@ -401,13 +401,13 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.2 }}
-              className="bg-[var(--surface-2)]/85 border border-[#34D399]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#34D399]/60 transition-all flex flex-col justify-between"
+              className="bg-[var(--surface-2)]/85 border border-[var(--dash-emerald-border)] rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[var(--dash-emerald-border-hover)] transition-all flex flex-col justify-between"
             >
               <div className="[content-visibility:auto] [contain-intrinsic-size:auto_240px]">
                 {/* Header */}
                 <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-[var(--border)]">
                   <div className="flex items-center gap-2.5 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#34D399]/20 border border-[#34D399]/40 flex items-center justify-center text-[#34D399]">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--dash-emerald-bg)] border border-[var(--dash-emerald-border)] flex items-center justify-center text-[var(--dash-emerald-text)]">
                       <Wallet className="w-5 h-5" />
                     </div>
                     <div>
@@ -415,7 +415,7 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
                       <p className="text-[11px] text-[var(--text-2)]">{t('financialDesc')}</p>
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[#34D399]/20 text-[#34D399] border border-[#34D399]/30 rounded-full text-[11px] sm:text-xs font-bold">
+                  <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[var(--dash-emerald-bg)] text-[var(--dash-emerald-text)] border border-[var(--dash-emerald-border)] rounded-full text-[11px] sm:text-xs font-bold">
                     {t('itemsCount', { count: 3 })}
                   </span>
                 </div>
@@ -424,35 +424,35 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
                 <div className="space-y-1.5 sm:space-y-2.5">
                   <button
                     onClick={() => setActiveModal('pay_tuition')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#34D399]/15 border border-[var(--border-subtle)] hover:border-[#34D399]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-emerald-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-emerald-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <CreditCard className="w-4 h-4 text-[#34D399] group-hover:scale-110 transition-transform" />
+                      <CreditCard className="w-4 h-4 text-[var(--dash-emerald-text)] group-hover:scale-110 transition-transform" />
                       <span>{t('payTuition')}</span>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#34D399]">{t('paySection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-emerald-text)]">{t('paySection')}</span>
                   </button>
 
                   <button
                     onClick={() => setActiveModal('financial_statement')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#34D399]/15 border border-[var(--border-subtle)] hover:border-[#34D399]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-emerald-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-emerald-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <Receipt className="w-4 h-4 text-[#34D399] group-hover:scale-110 transition-transform" />
+                      <Receipt className="w-4 h-4 text-[var(--dash-emerald-text)] group-hover:scale-110 transition-transform" />
                       <span>{t('financialStatement')}</span>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#34D399]">{t('viewSection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-emerald-text)]">{t('viewSection')}</span>
                   </button>
 
                   <button
                     onClick={() => setActiveModal('transaction_history')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#34D399]/15 border border-[var(--border-subtle)] hover:border-[#34D399]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-emerald-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-emerald-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <History className="w-4 h-4 text-[#34D399] group-hover:scale-110 transition-transform" />
+                      <History className="w-4 h-4 text-[var(--dash-emerald-text)] group-hover:scale-110 transition-transform" />
                       <span>{t('paymentHistory')}</span>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#34D399]">{t('viewSection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-emerald-text)]">{t('viewSection')}</span>
                   </button>
                 </div>
               </div>
@@ -463,13 +463,13 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.25 }}
-              className="bg-[var(--surface-2)]/85 border border-[#F59E0B]/30 rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[#F59E0B]/60 transition-all flex flex-col justify-between"
+              className="bg-[var(--surface-2)]/85 border border-[var(--dash-amber-border)] rounded-xl sm:rounded-3xl p-[12px] sm:p-5 shadow-xl hover:border-[var(--dash-amber-border-hover)] transition-all flex flex-col justify-between"
             >
               <div className="[content-visibility:auto] [contain-intrinsic-size:auto_280px]">
                 {/* Header */}
                 <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3 sm:mb-4 border-b border-[var(--border)]">
                   <div className="flex items-center gap-2.5 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#F59E0B]/20 border border-[#F59E0B]/40 flex items-center justify-center text-[#F59E0B]">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--dash-amber-bg)] border border-[var(--dash-amber-border)] flex items-center justify-center text-[var(--dash-amber-text)]">
                       <HeartHandshake className="w-5 h-5" />
                     </div>
                     <div>
@@ -477,7 +477,7 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
                       <p className="text-[11px] text-[var(--text-2)]">{t('welfareDesc')}</p>
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/30 rounded-full text-[11px] sm:text-xs font-bold">
+                  <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[var(--dash-amber-bg)] text-[var(--dash-amber-text)] border border-[var(--dash-amber-border)] rounded-full text-[11px] sm:text-xs font-bold">
                     {t('itemsCount', { count: 4 })}
                   </span>
                 </div>
@@ -486,46 +486,46 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
                 <div className="space-y-1.5 sm:space-y-2">
                   <button
                     onClick={() => setActiveModal('dormitory')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#F59E0B]/15 border border-[var(--border-subtle)] hover:border-[#F59E0B]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-amber-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-amber-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <Home className="w-4 h-4 text-[#F59E0B] group-hover:scale-110 transition-transform" />
+                      <Home className="w-4 h-4 text-[var(--dash-amber-text)] group-hover:scale-110 transition-transform" />
                       <span>{t('dormitory')}</span>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#F59E0B]">{t('enterSection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-amber-text)]">{t('enterSection')}</span>
                   </button>
 
                   <button
                     onClick={() => setActiveModal('student_loan')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#F59E0B]/15 border border-[var(--border-subtle)] hover:border-[#F59E0B]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-amber-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-amber-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <Coins className="w-4 h-4 text-[#F59E0B] group-hover:scale-110 transition-transform" />
+                      <Coins className="w-4 h-4 text-[var(--dash-amber-text)] group-hover:scale-110 transition-transform" />
                       <span>{t('studentLoan')}</span>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#F59E0B]">{t('enterSection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-amber-text)]">{t('enterSection')}</span>
                   </button>
 
                   <button
                     onClick={() => setActiveModal('student_id_card')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#F59E0B]/15 border border-[var(--border-subtle)] hover:border-[#F59E0B]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-amber-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-amber-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <Contact className="w-4 h-4 text-[#F59E0B] group-hover:scale-110 transition-transform" />
+                      <Contact className="w-4 h-4 text-[var(--dash-amber-text)] group-hover:scale-110 transition-transform" />
                       <span>{t('studentIdCard')}</span>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#F59E0B]">{t('enterSection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-amber-text)]">{t('enterSection')}</span>
                   </button>
 
                   <button
                     onClick={() => setActiveModal('dining')}
-                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[#F59E0B]/15 border border-[var(--border-subtle)] hover:border-[#F59E0B]/40 text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group"
+                    className="w-full min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[var(--surface-item)] hover:bg-[var(--dash-amber-bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--dash-amber-border-hover)] text-xs font-semibold text-[var(--text-strong)] hover:text-[var(--text)] flex items-center justify-between transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <div className="flex items-center gap-2 sm:gap-2.5">
-                      <Utensils className="w-4 h-4 text-[#F59E0B] group-hover:scale-110 transition-transform" />
+                      <Utensils className="w-4 h-4 text-[var(--dash-amber-text)] group-hover:scale-110 transition-transform" />
                       <span>{t('dining')}</span>
                     </div>
-                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[#F59E0B]">{t('enterSection')}</span>
+                    <span className="text-[10px] text-[var(--text-2)] group-hover:text-[var(--dash-amber-text)]">{t('enterSection')}</span>
                   </button>
                 </div>
               </div>

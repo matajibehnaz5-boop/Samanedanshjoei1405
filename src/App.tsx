@@ -17,7 +17,7 @@ const DashboardContent: React.FC = React.memo(() => {
       
       {/* Floating Animated Background Ambient Blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 isolate [contain:strict] [transform:translateZ(0)]">
-        {/* Blob 1: Light Blue / Cyan Top Right */}
+        {/* Blob 1: Top Right */}
         <motion.div
           animate={{
             y: [0, -30, 0],
@@ -32,10 +32,10 @@ const DashboardContent: React.FC = React.memo(() => {
           }}
           className="absolute -top-16 -right-16 sm:right-10 w-[450px] h-[450px] sm:w-[550px] sm:h-[550px] pointer-events-none will-change-[transform,opacity] [transform:translateZ(0)]"
         >
-          <div className="w-full h-full bg-gradient-to-br from-[#6366F1] to-[#3B82F6] rounded-full blur-[130px] [transform:translateZ(0)]" />
+          <div className="w-full h-full bg-[image:var(--ambient-blob-1)] rounded-full blur-[130px] [transform:translateZ(0)]" />
         </motion.div>
 
-        {/* Blob 2: Deep Soft Blue / Indigo Bottom Left */}
+        {/* Blob 2: Bottom Left */}
         <motion.div
           animate={{
             y: [0, 35, 0],
@@ -51,11 +51,11 @@ const DashboardContent: React.FC = React.memo(() => {
           }}
           className="absolute bottom-10 -left-20 sm:left-10 w-[400px] h-[400px] sm:w-[500px] sm:h-[500px] pointer-events-none will-change-[transform,opacity] [transform:translateZ(0)]"
         >
-          <div className="w-full h-full bg-gradient-to-tr from-[#4F46E5] via-[#2563EB] to-[#0284C7] rounded-full blur-[140px] [transform:translateZ(0)]" />
+          <div className="w-full h-full bg-[image:var(--ambient-blob-2)] rounded-full blur-[140px] [transform:translateZ(0)]" />
         </motion.div>
 
-        {/* Optional subtle center glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#6366F1]/[0.08] rounded-full blur-[160px] pointer-events-none [transform:translateZ(0)]" />
+        {/* Subtle center glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--ambient-blob-center)] rounded-full blur-[160px] pointer-events-none [transform:translateZ(0)]" />
       </div>
 
       {/* Fixed Backdrop Blur Layer (decoupled from scroll so backdrop-blur-xl is never invalidated on scroll) */}

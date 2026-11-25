@@ -333,7 +333,7 @@ export const ChangePasswordModal: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 sm:flex-none px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                className="flex-1 sm:flex-none px-6 py-3 rounded-2xl bg-[image:var(--cta-gradient)] hover:bg-[image:var(--cta-gradient-hover)] text-[var(--on-accent)] text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>{isFa ? 'ثبت تغییرات' : 'Submit Changes'}</span>

@@ -69,7 +69,7 @@ export const SettingsModal: React.FC = () => {
       title: 'اعلان‌های پیامکی',
       description: 'نمایش اعلان‌های پیامکی در زنگ و پنل اعلان‌ها',
       icon: MessageSquare,
-      iconBg: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+      iconBg: 'bg-[var(--status-info-bg)] text-[var(--status-info-text)] border-[var(--status-info-border)]',
       value: settings.smsNotify,
       onChange: () =>
         updatePreviewSettings((prev) => ({ ...prev, smsNotify: !prev.smsNotify })),
@@ -232,7 +232,7 @@ export const SettingsModal: React.FC = () => {
                 }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer shrink-0 ${
                   settings.isCompactFrame
-                    ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500/40'
+                    ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
                     : 'bg-[var(--surface-2)] text-[var(--text-2)] border-[var(--border)]'
                 }`}
               >
@@ -246,7 +246,7 @@ export const SettingsModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleSaveSettings}
-                  className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-sm font-bold transition-all shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+                  className="flex-1 py-3 px-4 rounded-2xl bg-[image:var(--cta-gradient)] hover:bg-[image:var(--cta-gradient-hover)] text-[var(--on-accent)] text-sm font-bold transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
                 >
                   <Save className="w-5 h-5" />
                   <span>ذخیره تنظیمات</span>

@@ -194,8 +194,8 @@ export const NoticeBoardModal: React.FC = () => {
         return {
           label: isFa ? 'آموزشی' : 'Academic',
           icon: GraduationCap,
-          colorClass: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-          dotBg: 'bg-blue-400'
+          colorClass: 'bg-[var(--status-info-bg)] text-[var(--status-info-text)] border-[var(--status-info-border)]',
+          dotBg: 'bg-[var(--accent)]'
         };
       case 'financial':
         return {

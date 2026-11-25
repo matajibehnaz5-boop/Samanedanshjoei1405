@@ -51,9 +51,9 @@ export const PracticeLoginCards: React.FC = React.memo(() => {
         transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
         className="relative group mb-3 sm:mb-5"
       >
-        <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-primary/30 via-secondary/30 to-accent/30 blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-500 [transform:translateZ(0)]" />
-        <div className="relative w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-[var(--surface-glass)] backdrop-blur-xl border border-[var(--border)] shadow-2xl flex items-center justify-center text-[var(--text)] ring-4 ring-[var(--border-subtle)]">
-          <GraduationCap className="w-6 h-6 sm:w-10 sm:h-10 text-secondary stroke-[2] icon-white-glow" />
+        <div className="absolute -inset-2 rounded-full bg-[image:var(--login-emblem-glow)] blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-500 [transform:translateZ(0)]" />
+        <div className="relative w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-[var(--login-icon-box-bg)] backdrop-blur-xl border border-[var(--login-icon-box-border)] shadow-2xl flex items-center justify-center ring-4 ring-[var(--border-subtle)]">
+          <GraduationCap className="w-6 h-6 sm:w-10 sm:h-10 text-[var(--login-emblem-icon)] stroke-[2]" />
         </div>
       </motion.div>
 
@@ -89,7 +89,7 @@ export const PracticeLoginCards: React.FC = React.memo(() => {
             handleRipple(e, setSsoRipples);
             setActiveModal('sso');
           }}
-          className="group relative w-full rounded-xl sm:rounded-3xl p-3 sm:p-7 min-h-[126px] sm:min-h-[170px] flex flex-col items-center justify-center gap-2 sm:gap-3 text-center cursor-pointer overflow-hidden bg-[var(--surface-glass)] backdrop-blur-md border border-[var(--border)] shadow-[var(--card-shadow)] hover:shadow-2xl hover:border-[var(--accent)] transition-all duration-300"
+          className="group relative w-full rounded-xl sm:rounded-3xl p-3 sm:p-7 min-h-[126px] sm:min-h-[170px] flex flex-col items-center justify-center gap-2 sm:gap-3 text-center cursor-pointer overflow-hidden bg-[var(--login-card-bg)] backdrop-blur-md border border-[var(--border)] shadow-[var(--card-shadow)] hover:shadow-2xl hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all duration-300"
         >
           {/* M3 Ripple Effects */}
           <AnimatePresence>
@@ -108,27 +108,27 @@ export const PracticeLoginCards: React.FC = React.memo(() => {
                   width: ripple.size,
                   height: ripple.size,
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(0, 168, 150, 0.35)',
+                  backgroundColor: 'var(--ripple-sso)',
                   pointerEvents: 'none',
                 }}
               />
             ))}
           </AnimatePresence>
 
-          {/* Subtle ambient radial gradient behind glass */}
-          <div className="absolute -top-8 -right-8 w-32 h-32 bg-secondary/20 rounded-full blur-2xl pointer-events-none [transform:translateZ(0)]" />
+          {/* Subtle ambient radial gradient behind card */}
+          <div className="absolute -top-8 -right-8 w-32 h-32 bg-[var(--login-sso-blob)] rounded-full blur-2xl pointer-events-none [transform:translateZ(0)]" />
 
           {/* Hover accent highlight */}
-          <div className="absolute inset-0 bg-gradient-to-br from-secondary/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          <div className="absolute inset-0 bg-[image:var(--login-sso-hover)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
           {/* Icon container */}
-          <div className="w-10 h-10 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[var(--surface-glass)] border border-[var(--border)] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-300 relative z-10">
-            <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-secondary stroke-[2] icon-white-glow" />
+          <div className="w-10 h-10 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[var(--login-icon-box-bg)] border border-[var(--login-icon-box-border)] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-300 relative z-10">
+            <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--login-sso-icon)] stroke-[2]" />
           </div>
 
           {/* Title & Subtitle */}
           <div className="flex flex-col items-center gap-0.5 relative z-10">
-            <h3 className="text-sm sm:text-base font-bold text-[var(--text)] group-hover:text-secondary transition-colors leading-tight">
+            <h3 className="text-sm sm:text-base font-bold text-[var(--text)] group-hover:text-[var(--login-sso-hover-title)] transition-colors leading-tight">
               {t('ssoLoginShort')}
             </h3>
             <span className="text-[11px] text-[var(--text-2)] font-medium leading-tight">
@@ -137,8 +137,8 @@ export const PracticeLoginCards: React.FC = React.memo(() => {
           </div>
 
           {/* Rounded Pill Badge */}
-          <div className="mt-0.5 px-2.5 py-0.5 sm:px-3 bg-secondary-container text-secondary rounded-full text-[10px] sm:text-[11px] font-semibold border border-secondary/30 flex items-center gap-1 sm:gap-1.5 relative z-10 shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
+          <div className="mt-0.5 px-2.5 py-0.5 sm:px-3 bg-[var(--login-sso-chip-bg)] text-[var(--login-sso-chip-text)] rounded-full text-[10px] sm:text-[11px] font-semibold border border-[var(--login-sso-chip-border)] flex items-center gap-1 sm:gap-1.5 relative z-10 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--login-sso-chip-dot)] animate-pulse" />
             {t('ssoPill')}
           </div>
         </motion.button>
@@ -154,7 +154,7 @@ export const PracticeLoginCards: React.FC = React.memo(() => {
             handleRipple(e, setFormRipples);
             setActiveModal('form_login');
           }}
-          className="group relative w-full rounded-xl sm:rounded-3xl p-3 sm:p-7 min-h-[126px] sm:min-h-[170px] flex flex-col items-center justify-center gap-2 sm:gap-3 text-center cursor-pointer overflow-hidden bg-[var(--surface-glass)] backdrop-blur-md border border-[var(--border)] shadow-[var(--card-shadow)] hover:shadow-2xl hover:border-[var(--accent)] transition-all duration-300"
+          className="group relative w-full rounded-xl sm:rounded-3xl p-3 sm:p-7 min-h-[126px] sm:min-h-[170px] flex flex-col items-center justify-center gap-2 sm:gap-3 text-center cursor-pointer overflow-hidden bg-[var(--login-card-bg)] backdrop-blur-md border border-[var(--border)] shadow-[var(--card-shadow)] hover:shadow-2xl hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all duration-300"
         >
           {/* M3 Ripple Effects */}
           <AnimatePresence>
@@ -173,27 +173,27 @@ export const PracticeLoginCards: React.FC = React.memo(() => {
                   width: ripple.size,
                   height: ripple.size,
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(103, 80, 164, 0.35)',
+                  backgroundColor: 'var(--ripple-form)',
                   pointerEvents: 'none',
                 }}
               />
             ))}
           </AnimatePresence>
 
-          {/* Subtle ambient radial gradient behind glass */}
-          <div className="absolute -top-8 -right-8 w-32 h-32 bg-primary/20 rounded-full blur-2xl pointer-events-none [transform:translateZ(0)]" />
+          {/* Subtle ambient radial gradient behind card */}
+          <div className="absolute -top-8 -right-8 w-32 h-32 bg-[var(--login-form-blob)] rounded-full blur-2xl pointer-events-none [transform:translateZ(0)]" />
 
           {/* Hover accent highlight */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          <div className="absolute inset-0 bg-[image:var(--login-form-hover)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
           {/* Icon container */}
-          <div className="w-10 h-10 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[var(--surface-glass)] border border-[var(--border)] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-300 relative z-10">
-            <UserCheck className="w-5 h-5 sm:w-6 sm:h-6 text-primary stroke-[2] icon-white-glow" />
+          <div className="w-10 h-10 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[var(--login-icon-box-bg)] border border-[var(--login-icon-box-border)] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-300 relative z-10">
+            <UserCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--login-form-icon)] stroke-[2]" />
           </div>
 
           {/* Title & Subtitle */}
           <div className="flex flex-col items-center gap-0.5 relative z-10">
-            <h3 className="text-sm sm:text-base font-bold text-[var(--text)] group-hover:text-primary transition-colors leading-tight">
+            <h3 className="text-sm sm:text-base font-bold text-[var(--text)] group-hover:text-[var(--login-form-hover-title)] transition-colors leading-tight">
               {t('formLoginShort')}
             </h3>
             <span className="text-[11px] text-[var(--text-2)] font-medium leading-tight">
@@ -202,8 +202,8 @@ export const PracticeLoginCards: React.FC = React.memo(() => {
           </div>
 
           {/* Rounded Pill Badge */}
-          <div className="mt-0.5 px-2.5 py-0.5 sm:px-3 bg-primary-container text-on-primary rounded-full text-[10px] sm:text-[11px] font-semibold border border-primary/30 flex items-center gap-1 sm:gap-1.5 relative z-10 shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+          <div className="mt-0.5 px-2.5 py-0.5 sm:px-3 bg-[var(--login-form-chip-bg)] text-[var(--login-form-chip-text)] rounded-full text-[10px] sm:text-[11px] font-semibold border border-[var(--login-form-chip-border)] flex items-center gap-1 sm:gap-1.5 relative z-10 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--login-form-chip-dot)]" />
             {t('formPill')}
           </div>
         </motion.button>
@@ -214,14 +214,14 @@ export const PracticeLoginCards: React.FC = React.memo(() => {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, delay: 0.42, ease: [0.16, 1, 0.3, 1] }}
-        className="mt-3 sm:mt-5 flex items-center justify-center gap-2.5 sm:gap-3 text-xs sm:text-sm text-[var(--text-2)] font-medium"
+        className="mt-3 sm:mt-5 flex items-center justify-center gap-2.5 sm:gap-3 text-xs sm:text-sm font-medium"
       >
         <button
           type="button"
           onClick={() => setActiveModal('forgot_password')}
-          className="min-h-[32px] sm:min-h-0 hover:text-[var(--text)] transition-colors cursor-pointer flex items-center gap-1"
+          className="min-h-[32px] sm:min-h-0 px-2 py-1 rounded-lg text-[var(--link-color)] hover:text-[var(--link-hover)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-colors cursor-pointer flex items-center gap-1"
         >
-          <KeyRound className="w-3.5 h-3.5 opacity-80" />
+          <KeyRound className="w-3.5 h-3.5" />
           <span>{language === 'fa' ? 'فراموشی رمز عبور؟' : 'Forgot Password?'}</span>
         </button>
 
@@ -230,9 +230,9 @@ export const PracticeLoginCards: React.FC = React.memo(() => {
         <button
           type="button"
           onClick={() => setActiveModal('login_guide')}
-          className="min-h-[32px] sm:min-h-0 hover:text-[var(--text)] transition-colors cursor-pointer flex items-center gap-1"
+          className="min-h-[32px] sm:min-h-0 px-2 py-1 rounded-lg text-[var(--link-color)] hover:text-[var(--link-hover)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-colors cursor-pointer flex items-center gap-1"
         >
-          <HelpCircle className="w-3.5 h-3.5 opacity-80" />
+          <HelpCircle className="w-3.5 h-3.5" />
           <span>{language === 'fa' ? 'راهنمای ورود' : 'Login Guide'}</span>
         </button>
       </motion.div>

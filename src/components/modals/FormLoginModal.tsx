@@ -85,9 +85,9 @@ export const FormLoginModal: React.FC = () => {
                 setErrorMsg('');
               }}
               className={`py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-                mode === 'login'
-                  ? 'bg-[#5EA8FF] text-white shadow-md'
-                  : 'text-[var(--text-2)] hover:text-[var(--text)]'
+                  mode === 'login'
+                    ? 'bg-[var(--accent)] text-[var(--on-accent)] shadow-md'
+                    : 'text-[var(--text-2)] hover:text-[var(--text)]'
               }`}
             >
               ورود به حساب
@@ -99,9 +99,9 @@ export const FormLoginModal: React.FC = () => {
                 setErrorMsg('');
               }}
               className={`py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-                mode === 'signup'
-                  ? 'bg-[#5EA8FF] text-white shadow-md'
-                  : 'text-[var(--text-2)] hover:text-[var(--text)]'
+                  mode === 'signup'
+                    ? 'bg-[var(--accent)] text-[var(--on-accent)] shadow-md'
+                    : 'text-[var(--text-2)] hover:text-[var(--text)]'
               }`}
             >
               ثبت‌نام جدید
@@ -213,7 +213,7 @@ export const FormLoginModal: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 py-2.5 bg-[#5EA8FF] hover:bg-[#5EA8FF]/90 text-white rounded-full text-sm font-bold transition-all shadow-lg shadow-[#5EA8FF]/20 hover:scale-[1.03] cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--on-accent)] rounded-full text-sm font-bold transition-all shadow-lg hover:scale-[1.03] cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading && (
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

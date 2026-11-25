@@ -72,11 +72,11 @@ export const NotificationsModal: React.FC = () => {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
                       <div className="p-2 rounded-xl bg-[var(--surface-3)] shrink-0 mt-0.5">
-                        {item.type === 'academic' && <Info className="w-4 h-4 text-sky-400" />}
-                        {item.type === 'exam' && <AlertTriangle className="w-4 h-4 text-amber-400" />}
-                        {item.type === 'system' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-                        {item.type === 'sms' && <MessageSquare className="w-4 h-4 text-blue-400" />}
-                        {item.type === 'email' && <Mail className="w-4 h-4 text-emerald-400" />}
+                        {item.type === 'academic' && <Info className="w-4 h-4 text-[var(--dash-sky-text)]" />}
+                        {item.type === 'exam' && <AlertTriangle className="w-4 h-4 text-[var(--warn)]" />}
+                        {item.type === 'system' && <CheckCircle2 className="w-4 h-4 text-[var(--ok)]" />}
+                        {item.type === 'sms' && <MessageSquare className="w-4 h-4 text-[var(--accent)]" />}
+                        {item.type === 'email' && <Mail className="w-4 h-4 text-[var(--ok)]" />}
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
@@ -87,12 +87,12 @@ export const NotificationsModal: React.FC = () => {
                             )}
                           </h4>
                           {item.type === 'sms' && (
-                            <span className="px-1.5 py-0.5 rounded-md bg-blue-500/15 text-blue-300 border border-blue-500/30 text-[10px] font-semibold">
+                            <span className="px-1.5 py-0.5 rounded-md bg-[var(--status-info-bg)] text-[var(--status-info-text)] border border-[var(--status-info-border)] text-[10px] font-semibold">
                               پیامک
                             </span>
                           )}
                           {item.type === 'email' && (
-                            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold">
+                            <span className="px-1.5 py-0.5 rounded-md bg-[var(--status-green-bg)] text-[var(--status-green-text)] border border-[var(--status-green-border)] text-[10px] font-semibold">
                               ایمیل
                             </span>
                           )}

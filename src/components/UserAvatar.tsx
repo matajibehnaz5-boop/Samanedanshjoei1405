@@ -175,9 +175,9 @@ export const UserAvatar: React.FC<UserAvatarProps> = React.memo(({
         className={`
           ${currentSize.box}
           rounded-full overflow-hidden flex items-center justify-center
-          border-2 border-indigo-400/40 shadow-md ring-1 ring-white/10
+          border-2 border-[var(--avatar-border)] shadow-md ring-1 ring-[var(--avatar-ring)]
           ${onClick ? 'cursor-pointer hover:opacity-90 hover:scale-105 active:scale-95 transition-all' : ''}
-          ${!hasValidPhoto ? 'bg-gradient-to-tr from-indigo-600 via-blue-600 to-sky-500 text-white font-extrabold shadow-indigo-600/25' : 'bg-slate-800'}
+          ${!hasValidPhoto ? 'avatar-circle-fallback bg-[image:var(--avatar-bg)] text-white font-extrabold' : 'bg-[var(--surface-2)]'}
         `}
       >
         {hasValidPhoto ? (
@@ -190,7 +190,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = React.memo(({
             decoding="async"
           />
         ) : (
-          <span className={`${currentSize.text} tracking-tight drop-shadow-sm`}>
+          <span className={`${currentSize.text} tracking-tight drop-shadow-sm text-white`}>
             {initialChar}
           </span>
         )}
@@ -199,7 +199,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = React.memo(({
       {/* Online Status Indicator */}
       {showStatus && settings.showOnlineStatus && (
         <span
-          className={`absolute ${currentSize.status} bg-emerald-500 rounded-full border-2 border-[#1E293B] shadow-[0_0_8px_#10B981] pointer-events-none z-10`}
+          className={`absolute ${currentSize.status} bg-emerald-500 rounded-full border-2 border-[var(--avatar-dot-border)] shadow-[0_0_8px_#10B981] pointer-events-none z-10`}
           title={language === 'fa' ? 'وضعیت: آنلاین' : 'Status: Online'}
         />
       )}
@@ -217,13 +217,13 @@ export const UserAvatar: React.FC<UserAvatarProps> = React.memo(({
             aria-label={language === 'fa' ? 'تغییر عکس پروفایل' : 'Change profile photo'}
             className={`
               absolute ${currentSize.uploadBtn}
-              bg-indigo-600 hover:bg-indigo-500 text-white rounded-full
-              border-2 border-[#1E293B] shadow-lg
+              bg-[var(--avatar-upload-bg)] hover:bg-[var(--avatar-upload-hover)] text-white rounded-full
+              border-2 border-[var(--avatar-dot-border)] shadow-lg
               flex items-center justify-center cursor-pointer
               transition-transform hover:scale-115 active:scale-90 z-20 group
             `}
           >
-            <Camera className={`${currentSize.uploadIcon} group-hover:rotate-12 transition-transform`} />
+            <Camera className={`${currentSize.uploadIcon} group-hover:rotate-12 transition-transform text-white`} />
           </button>
           <input
             ref={fileInputRef}

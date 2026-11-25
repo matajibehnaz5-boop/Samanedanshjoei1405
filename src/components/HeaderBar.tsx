@@ -20,7 +20,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useAuth, useI18n, useLayoutSettings, useModalActions, useNotifications, useSettings, useToastActions } from '../context/DashboardContext';
+import { useAuth, useI18n, useLayoutSettings, useModalActions, useModalState, useNotifications, useSettings, useToastActions } from '../context/DashboardContext';
 import { UserAvatar } from './UserAvatar';
 import { AdminNotificationCenter } from './AdminNotificationCenter';
 import { api } from '../lib/api';
@@ -28,6 +28,7 @@ import { AdminNotificationItem } from '../types';
 
 export const HeaderBar: React.FC = React.memo(() => {
   const { setActiveModal, closeModal } = useModalActions();
+  const { activeModal } = useModalState();
   const { instituteName, isCompactFrame } = useLayoutSettings();
   const { isLoggedIn, studentProfile, handleLogout, setCurrentPage } = useAuth();
   const { language, toggleLanguage, t } = useI18n();
@@ -292,9 +293,9 @@ export const HeaderBar: React.FC = React.memo(() => {
             onClick={() => setIsDrawerOpen(true)}
             aria-label={t('topMenu')}
             title={t('topMenu')}
-            className="w-[32px] h-[32px] sm:w-8 sm:h-8 rounded-lg bg-[var(--header-btn-bg)] hover:bg-[var(--header-btn-hover)] border border-[var(--header-btn-border)] flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0"
+            className="w-[32px] h-[32px] sm:w-8 sm:h-8 rounded-lg bg-[var(--header-btn-bg)] hover:bg-[var(--header-btn-hover)] border border-[var(--header-btn-border)] flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
-            <Menu className="w-4 h-4 text-[var(--text)] stroke-[2.2] group-hover:text-secondary transition-colors" />
+            <Menu className="w-4 h-4 text-[var(--text)] stroke-[2.2] group-hover:text-[var(--menu-icon-alt)] transition-colors" />
           </motion.button>
 
           {/* Title & Active Status Indicator Dot */}
@@ -307,7 +308,7 @@ export const HeaderBar: React.FC = React.memo(() => {
                 window.dispatchEvent(new CustomEvent('admin-overview-refresh'));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="flex items-center gap-[4px] sm:gap-2 flex-1 min-w-0 text-right cursor-pointer hover:opacity-90 transition-opacity"
+              className="flex items-center gap-[4px] sm:gap-2 flex-1 min-w-0 text-right cursor-pointer hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg transition-opacity"
               dir="rtl"
               title="صفحه اصلی مدیریت"
             >
@@ -345,7 +346,7 @@ export const HeaderBar: React.FC = React.memo(() => {
             onClick={() => setActiveModal('profile')}
             aria-label={language === 'fa' ? 'مشخصات فردی' : 'User Profile'}
             title={language === 'fa' ? 'مشخصات فردی' : 'User Profile'}
-            className="hidden sm:flex min-w-0 min-h-0 items-center justify-center cursor-pointer transition-transform shrink-0 rounded-full"
+            className="hidden sm:flex min-w-0 min-h-0 items-center justify-center cursor-pointer transition-transform shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             <UserAvatar size="xs" showStatus={isLoggedIn && settings.showOnlineStatus} />
           </motion.button>
@@ -358,11 +359,11 @@ export const HeaderBar: React.FC = React.memo(() => {
             onClick={isAdminUser ? handleToggleAdminNotifs : () => setActiveModal('notifications')}
             aria-label={language === 'fa' ? 'اعلانات' : 'Notifications'}
             title={language === 'fa' ? 'اعلانات و پیام‌ها' : 'Notifications'}
-            className="w-[30px] h-[30px] sm:w-8 sm:h-8 rounded-lg bg-[var(--header-btn-bg)] hover:bg-[var(--header-btn-hover)] border border-[var(--header-btn-border)] flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0 relative"
+            className="w-[30px] h-[30px] sm:w-8 sm:h-8 rounded-lg bg-[var(--header-btn-bg)] hover:bg-[var(--header-btn-hover)] border border-[var(--header-btn-border)] flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
-            <Bell className="w-[16px] h-[16px] sm:w-4 sm:h-4 text-[var(--text)] stroke-[2] group-hover:text-amber-300 transition-colors" />
+            <Bell className="w-[16px] h-[16px] sm:w-4 sm:h-4 text-[var(--text)] stroke-[2] group-hover:text-[var(--menu-icon-alt)] transition-colors" />
             {displayedBellCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 flex min-w-[14px] h-3.5 sm:min-w-[15px] sm:h-3.5 px-0.5 items-center justify-center rounded-full bg-rose-500 text-[8px] sm:text-[9px] font-extrabold text-white ring-1 sm:ring-2 ring-[var(--header-ring)]">
+              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 flex min-w-[14px] h-3.5 sm:min-w-[15px] sm:h-3.5 px-0.5 items-center justify-center rounded-full bg-[var(--menu-badge-bg)] text-[8px] sm:text-[9px] font-extrabold text-[var(--menu-badge-text)] ring-1 sm:ring-2 ring-[var(--header-ring)]">
                 {displayedBellCount > 99 ? '99+' : displayedBellCount}
               </span>
             )}
@@ -374,12 +375,12 @@ export const HeaderBar: React.FC = React.memo(() => {
             whileTap={{ scale: 0.95 }}
             onClick={toggleLanguage}
             title={language === 'fa' ? 'Switch to English' : 'تغییر به فارسی'}
-            className="h-[30px] sm:h-7 px-1.5 sm:px-2 rounded-lg bg-[var(--header-btn-bg)] hover:bg-[var(--header-btn-hover)] border border-[var(--header-btn-border)] flex items-center gap-1 text-[10.5px] sm:text-[11px] font-bold transition-all cursor-pointer shadow-sm text-[var(--text)] shrink-0"
+            className="h-[30px] sm:h-7 px-1.5 sm:px-2 rounded-lg bg-[var(--header-btn-bg)] hover:bg-[var(--header-btn-hover)] border border-[var(--header-btn-border)] flex items-center gap-1 text-[10.5px] sm:text-[11px] font-bold transition-all cursor-pointer shadow-sm text-[var(--text)] shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
-            <Globe className="hidden sm:block w-3 h-3 text-secondary shrink-0" />
-            <span className={language === 'fa' ? 'text-secondary font-extrabold' : 'opacity-60'}>FA</span>
-            <span className="opacity-40 text-[9px]">/</span>
-            <span className={language === 'en' ? 'text-secondary font-extrabold' : 'opacity-60'}>EN</span>
+            <Globe className="hidden sm:block w-3 h-3 text-[var(--menu-icon-alt)] shrink-0" />
+            <span className={language === 'fa' ? 'text-[var(--header-lang-active)] font-extrabold' : 'text-[var(--header-lang-inactive)]'}>FA</span>
+            <span className="text-[var(--header-lang-sep)] text-[9px]">/</span>
+            <span className={language === 'en' ? 'text-[var(--header-lang-active)] font-extrabold' : 'text-[var(--header-lang-inactive)]'}>EN</span>
           </motion.button>
         </div>
 
@@ -425,22 +426,22 @@ export const HeaderBar: React.FC = React.memo(() => {
               animate={{ x: 0 }}
               exit={{ x: language === 'fa' ? '100%' : '-100%' }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className={`fixed top-0 ${language === 'fa' ? 'right-0 border-l' : 'left-0 border-r'} bottom-0 z-50 w-[270px] sm:w-80 max-w-[85vw] bg-surface-container-high border-outline/20 p-[12px] sm:p-6 shadow-2xl flex flex-col justify-between text-on-primary overflow-y-auto overflow-x-hidden will-change-transform [transform:translateZ(0)]`}
+              className={`fixed top-0 ${language === 'fa' ? 'right-0 border-l' : 'left-0 border-r'} bottom-0 z-50 w-[270px] sm:w-80 max-w-[85vw] bg-[var(--menu-bg)] border-[var(--menu-border)] p-[12px] sm:p-6 shadow-[var(--menu-shadow)] flex flex-col justify-between text-[var(--menu-text)] overflow-y-auto overflow-x-hidden will-change-transform [transform:translateZ(0)]`}
             >
               <div>
                 {/* Drawer Header */}
-                <div className="flex items-center justify-between pb-2.5 mb-3 sm:pb-4 sm:mb-6 border-b border-outline/20">
+                <div className="flex items-center justify-between pb-2.5 mb-3 sm:pb-4 sm:mb-6 border-b border-[var(--menu-border)]">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-primary-container/40 border border-outline/20 flex items-center justify-center shadow-sm">
-                      <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--menu-icon-box-bg)] border border-[var(--menu-icon-box-border)] flex items-center justify-center shadow-sm">
+                      <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--menu-icon)]" />
                     </div>
-                    <h3 className="text-[15px] sm:text-base font-bold text-on-primary">
+                    <h3 className="text-[15px] sm:text-base font-bold text-[var(--menu-text)]">
                       {t('topMenu')}
                     </h3>
                   </div>
                   <button
                     onClick={() => setIsDrawerOpen(false)}
-                    className="min-w-[34px] min-h-[34px] sm:min-w-0 sm:min-h-0 flex items-center justify-center p-1.5 sm:p-2 rounded-xl hover:bg-surface-container-low text-outline hover:text-on-primary transition-colors cursor-pointer"
+                    className="min-w-[34px] min-h-[34px] sm:min-w-0 sm:min-h-0 flex items-center justify-center p-1.5 sm:p-2 rounded-xl hover:bg-[var(--menu-hover-bg)] text-[var(--menu-sub-text)] hover:text-[var(--menu-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-colors cursor-pointer"
                   >
                     <X className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
@@ -458,22 +459,22 @@ export const HeaderBar: React.FC = React.memo(() => {
                         setActiveModal('form_login');
                       }
                     }}
-                    className="w-full flex items-center justify-between p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low border border-outline/30 hover:border-primary/50 transition-all cursor-pointer group shadow-sm"
+                    className="w-full flex items-center justify-between p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[var(--menu-item-bg)] hover:bg-[var(--menu-hover-bg)] border border-[var(--menu-border)] hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all cursor-pointer group shadow-sm"
                   >
                     <div className="flex items-center gap-2.5 sm:gap-3">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--surface-glass)] border border-[var(--border)] flex items-center justify-center shrink-0">
-                        <User className="w-4 h-4 sm:w-5 sm:h-5 text-on-primary" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--menu-icon-box-bg)] border border-[var(--menu-icon-box-border)] flex items-center justify-center shrink-0">
+                        <User className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--menu-icon)]" />
                       </div>
                       <div className="flex flex-col text-start">
-                        <span className="text-xs font-bold text-on-primary">
+                        <span className="text-xs font-bold text-[var(--menu-text)]">
                           {isLoggedIn ? `${t('logoutShort')} (${studentProfile.name})` : 'ورود به حساب کاربری'}
                         </span>
-                        <span className="text-[11px] text-outline font-medium">
+                        <span className="text-[11px] text-[var(--menu-sub-text)] font-medium">
                           {isLoggedIn ? 'نشست کاربری فعال' : 'احراز هویت سامانه'}
                         </span>
                       </div>
                     </div>
-                    <span className="text-xs text-primary font-bold px-2 py-1 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                    <span className="text-xs text-[var(--menu-active-text)] font-bold px-2.5 py-1 bg-[var(--menu-active-bg)] rounded-lg transition-opacity group-hover:opacity-90">
                       {isLoggedIn ? t('logoutShort') : t('loginShort')}
                     </span>
                   </button>
@@ -488,19 +489,27 @@ export const HeaderBar: React.FC = React.memo(() => {
                           setIsDrawerOpen(false);
                           setActiveModal('admin_cartable');
                         }}
-                        className="w-full flex items-center justify-between gap-2 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-primary/40 shadow-sm"
+                        className={`w-full flex items-center justify-between gap-2 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
+                          activeModal === 'admin_cartable'
+                            ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
+                            : 'bg-[var(--menu-item-bg)] hover:bg-[var(--menu-hover-bg)] text-[var(--menu-text)] border-[var(--menu-border)] hover:border-[var(--accent)]'
+                        }`}
                       >
                         <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
-                          <div className="p-2 sm:p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform shrink-0">
+                          <div className={`p-2 sm:p-2.5 rounded-xl border group-hover:scale-105 transition-transform shrink-0 ${
+                            activeModal === 'admin_cartable'
+                              ? 'bg-white/20 border-white/30 text-[var(--menu-active-text)]'
+                              : 'bg-[var(--menu-icon-box-bg)] border-[var(--menu-icon-box-border)] text-[var(--menu-icon)]'
+                          }`}>
                             <LayoutDashboard className="w-5 h-5" />
                           </div>
                           <div className="flex flex-col min-w-0">
                             <span>کارتابل</span>
-                            <span className="text-[11px] sm:text-xs font-normal text-outline truncate">کارتابل و پیگیری کارها</span>
+                            <span className={`text-[11px] sm:text-xs font-normal truncate ${activeModal === 'admin_cartable' ? 'text-white/85' : 'text-[var(--menu-sub-text)]'}`}>کارتابل و پیگیری کارها</span>
                           </div>
                         </div>
                         {adminCartablePendingCount > 0 && (
-                          <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/35 text-[11px] font-extrabold shrink-0">
+                          <span className="px-2 py-0.5 rounded-full bg-[var(--menu-pill-badge-bg)] text-[var(--menu-pill-badge-text)] border border-[var(--menu-pill-badge-border)] text-[11px] font-extrabold shrink-0">
                             {String(adminCartablePendingCount).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)] ?? d)}
                           </span>
                         )}
@@ -513,14 +522,22 @@ export const HeaderBar: React.FC = React.memo(() => {
                           setIsDrawerOpen(false);
                           setActiveModal('thesis_list');
                         }}
-                        className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-primary/40 shadow-sm"
+                        className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
+                          activeModal === 'thesis_list'
+                            ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
+                            : 'bg-[var(--menu-item-bg)] hover:bg-[var(--menu-hover-bg)] text-[var(--menu-text)] border-[var(--menu-border)] hover:border-[var(--accent)]'
+                        }`}
                       >
-                        <div className="p-2 sm:p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform">
+                        <div className={`p-2 sm:p-2.5 rounded-xl border group-hover:scale-105 transition-transform ${
+                          activeModal === 'thesis_list'
+                            ? 'bg-white/20 border-white/30 text-[var(--menu-active-text)]'
+                            : 'bg-[var(--menu-icon-box-bg)] border-[var(--menu-icon-box-border)] text-[var(--menu-icon)]'
+                        }`}>
                           <FileText className="w-5 h-5" />
                         </div>
                         <div className="flex flex-col">
                           <span>لیست پایان‌نامه‌ها</span>
-                          <span className="text-[11px] sm:text-xs font-normal text-outline">مشاهده و پیگیری پایان‌نامه‌ها</span>
+                          <span className={`text-[11px] sm:text-xs font-normal ${activeModal === 'thesis_list' ? 'text-white/85' : 'text-[var(--menu-sub-text)]'}`}>مشاهده و پیگیری پایان‌نامه‌ها</span>
                         </div>
                       </button>
 
@@ -531,14 +548,22 @@ export const HeaderBar: React.FC = React.memo(() => {
                           setIsDrawerOpen(false);
                           setActiveModal('professor_capacity');
                         }}
-                        className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-primary/40 shadow-sm"
+                        className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
+                          activeModal === 'professor_capacity'
+                            ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
+                            : 'bg-[var(--menu-item-bg)] hover:bg-[var(--menu-hover-bg)] text-[var(--menu-text)] border-[var(--menu-border)] hover:border-[var(--accent)]'
+                        }`}
                       >
-                        <div className="p-2 sm:p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform">
+                        <div className={`p-2 sm:p-2.5 rounded-xl border group-hover:scale-105 transition-transform ${
+                          activeModal === 'professor_capacity'
+                            ? 'bg-white/20 border-white/30 text-[var(--menu-active-text)]'
+                            : 'bg-[var(--menu-icon-box-bg)] border-[var(--menu-icon-box-border)] text-[var(--menu-icon)]'
+                        }`}>
                           <Users className="w-5 h-5" />
                         </div>
                         <div className="flex flex-col">
                           <span>ظرفیت اساتید</span>
-                          <span className="text-[11px] sm:text-xs font-normal text-outline">بررسی و مدیریت ظرفیت راهنمایی</span>
+                          <span className={`text-[11px] sm:text-xs font-normal ${activeModal === 'professor_capacity' ? 'text-white/85' : 'text-[var(--menu-sub-text)]'}`}>بررسی و مدیریت ظرفیت راهنمایی</span>
                         </div>
                       </button>
 
@@ -549,220 +574,183 @@ export const HeaderBar: React.FC = React.memo(() => {
                           setIsDrawerOpen(false);
                           setActiveModal('defense_sessions');
                         }}
-                        className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-primary/40 shadow-sm"
+                        className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
+                          activeModal === 'defense_sessions'
+                            ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
+                            : 'bg-[var(--menu-item-bg)] hover:bg-[var(--menu-hover-bg)] text-[var(--menu-text)] border-[var(--menu-border)] hover:border-[var(--accent)]'
+                        }`}
                       >
-                        <div className="p-2 sm:p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform">
+                        <div className={`p-2 sm:p-2.5 rounded-xl border group-hover:scale-105 transition-transform ${
+                          activeModal === 'defense_sessions'
+                            ? 'bg-white/20 border-white/30 text-[var(--menu-active-text)]'
+                            : 'bg-[var(--menu-icon-box-bg)] border-[var(--menu-icon-box-border)] text-[var(--menu-icon)]'
+                        }`}>
                           <CalendarDays className="w-5 h-5" />
                         </div>
                         <div className="flex flex-col">
                           <span>جلسات دفاع</span>
-                          <span className="text-[11px] sm:text-xs font-normal text-outline">زمان‌بندی و برنامه‌ریزی دفاع</span>
+                          <span className={`text-[11px] sm:text-xs font-normal ${activeModal === 'defense_sessions' ? 'text-white/85' : 'text-[var(--menu-sub-text)]'}`}>زمان‌بندی و برنامه‌ریزی دفاع</span>
                         </div>
                       </button>
 
                       {/* 5. امور آموزش (آکاردئونی) */}
-                      <div className="rounded-xl sm:rounded-2xl bg-surface-container-low/80 border border-outline/20 shadow-sm overflow-hidden">
+                      <div className="rounded-xl sm:rounded-2xl bg-[var(--menu-item-bg)] border border-[var(--menu-border)] shadow-sm overflow-hidden">
                         <button
                           type="button"
                           onClick={() => setIsEduOpen((prev) => !prev)}
-                          className="w-full flex items-center justify-between p-2.5 sm:p-3.5 hover:bg-surface-container-low transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group"
+                          className="w-full flex items-center justify-between p-2.5 sm:p-3.5 hover:bg-[var(--menu-hover-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all text-xs sm:text-sm font-bold text-[var(--menu-text)] text-right cursor-pointer group"
                         >
                           <div className="flex items-center gap-2.5 sm:gap-3.5">
-                            <div className="p-2 sm:p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform">
+                            <div className="p-2 sm:p-2.5 rounded-xl bg-[var(--menu-icon-box-bg)] border border-[var(--menu-icon-box-border)] text-[var(--menu-icon)] group-hover:scale-105 transition-transform">
                               <GraduationCap className="w-5 h-5" />
                             </div>
                             <div className="flex flex-col">
                               <span>امور آموزش</span>
-                              <span className="text-[11px] sm:text-xs font-normal text-outline">مدیریت گروه‌ها، رشته‌ها و کارمندان</span>
+                              <span className="text-[11px] sm:text-xs font-normal text-[var(--menu-sub-text)]">مدیریت گروه‌ها، رشته‌ها و کارمندان</span>
                             </div>
                           </div>
                           <ChevronDown
-                            className={`w-4 h-4 text-outline transition-transform duration-200 ${
-                              isEduOpen ? 'rotate-180 text-primary' : ''
+                            className={`w-4 h-4 text-[var(--menu-sub-text)] transition-transform duration-200 ${
+                              isEduOpen ? 'rotate-180 text-[var(--menu-icon)]' : ''
                             }`}
                           />
                         </button>
 
                         {isEduOpen && (
-                          <div className="px-3 pb-3 pt-1 space-y-1.5 border-t border-outline/15">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsDrawerOpen(false);
-                                setActiveModal('edu_groups');
-                              }}
-                              className="w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
-                            >
-                              گروه‌های آموزشی
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsDrawerOpen(false);
-                                setActiveModal('edu_fields');
-                              }}
-                              className="w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
-                            >
-                              رشته‌های تحصیلی
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsDrawerOpen(false);
-                                setActiveModal('employee_register');
-                              }}
-                              className="w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
-                            >
-                              ثبت نام کارمندان
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsDrawerOpen(false);
-                                setActiveModal('employee_list');
-                              }}
-                              className="w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
-                            >
-                              لیست کارمندان
-                            </button>
+                          <div className="px-3 pb-3 pt-1.5 space-y-1.5 border-t border-[var(--menu-border)]">
+                            {([
+                              ['edu_groups', 'گروه‌های آموزشی'],
+                              ['edu_fields', 'رشته‌های تحصیلی'],
+                              ['employee_register', 'ثبت نام کارمندان'],
+                              ['employee_list', 'لیست کارمندان'],
+                            ] as const).map(([modalKey, label]) => {
+                              const isActive = activeModal === modalKey;
+                              return (
+                                <button
+                                  key={modalKey}
+                                  type="button"
+                                  onClick={() => {
+                                    setIsDrawerOpen(false);
+                                    setActiveModal(modalKey);
+                                  }}
+                                  className={`w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all cursor-pointer ${
+                                    isActive
+                                      ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
+                                      : 'text-[var(--menu-text)] hover:bg-[var(--menu-hover-bg)] border-transparent hover:border-[var(--menu-border)]'
+                                  }`}
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
 
                       {/* 6. امور اساتید (آکاردئونی) */}
-                      <div className="rounded-xl sm:rounded-2xl bg-surface-container-low/80 border border-outline/20 shadow-sm overflow-hidden">
+                      <div className="rounded-xl sm:rounded-2xl bg-[var(--menu-item-bg)] border border-[var(--menu-border)] shadow-sm overflow-hidden">
                         <button
                           type="button"
                           onClick={() => setIsProfOpen((prev) => !prev)}
-                          className="w-full flex items-center justify-between p-2.5 sm:p-3.5 hover:bg-surface-container-low transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group"
+                          className="w-full flex items-center justify-between p-2.5 sm:p-3.5 hover:bg-[var(--menu-hover-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all text-xs sm:text-sm font-bold text-[var(--menu-text)] text-right cursor-pointer group"
                         >
                           <div className="flex items-center gap-2.5 sm:gap-3.5">
-                            <div className="p-2 sm:p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform">
+                            <div className="p-2 sm:p-2.5 rounded-xl bg-[var(--menu-icon-box-bg)] border border-[var(--menu-icon-box-border)] text-[var(--menu-icon)] group-hover:scale-105 transition-transform">
                               <UserCheck className="w-5 h-5" />
                             </div>
                             <div className="flex flex-col">
                               <span>امور اساتید</span>
-                              <span className="text-[11px] sm:text-xs font-normal text-outline">مدیریت اساتید و دسترسی‌ها</span>
+                              <span className="text-[11px] sm:text-xs font-normal text-[var(--menu-sub-text)]">مدیریت اساتید و دسترسی‌ها</span>
                             </div>
                           </div>
                           <ChevronDown
-                            className={`w-4 h-4 text-outline transition-transform duration-200 ${
-                              isProfOpen ? 'rotate-180 text-primary' : ''
+                            className={`w-4 h-4 text-[var(--menu-sub-text)] transition-transform duration-200 ${
+                              isProfOpen ? 'rotate-180 text-[var(--menu-icon)]' : ''
                             }`}
                           />
                         </button>
 
                         {isProfOpen && (
-                          <div className="px-3 pb-3 pt-1 space-y-1.5 border-t border-outline/15">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsDrawerOpen(false);
-                                setActiveModal('professor_register');
-                              }}
-                              className="w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
-                            >
-                              ثبت نام اساتید
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsDrawerOpen(false);
-                                setActiveModal('professor_list');
-                              }}
-                              className="w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
-                            >
-                              لیست اساتید
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsDrawerOpen(false);
-                                setActiveModal('professor_access');
-                              }}
-                              className="w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
-                            >
-                              سطح دسترسی اساتید
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsDrawerOpen(false);
-                                setActiveModal('professor_theses');
-                              }}
-                              className="w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
-                            >
-                              پایان‌نامه اساتید
-                            </button>
+                          <div className="px-3 pb-3 pt-1.5 space-y-1.5 border-t border-[var(--menu-border)]">
+                            {([
+                              ['professor_register', 'ثبت نام اساتید'],
+                              ['professor_list', 'لیست اساتید'],
+                              ['professor_access', 'سطح دسترسی اساتید'],
+                              ['professor_theses', 'پایان‌نامه اساتید'],
+                            ] as const).map(([modalKey, label]) => {
+                              const isActive = activeModal === modalKey;
+                              return (
+                                <button
+                                  key={modalKey}
+                                  type="button"
+                                  onClick={() => {
+                                    setIsDrawerOpen(false);
+                                    setActiveModal(modalKey);
+                                  }}
+                                  className={`w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all cursor-pointer ${
+                                    isActive
+                                      ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
+                                      : 'text-[var(--menu-text)] hover:bg-[var(--menu-hover-bg)] border-transparent hover:border-[var(--menu-border)]'
+                                  }`}
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
 
                       {/* 7. امور دانشجویان (آکاردئونی) */}
-                      <div className="rounded-xl sm:rounded-2xl bg-surface-container-low/80 border border-outline/20 shadow-sm overflow-hidden">
+                      <div className="rounded-xl sm:rounded-2xl bg-[var(--menu-item-bg)] border border-[var(--menu-border)] shadow-sm overflow-hidden">
                         <button
                           type="button"
                           onClick={() => setIsStudentOpen((prev) => !prev)}
-                          className="w-full flex items-center justify-between p-2.5 sm:p-3.5 hover:bg-surface-container-low transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group"
+                          className="w-full flex items-center justify-between p-2.5 sm:p-3.5 hover:bg-[var(--menu-hover-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all text-xs sm:text-sm font-bold text-[var(--menu-text)] text-right cursor-pointer group"
                         >
                           <div className="flex items-center gap-2.5 sm:gap-3.5">
-                            <div className="p-2 sm:p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform">
+                            <div className="p-2 sm:p-2.5 rounded-xl bg-[var(--menu-icon-box-bg)] border border-[var(--menu-icon-box-border)] text-[var(--menu-icon)] group-hover:scale-105 transition-transform">
                               <Contact className="w-5 h-5" />
                             </div>
                             <div className="flex flex-col">
                               <span>امور دانشجویان</span>
-                              <span className="text-[11px] sm:text-xs font-normal text-outline">ثبت‌نام و مدیریت دانشجویان</span>
+                              <span className="text-[11px] sm:text-xs font-normal text-[var(--menu-sub-text)]">ثبت‌نام و مدیریت دانشجویان</span>
                             </div>
                           </div>
                           <ChevronDown
-                            className={`w-4 h-4 text-outline transition-transform duration-200 ${
-                              isStudentOpen ? 'rotate-180 text-primary' : ''
+                            className={`w-4 h-4 text-[var(--menu-sub-text)] transition-transform duration-200 ${
+                              isStudentOpen ? 'rotate-180 text-[var(--menu-icon)]' : ''
                             }`}
                           />
                         </button>
 
                         {isStudentOpen && (
-                          <div className="px-3 pb-3 pt-1 space-y-1.5 border-t border-outline/15">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsDrawerOpen(false);
-                                setActiveModal('student_bulk_register');
-                              }}
-                              className="w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
-                            >
-                              ثبت نام اولیه (گروهی)
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsDrawerOpen(false);
-                                setActiveModal('student_register');
-                              }}
-                              className="w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
-                            >
-                              ثبت نام (انفرادی)
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsDrawerOpen(false);
-                                setActiveModal('student_delete');
-                              }}
-                              className="w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
-                            >
-                              حذف دانشجو
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsDrawerOpen(false);
-                                setActiveModal('student_search');
-                              }}
-                              className="w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-on-primary hover:bg-surface-container-low border border-transparent hover:border-outline/25 transition-all cursor-pointer"
-                            >
-                              جستجوی دانشجو
-                            </button>
+                          <div className="px-3 pb-3 pt-1.5 space-y-1.5 border-t border-[var(--menu-border)]">
+                            {([
+                              ['student_bulk_register', 'ثبت نام اولیه (گروهی)'],
+                              ['student_register', 'ثبت نام (انفرادی)'],
+                              ['student_delete', 'حذف دانشجو'],
+                              ['student_search', 'جستجوی دانشجو'],
+                            ] as const).map(([modalKey, label]) => {
+                              const isActive = activeModal === modalKey;
+                              return (
+                                <button
+                                  key={modalKey}
+                                  type="button"
+                                  onClick={() => {
+                                    setIsDrawerOpen(false);
+                                    setActiveModal(modalKey);
+                                  }}
+                                  className={`w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all cursor-pointer ${
+                                    isActive
+                                      ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
+                                      : 'text-[var(--menu-text)] hover:bg-[var(--menu-hover-bg)] border-transparent hover:border-[var(--menu-border)]'
+                                  }`}
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
@@ -774,14 +762,22 @@ export const HeaderBar: React.FC = React.memo(() => {
                           setIsDrawerOpen(false);
                           setActiveModal('thesis_affairs');
                         }}
-                        className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-primary/40 shadow-sm"
+                        className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
+                          activeModal === 'thesis_affairs'
+                            ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
+                            : 'bg-[var(--menu-item-bg)] hover:bg-[var(--menu-hover-bg)] text-[var(--menu-text)] border-[var(--menu-border)] hover:border-[var(--accent)]'
+                        }`}
                       >
-                        <div className="p-2 sm:p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform">
+                        <div className={`p-2 sm:p-2.5 rounded-xl border group-hover:scale-105 transition-transform ${
+                          activeModal === 'thesis_affairs'
+                            ? 'bg-white/20 border-white/30 text-[var(--menu-active-text)]'
+                            : 'bg-[var(--menu-icon-box-bg)] border-[var(--menu-icon-box-border)] text-[var(--menu-icon)]'
+                        }`}>
                           <FolderKanban className="w-5 h-5" />
                         </div>
                         <div className="flex flex-col">
                           <span>امور پایان‌نامه‌ها</span>
-                          <span className="text-[11px] sm:text-xs font-normal text-outline">فرآیندها و تاییدیه‌های پایان‌نامه</span>
+                          <span className={`text-[11px] sm:text-xs font-normal ${activeModal === 'thesis_affairs' ? 'text-white/85' : 'text-[var(--menu-sub-text)]'}`}>فرآیندها و تاییدیه‌های پایان‌نامه</span>
                         </div>
                       </button>
 
@@ -792,14 +788,22 @@ export const HeaderBar: React.FC = React.memo(() => {
                           setIsDrawerOpen(false);
                           setActiveModal('admin_users');
                         }}
-                        className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-primary/40 shadow-sm"
+                        className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
+                          activeModal === 'admin_users'
+                            ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
+                            : 'bg-[var(--menu-item-bg)] hover:bg-[var(--menu-hover-bg)] text-[var(--menu-text)] border-[var(--menu-border)] hover:border-[var(--accent)]'
+                        }`}
                       >
-                        <div className="p-2 sm:p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform">
+                        <div className={`p-2 sm:p-2.5 rounded-xl border group-hover:scale-105 transition-transform ${
+                          activeModal === 'admin_users'
+                            ? 'bg-white/20 border-white/30 text-[var(--menu-active-text)]'
+                            : 'bg-[var(--menu-icon-box-bg)] border-[var(--menu-icon-box-border)] text-[var(--menu-icon)]'
+                        }`}>
                           <UserCog className="w-5 h-5" />
                         </div>
                         <div className="flex flex-col">
                           <span>کاربران</span>
-                          <span className="text-[11px] sm:text-xs font-normal text-outline">مدیریت حساب‌ها و دسترسی‌ها</span>
+                          <span className={`text-[11px] sm:text-xs font-normal ${activeModal === 'admin_users' ? 'text-white/85' : 'text-[var(--menu-sub-text)]'}`}>مدیریت حساب‌ها و دسترسی‌ها</span>
                         </div>
                       </button>
 
@@ -810,14 +814,22 @@ export const HeaderBar: React.FC = React.memo(() => {
                           setIsDrawerOpen(false);
                           setActiveModal('settings');
                         }}
-                        className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-outline/40 shadow-sm"
+                        className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
+                          activeModal === 'settings'
+                            ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
+                            : 'bg-[var(--menu-item-bg)] hover:bg-[var(--menu-hover-bg)] text-[var(--menu-text)] border-[var(--menu-border)] hover:border-[var(--accent)]'
+                        }`}
                       >
-                        <div className="p-2 sm:p-2.5 rounded-xl bg-surface-container-high border border-outline/30 text-outline group-hover:scale-105 transition-transform">
+                        <div className={`p-2 sm:p-2.5 rounded-xl border group-hover:scale-105 transition-transform ${
+                          activeModal === 'settings'
+                            ? 'bg-white/20 border-white/30 text-[var(--menu-active-text)]'
+                            : 'bg-[var(--menu-icon-box-bg)] border-[var(--menu-icon-box-border)] text-[var(--menu-icon-muted)]'
+                        }`}>
                           <Settings className="w-5 h-5" />
                         </div>
                         <div className="flex flex-col">
                           <span>تنظیمات</span>
-                          <span className="text-[11px] sm:text-xs font-normal text-outline">پیکربندی حساب و سامانه</span>
+                          <span className={`text-[11px] sm:text-xs font-normal ${activeModal === 'settings' ? 'text-white/85' : 'text-[var(--menu-sub-text)]'}`}>پیکربندی حساب و سامانه</span>
                         </div>
                       </button>
 
@@ -828,14 +840,22 @@ export const HeaderBar: React.FC = React.memo(() => {
                           setIsDrawerOpen(false);
                           setActiveModal('chat');
                         }}
-                        className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-primary/40 shadow-sm"
+                        className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
+                          activeModal === 'chat'
+                            ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
+                            : 'bg-[var(--menu-item-bg)] hover:bg-[var(--menu-hover-bg)] text-[var(--menu-text)] border-[var(--menu-border)] hover:border-[var(--accent)]'
+                        }`}
                       >
-                        <div className="p-2 sm:p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform">
+                        <div className={`p-2 sm:p-2.5 rounded-xl border group-hover:scale-105 transition-transform ${
+                          activeModal === 'chat'
+                            ? 'bg-white/20 border-white/30 text-[var(--menu-active-text)]'
+                            : 'bg-[var(--menu-icon-box-bg)] border-[var(--menu-icon-box-border)] text-[var(--menu-icon)]'
+                        }`}>
                           <MessageSquare className="w-5 h-5" />
                         </div>
                         <div className="flex flex-col">
                           <span>پیام‌ها</span>
-                          <span className="text-[11px] sm:text-xs font-normal text-outline">گفتگو و پیام‌های سامانه</span>
+                          <span className={`text-[11px] sm:text-xs font-normal ${activeModal === 'chat' ? 'text-white/85' : 'text-[var(--menu-sub-text)]'}`}>گفتگو و پیام‌های سامانه</span>
                         </div>
                       </button>
                     </>
@@ -848,23 +868,27 @@ export const HeaderBar: React.FC = React.memo(() => {
                             setIsDrawerOpen(false);
                             setActiveModal('profile');
                           }}
-                          className="w-full flex items-center justify-between p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low border border-outline/25 hover:border-primary/40 transition-all cursor-pointer group shadow-sm text-right"
+                          className={`w-full flex items-center justify-between p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm text-right ${
+                            activeModal === 'profile'
+                              ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
+                              : 'bg-[var(--menu-item-bg)] hover:bg-[var(--menu-hover-bg)] text-[var(--menu-text)] border-[var(--menu-border)] hover:border-[var(--accent)]'
+                          }`}
                         >
                           <div className="flex items-center gap-2.5 sm:gap-3">
                             <UserAvatar size="sm" showStatus={settings.showOnlineStatus} />
                             <div className="flex flex-col text-right">
-                              <span className="text-xs sm:text-sm font-bold text-on-primary">
+                              <span className="text-xs sm:text-sm font-bold">
                                 {studentProfile.name || 'کاربر'}
                               </span>
                               {settings.showOnlineStatus && (
                                 <div className="flex items-center gap-1.5 mt-0.5">
-                                  <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-                                  <span className="text-[11px] sm:text-xs text-outline font-medium">وضعیت: آنلاین</span>
+                                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                  <span className={`text-[11px] sm:text-xs font-medium ${activeModal === 'profile' ? 'text-white/85' : 'text-[var(--menu-sub-text)]'}`}>وضعیت: آنلاین</span>
                                 </div>
                               )}
                             </div>
                           </div>
-                          <span className="text-xs text-primary font-medium group-hover:underline">مشاهده</span>
+                          <span className={`text-xs font-semibold group-hover:underline ${activeModal === 'profile' ? 'text-[var(--menu-active-text)]' : 'text-[var(--menu-icon)]'}`}>مشاهده</span>
                         </button>
                       )}
 
@@ -873,14 +897,22 @@ export const HeaderBar: React.FC = React.memo(() => {
                           setIsDrawerOpen(false);
                           setActiveModal('analytics');
                         }}
-                        className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-primary/40 shadow-sm"
+                        className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
+                          activeModal === 'analytics'
+                            ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
+                            : 'bg-[var(--menu-item-bg)] hover:bg-[var(--menu-hover-bg)] text-[var(--menu-text)] border-[var(--menu-border)] hover:border-[var(--accent)]'
+                        }`}
                       >
-                        <div className="p-2 sm:p-2.5 rounded-xl bg-primary-container/40 border border-primary/20 text-primary group-hover:scale-105 transition-transform">
+                        <div className={`p-2 sm:p-2.5 rounded-xl border group-hover:scale-105 transition-transform ${
+                          activeModal === 'analytics'
+                            ? 'bg-white/20 border-white/30 text-[var(--menu-active-text)]'
+                            : 'bg-[var(--menu-icon-box-bg)] border-[var(--menu-icon-box-border)] text-[var(--menu-icon)]'
+                        }`}>
                           <LayoutDashboard className="w-5 h-5" />
                         </div>
                         <div className="flex flex-col">
                           <span>داشبورد</span>
-                          <span className="text-[11px] sm:text-xs font-normal text-outline">نمای کلی و برنامه‌ها</span>
+                          <span className={`text-[11px] sm:text-xs font-normal ${activeModal === 'analytics' ? 'text-white/85' : 'text-[var(--menu-sub-text)]'}`}>نمای کلی و برنامه‌ها</span>
                         </div>
                       </button>
 
@@ -889,14 +921,14 @@ export const HeaderBar: React.FC = React.memo(() => {
                           setIsDrawerOpen(false);
                           setActiveModal('analytics');
                         }}
-                        className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-secondary/40 shadow-sm"
+                        className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[var(--menu-item-bg)] hover:bg-[var(--menu-hover-bg)] border border-[var(--menu-border)] hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all text-xs sm:text-sm font-bold text-[var(--menu-text)] text-right cursor-pointer group shadow-sm"
                       >
-                        <div className="p-2 sm:p-2.5 rounded-xl bg-secondary-container/50 border border-secondary/20 text-secondary group-hover:scale-105 transition-transform">
+                        <div className="p-2 sm:p-2.5 rounded-xl bg-[var(--menu-icon-box-bg)] border border-[var(--menu-icon-box-border)] text-[var(--menu-icon-alt)] group-hover:scale-105 transition-transform">
                           <TrendingUp className="w-5 h-5" />
                         </div>
                         <div className="flex flex-col">
                           <span>آمار تحصیلی</span>
-                          <span className="text-[11px] sm:text-xs font-normal text-outline">گزارش‌ها و نمودارها</span>
+                          <span className="text-[11px] sm:text-xs font-normal text-[var(--menu-sub-text)]">گزارش‌ها و نمودارها</span>
                         </div>
                       </button>
 
@@ -905,14 +937,22 @@ export const HeaderBar: React.FC = React.memo(() => {
                           setIsDrawerOpen(false);
                           setActiveModal('settings');
                         }}
-                        className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface-container-low/80 hover:bg-surface-container-low border border-outline/20 transition-all text-xs sm:text-sm font-bold text-on-primary text-right cursor-pointer group hover:border-outline/40 shadow-sm"
+                        className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
+                          activeModal === 'settings'
+                            ? 'bg-[var(--menu-active-bg)] text-[var(--menu-active-text)] border-[var(--menu-active-bg)]'
+                            : 'bg-[var(--menu-item-bg)] hover:bg-[var(--menu-hover-bg)] text-[var(--menu-text)] border-[var(--menu-border)] hover:border-[var(--accent)]'
+                        }`}
                       >
-                        <div className="p-2 sm:p-2.5 rounded-xl bg-surface-container-high border border-outline/30 text-outline group-hover:scale-105 transition-transform">
+                        <div className={`p-2 sm:p-2.5 rounded-xl border group-hover:scale-105 transition-transform ${
+                          activeModal === 'settings'
+                            ? 'bg-white/20 border-white/30 text-[var(--menu-active-text)]'
+                            : 'bg-[var(--menu-icon-box-bg)] border-[var(--menu-icon-box-border)] text-[var(--menu-icon-muted)]'
+                        }`}>
                           <Settings className="w-5 h-5" />
                         </div>
                         <div className="flex flex-col">
                           <span>تنظیمات</span>
-                          <span className="text-[11px] sm:text-xs font-normal text-outline">پیکربندی حساب و سامانه</span>
+                          <span className={`text-[11px] sm:text-xs font-normal ${activeModal === 'settings' ? 'text-white/85' : 'text-[var(--menu-sub-text)]'}`}>پیکربندی حساب و سامانه</span>
                         </div>
                       </button>
                     </>
@@ -921,9 +961,9 @@ export const HeaderBar: React.FC = React.memo(() => {
               </div>
 
               {/* Drawer Footer */}
-              <div className="pt-3 sm:pt-4 border-t border-outline/20 text-center text-[11px] sm:text-xs text-outline">
-                <p className="font-semibold text-on-primary">{instituteName}</p>
-                <p className="mt-1 text-[11px] text-outline">سامانه مدیریت دانشجویی - نسخه v2.0</p>
+              <div className="pt-3 sm:pt-4 border-t border-[var(--menu-border)] text-center text-[11px] sm:text-xs text-[var(--menu-sub-text)]">
+                <p className="font-semibold text-[var(--menu-text)]">{instituteName}</p>
+                <p className="mt-1 text-[11px] text-[var(--menu-sub-text)]">سامانه مدیریت دانشجویی - نسخه v2.0</p>
               </div>
             </motion.div>
           </>
