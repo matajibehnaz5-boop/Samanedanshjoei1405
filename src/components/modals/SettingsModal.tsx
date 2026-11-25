@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Settings,
@@ -26,9 +26,18 @@ export const SettingsModal: React.FC = () => {
   } = useSettings();
 
   const isOpen = activeModal === 'settings';
+  const hasSavedRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      hasSavedRef.current = false;
+    }
+  }, [isOpen]);
 
   const handleCloseWithoutSave = () => {
-    discardPreview();
+    if (!hasSavedRef.current) {
+      discardPreview();
+    }
     closeModal();
   };
 
@@ -36,7 +45,9 @@ export const SettingsModal: React.FC = () => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        discardPreview();
+        if (!hasSavedRef.current) {
+          discardPreview();
+        }
         closeModal();
       }
     };
@@ -46,19 +57,23 @@ export const SettingsModal: React.FC = () => {
 
   useEffect(() => {
     return () => {
-      discardPreview();
+      if (!hasSavedRef.current) {
+        discardPreview();
+      }
     };
   }, [discardPreview]);
 
   if (!isOpen) return null;
 
   const handleSaveSettings = () => {
+    hasSavedRef.current = true;
     saveSettings(settings);
     showToast('تنظیمات ذخیره شد');
     closeModal();
   };
 
   const handleResetDefaults = () => {
+    hasSavedRef.current = true;
     resetToDefaults();
     showToast('تنظیمات به پیش‌فرض بازنشانی شد');
   };

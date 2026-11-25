@@ -11,6 +11,7 @@ export interface UserRow {
   student_id: string | null;
   role: string;
   profile: string;
+  theme?: string | null;
   failed_attempts?: number;
   locked_until?: number;
   created_at: string;
@@ -98,6 +99,7 @@ export function getDb(): DatabaseSync {
         student_id TEXT,
         role TEXT NOT NULL DEFAULT 'student',
         profile TEXT NOT NULL DEFAULT '{}',
+        theme TEXT DEFAULT NULL,
         failed_attempts INTEGER NOT NULL DEFAULT 0,
         locked_until INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL
@@ -271,6 +273,11 @@ export function getDb(): DatabaseSync {
     }
     try {
       db.exec("ALTER TABLE users ADD COLUMN locked_until INTEGER NOT NULL DEFAULT 0;");
+    } catch {
+      // Column already exists
+    }
+    try {
+      db.exec("ALTER TABLE users ADD COLUMN theme TEXT DEFAULT NULL;");
     } catch {
       // Column already exists
     }

@@ -38,6 +38,7 @@ export interface FormattedUser {
   gpa: number | null;
   creditsPassed: number | null;
   creditsTotal: number | null;
+  theme: "light" | "dark" | null;
   createdAt: string;
 }
 
@@ -48,6 +49,9 @@ export function formatUser(row: UserRow): FormattedUser {
   } catch {
     profileData = {};
   }
+
+  const normalizedTheme: "light" | "dark" | null =
+    row.theme === "light" || row.theme === "dark" ? row.theme : null;
 
   return {
     id: row.id,
@@ -64,6 +68,7 @@ export function formatUser(row: UserRow): FormattedUser {
     gpa: profileData.gpa ?? null,
     creditsPassed: profileData.creditsPassed ?? null,
     creditsTotal: profileData.creditsTotal ?? null,
+    theme: normalizedTheme,
     createdAt: row.created_at,
   };
 }
@@ -83,9 +88,9 @@ apiRouter.get("/health", (_req: Request, res: Response): void => {
   res.json({ ok: true });
 });
 
-// Middleware: Enforce Content-Type: application/json for POST and PATCH requests
+// Middleware: Enforce Content-Type: application/json for POST, PUT, and PATCH requests
 apiRouter.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.method === "POST" || req.method === "PATCH") {
+  if (req.method === "POST" || req.method === "PUT" || req.method === "PATCH") {
     const isLogoutWithoutBody =
       req.path === "/auth/logout" &&
       (!req.headers["content-length"] || req.headers["content-length"] === "0");
@@ -469,6 +474,31 @@ apiRouter.get("/auth/me", (req: AuthenticatedRequest, res: Response): void => {
 
 apiRouter.get("/me", (req: AuthenticatedRequest, res: Response): void => {
   res.json({ user: formatUser(req.user!) });
+});
+
+// GET /api/me/theme - Fetch authenticated user's persisted theme preference
+apiRouter.get("/me/theme", (req: AuthenticatedRequest, res: Response): void => {
+  const db = getDb();
+  const row = db
+    .prepare("SELECT theme FROM users WHERE id = ?")
+    .get(req.user!.id) as { theme?: string | null } | undefined;
+
+  const theme: "light" | "dark" | null =
+    row?.theme === "light" || row?.theme === "dark" ? row.theme : null;
+  res.json({ theme });
+});
+
+// PUT /api/me/theme - Persist authenticated user's theme preference ('light' | 'dark')
+apiRouter.put("/me/theme", (req: AuthenticatedRequest, res: Response): void => {
+  const rawTheme = req.body?.theme;
+  if (rawTheme !== "light" && rawTheme !== "dark") {
+    res.status(400).json({ message: "Theme must be 'light' or 'dark'" });
+    return;
+  }
+
+  const db = getDb();
+  db.prepare("UPDATE users SET theme = ? WHERE id = ?").run(rawTheme, req.user!.id);
+  res.json({ theme: rawTheme });
 });
 
 // PATCH /api/me (User can strictly edit only their own profile)

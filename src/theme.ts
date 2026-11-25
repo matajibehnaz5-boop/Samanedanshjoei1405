@@ -17,17 +17,9 @@ export function getSavedTheme(): ThemeMode {
 export function applyTheme(theme: ThemeMode): void {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
-  if (theme === 'light') {
-    root.classList.remove('theme-dark', 'dark');
-    root.classList.add('theme-light');
-    root.style.colorScheme = 'light';
-    root.dataset.theme = 'light';
-  } else {
-    root.classList.remove('theme-light', 'light');
-    root.classList.add('theme-dark');
-    root.style.colorScheme = 'dark';
-    root.dataset.theme = 'dark';
-  }
+  root.classList.remove('theme-dark', 'theme-light', 'dark', 'light');
+  root.classList.add(theme === 'light' ? 'theme-light' : 'theme-dark');
+  root.style.colorScheme = theme;
 }
 
 export function saveTheme(theme: ThemeMode): void {

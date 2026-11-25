@@ -19,17 +19,17 @@
     </style>
     <script>
       (function () {
+        var root = document.documentElement;
         try {
           var saved = localStorage.getItem('app-theme');
           var theme = saved === 'light' ? 'light' : 'dark';
-          var root = document.documentElement;
           root.classList.remove('theme-dark', 'theme-light', 'dark', 'light');
           root.classList.add(theme === 'light' ? 'theme-light' : 'theme-dark');
           root.style.colorScheme = theme;
-          root.dataset.theme = theme;
         } catch (e) {
-          document.documentElement.classList.add('theme-dark');
-          document.documentElement.style.colorScheme = 'dark';
+          root.classList.remove('theme-dark', 'theme-light', 'dark', 'light');
+          root.classList.add('theme-dark');
+          root.style.colorScheme = 'dark';
         }
       })();
       // Unregister any active service workers and clear cache storage from previous PWA installations

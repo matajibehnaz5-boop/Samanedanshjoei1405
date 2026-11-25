@@ -21,27 +21,27 @@ export const ChatModal: React.FC = React.memo(() => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-slate-950/80 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[var(--backdrop)] backdrop-blur-sm">
         <motion.div
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
-          className="w-full max-w-lg bg-[#1E293B] border border-slate-700/80 rounded-[28px] p-6 shadow-2xl text-slate-100 max-h-[85dvh] overflow-y-auto flex flex-col"
+          className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-strong)] rounded-[28px] p-6 shadow-2xl text-[var(--text)] max-h-[85dvh] overflow-y-auto flex flex-col"
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-slate-700/60 shrink-0">
+          <div className="flex items-center justify-between pb-4 border-b border-[var(--border)] shrink-0">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-slate-800 text-slate-200 rounded-xl border border-slate-700">
+              <div className="p-2.5 bg-[var(--surface-2)] text-[var(--text-strong)] rounded-xl border border-[var(--border)]">
                 <MessageSquare className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-slate-100">گفتگو و پشتیبانی آموزشی</h2>
-                <p className="text-xs text-slate-400">ارتباط مستقیم با اساتید و آموزش</p>
+                <h2 className="text-lg font-bold text-[var(--text)]">گفتگو و پشتیبانی آموزشی</h2>
+                <p className="text-xs text-[var(--text-2)]">ارتباط مستقیم با اساتید و آموزش</p>
               </div>
             </div>
             <button
               onClick={closeModal}
-              className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+              className="p-2 rounded-full hover:bg-[var(--surface-hover)] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -63,15 +63,25 @@ export const ChatModal: React.FC = React.memo(() => {
                 <div
                   className={`max-w-[78%] p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                     msg.isMe
-                      ? 'bg-indigo-600 text-white rounded-tr-none shadow-md'
-                      : 'bg-slate-900/90 border border-slate-800 text-slate-200 rounded-tl-none'
+                      ? 'bg-[var(--accent-primary)] text-[var(--on-accent)] rounded-tr-none shadow-md'
+                      : 'bg-[var(--surface-item)] border border-[var(--border)] text-[var(--text-strong)] rounded-tl-none'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="font-bold text-[11px] text-slate-300">
+                    <span
+                      className={`font-bold text-[11px] ${
+                        msg.isMe ? 'text-white/90' : 'text-[var(--text)]'
+                      }`}
+                    >
                       {msg.sender} {msg.role && `(${msg.role})`}
                     </span>
-                    <span className="text-[10px] text-slate-400 dir-ltr">{msg.time}</span>
+                    <span
+                      className={`text-[10px] dir-ltr ${
+                        msg.isMe ? 'text-white/75' : 'text-[var(--text-muted)]'
+                      }`}
+                    >
+                      {msg.time}
+                    </span>
                   </div>
                   <p>{msg.text}</p>
                 </div>
@@ -80,18 +90,18 @@ export const ChatModal: React.FC = React.memo(() => {
           </div>
 
           {/* Send Input */}
-          <div className="pt-3 border-t border-slate-800/80 flex items-center gap-2 shrink-0">
+          <div className="pt-3 border-t border-[var(--border)] flex items-center gap-2 shrink-0">
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="پیام خود را ارسال کنید..."
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+              className="flex-1 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-4 py-2.5 text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--accent)] transition-colors"
             />
             <button
               onClick={handleSend}
-              className="p-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-colors cursor-pointer"
+              className="p-2.5 bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-[var(--on-accent)] rounded-xl font-bold transition-colors cursor-pointer"
             >
               <Send className="w-5 h-5" />
             </button>

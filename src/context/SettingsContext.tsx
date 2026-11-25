@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { applyTheme, getSavedTheme, saveTheme } from '../theme';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { applyTheme, getSavedTheme, saveTheme, THEME_STORAGE_KEY, type ThemeMode } from '../theme';
+import { api } from '../lib/api';
 
 export interface SystemSettings {
   smsNotify: boolean;
@@ -30,6 +31,8 @@ interface SettingsContextType {
   resetToDefaults: () => SystemSettings;
   discardPreview: () => void;
   setUserScope: (scope: string | null) => void;
+  setAuthenticated: (authenticated: boolean) => void;
+  syncThemeFromServer: (serverTheme: ThemeMode | null | undefined) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -120,20 +123,64 @@ export function clearUserDraftsFromStorage(scope: string): void {
 }
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [userStorageScope, setUserStorageScope] = useState<string>(() => readLastScopeFromStorage());
+  const initialScope = readLastScopeFromStorage();
+  const initialSettings = readSettingsFromStorage(initialScope);
+
+  const [userStorageScope, setUserStorageScope] = useState<string>(initialScope);
   const [savedSettings, setSavedSettings] = useState<SystemSettings>(() => {
-    const initial = readSettingsFromStorage(readLastScopeFromStorage());
-    applyTheme(initial.darkMode ? 'dark' : 'light');
-    return initial;
+    applyTheme(initialSettings.darkMode ? 'dark' : 'light');
+    return initialSettings;
   });
   const [previewSettings, setPreviewSettings] = useState<SystemSettings | null>(null);
 
+  const scopeRef = useRef<string>(initialScope);
+  const savedSettingsRef = useRef<SystemSettings>(initialSettings);
+  const previewSettingsRef = useRef<SystemSettings | null>(null);
+  const isAuthenticatedRef = useRef<boolean>(false);
+
   const settings = previewSettings ?? savedSettings;
 
-  // Apply theme immediately on load and whenever effective darkMode changes (live preview / revert)
+  // Keep DOM theme in sync whenever effective darkMode changes
   useEffect(() => {
     applyTheme(settings.darkMode ? 'dark' : 'light');
   }, [settings.darkMode]);
+
+  // Listen for cross-tab localStorage theme/settings updates
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === THEME_STORAGE_KEY || e.key === null) {
+        const syncedTheme = getSavedTheme();
+        const nextDark = syncedTheme === 'dark';
+        applyTheme(syncedTheme);
+
+        const nextSaved = { ...savedSettingsRef.current, darkMode: nextDark };
+        savedSettingsRef.current = nextSaved;
+        setSavedSettings(nextSaved);
+
+        if (previewSettingsRef.current !== null) {
+          const nextPreview = { ...previewSettingsRef.current, darkMode: nextDark };
+          previewSettingsRef.current = nextPreview;
+          setPreviewSettings(nextPreview);
+        }
+      } else if (e.key === getSettingsStorageKey(scopeRef.current) && e.newValue) {
+        try {
+          const parsed = sanitizeSettings(JSON.parse(e.newValue));
+          const syncedTheme = getSavedTheme();
+          const merged = { ...parsed, darkMode: syncedTheme === 'dark' };
+          savedSettingsRef.current = merged;
+          previewSettingsRef.current = null;
+          setSavedSettings(merged);
+          setPreviewSettings(null);
+          applyTheme(merged.darkMode ? 'dark' : 'light');
+        } catch {
+          // ignore invalid storage payload
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   // Purge saved drafts whenever saved autoSave is off
   useEffect(() => {
@@ -142,51 +189,93 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [savedSettings.autoSave, userStorageScope]);
 
+  const setAuthenticated = useCallback((authenticated: boolean) => {
+    isAuthenticatedRef.current = authenticated;
+  }, []);
+
   const setUserScope = useCallback((scope: string | null) => {
     const normalized = scope && scope.trim() ? scope.trim() : 'guest';
     writeLastScopeToStorage(normalized);
-    setUserStorageScope((prev) => {
-      if (prev === normalized) return prev;
-      const loaded = readSettingsFromStorage(normalized);
-      setSavedSettings(loaded);
-      setPreviewSettings(null);
-      return normalized;
-    });
+    if (scopeRef.current === normalized) return;
+    scopeRef.current = normalized;
+    const loaded = readSettingsFromStorage(normalized);
+    savedSettingsRef.current = loaded;
+    previewSettingsRef.current = null;
+    setUserStorageScope(normalized);
+    setSavedSettings(loaded);
+    setPreviewSettings(null);
+    applyTheme(loaded.darkMode ? 'dark' : 'light');
+  }, []);
+
+  const syncThemeFromServer = useCallback((serverTheme: ThemeMode | null | undefined) => {
+    if (serverTheme !== 'light' && serverTheme !== 'dark') return;
+    const nextDark = serverTheme === 'dark';
+    const nextSaved = { ...savedSettingsRef.current, darkMode: nextDark };
+    savedSettingsRef.current = nextSaved;
+    previewSettingsRef.current = null;
+    setSavedSettings(nextSaved);
+    setPreviewSettings(null);
+    applyTheme(serverTheme);
+    writeSettingsToStorage(scopeRef.current, nextSaved);
   }, []);
 
   const updatePreviewSettings = useCallback(
     (updater: Partial<SystemSettings> | ((prev: SystemSettings) => SystemSettings)) => {
-      setPreviewSettings((prevPreview) => {
-        const base = prevPreview ?? savedSettings;
-        return typeof updater === 'function' ? updater(base) : { ...base, ...updater };
-      });
+      const base = previewSettingsRef.current ?? savedSettingsRef.current;
+      const next = typeof updater === 'function' ? updater(base) : { ...base, ...updater };
+      previewSettingsRef.current = next;
+      applyTheme(next.darkMode ? 'dark' : 'light');
+      setPreviewSettings(next);
     },
-    [savedSettings]
+    []
   );
 
-  const saveSettings = useCallback(
-    (nextSettings?: SystemSettings) => {
-      const target = sanitizeSettings(nextSettings ?? previewSettings ?? savedSettings);
-      setSavedSettings(target);
-      setPreviewSettings(null);
-      writeSettingsToStorage(userStorageScope, target);
-      if (!target.autoSave) {
-        clearUserDraftsFromStorage(userStorageScope);
-      }
-    },
-    [previewSettings, savedSettings, userStorageScope]
-  );
+  const saveSettings = useCallback((nextSettings?: SystemSettings) => {
+    const target = sanitizeSettings(
+      nextSettings ?? previewSettingsRef.current ?? savedSettingsRef.current
+    );
+    const themeMode: ThemeMode = target.darkMode ? 'dark' : 'light';
+
+    savedSettingsRef.current = target;
+    previewSettingsRef.current = null;
+    applyTheme(themeMode);
+    writeSettingsToStorage(scopeRef.current, target);
+
+    setSavedSettings(target);
+    setPreviewSettings(null);
+
+    if (!target.autoSave) {
+      clearUserDraftsFromStorage(scopeRef.current);
+    }
+
+    if (isAuthenticatedRef.current) {
+      api.updateMyTheme(themeMode).catch(() => {});
+    }
+  }, []);
 
   const resetToDefaults = useCallback((): SystemSettings => {
     const defaults = { ...DEFAULT_SYSTEM_SETTINGS };
+    const themeMode: ThemeMode = defaults.darkMode ? 'dark' : 'light';
+
+    savedSettingsRef.current = defaults;
+    previewSettingsRef.current = null;
+    applyTheme(themeMode);
+    writeSettingsToStorage(scopeRef.current, defaults);
+
     setSavedSettings(defaults);
     setPreviewSettings(null);
-    writeSettingsToStorage(userStorageScope, defaults);
+
+    if (isAuthenticatedRef.current) {
+      api.updateMyTheme(themeMode).catch(() => {});
+    }
     return defaults;
-  }, [userStorageScope]);
+  }, []);
 
   const discardPreview = useCallback(() => {
+    if (previewSettingsRef.current === null) return;
+    previewSettingsRef.current = null;
     setPreviewSettings(null);
+    applyTheme(savedSettingsRef.current.darkMode ? 'dark' : 'light');
   }, []);
 
   const value = useMemo(
@@ -199,6 +288,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       resetToDefaults,
       discardPreview,
       setUserScope,
+      setAuthenticated,
+      syncThemeFromServer,
     }),
     [
       settings,
@@ -209,6 +300,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       resetToDefaults,
       discardPreview,
       setUserScope,
+      setAuthenticated,
+      syncThemeFromServer,
     ]
   );
 

@@ -13,6 +13,7 @@ export interface ApiUser {
   gpa: number | null;
   creditsPassed: number | null;
   creditsTotal: number | null;
+  theme?: 'light' | 'dark' | null;
   createdAt: string;
 }
 
@@ -520,6 +521,20 @@ export const api = {
     return request<{ message: string }>('/api/me/password', {
       method: 'POST',
       body: JSON.stringify(params),
+    });
+  },
+
+  // User Theme Preference
+  async getMyTheme(): Promise<{ theme: 'light' | 'dark' | null }> {
+    return request<{ theme: 'light' | 'dark' | null }>('/api/me/theme', {
+      method: 'GET',
+    });
+  },
+
+  async updateMyTheme(theme: 'light' | 'dark'): Promise<{ theme: 'light' | 'dark' }> {
+    return request<{ theme: 'light' | 'dark' }>('/api/me/theme', {
+      method: 'PUT',
+      body: JSON.stringify({ theme }),
     });
   },
 

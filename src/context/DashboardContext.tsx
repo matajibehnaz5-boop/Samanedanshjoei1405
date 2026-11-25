@@ -311,7 +311,7 @@ const LayoutSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ child
 const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { showToast } = useToastActions();
   const { setActiveModal, closeModal } = useModalActions();
-  const { setUserScope } = useSettings();
+  const { setUserScope, setAuthenticated, syncThemeFromServer } = useSettings();
 
   const [studentProfile, setStudentProfile] = useState<StudentProfile>(defaultProfile);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -324,6 +324,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   studentProfileRef.current = studentProfile;
 
   useEffect(() => {
+    if (isAuthLoading) return;
+    setAuthenticated(isLoggedIn);
     if (isLoggedIn && currentUserId) {
       const rolePrefix = studentProfile.role === 'admin' ? 'admin' : 'student';
       setUserScope(`${rolePrefix}:${currentUserId}`);
@@ -333,7 +335,32 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     } else {
       setUserScope('guest');
     }
-  }, [isLoggedIn, currentUserId, studentProfile.role, studentProfile.studentId, setUserScope]);
+  }, [
+    isAuthLoading,
+    isLoggedIn,
+    currentUserId,
+    studentProfile.role,
+    studentProfile.studentId,
+    setUserScope,
+    setAuthenticated,
+  ]);
+
+  const syncThemeAfterAuth = useCallback(
+    async (fallbackTheme?: 'light' | 'dark' | null) => {
+      if (fallbackTheme === 'light' || fallbackTheme === 'dark') {
+        syncThemeFromServer(fallbackTheme);
+      }
+      try {
+        const { theme } = await api.getMyTheme();
+        if (theme === 'light' || theme === 'dark') {
+          syncThemeFromServer(theme);
+        }
+      } catch {
+        // fallback already handled if available
+      }
+    },
+    [syncThemeFromServer]
+  );
 
   // 1. Session Restoration on App Load (Call GET /api/me)
   useEffect(() => {
@@ -343,13 +370,16 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       try {
         const { user } = await api.getMe();
         if (!isMounted) return;
+        setAuthenticated(true);
         setCurrentUserId(user.id);
         setStudentProfile((prev) => mapApiUserToProfile(user, prev));
         setIsLoggedIn(true);
         setLoginMethod('FORM');
         setCurrentPage('dashboard');
+        await syncThemeAfterAuth(user.theme);
       } catch {
         if (!isMounted) return;
+        setAuthenticated(false);
         setIsLoggedIn(false);
         setCurrentUserId(null);
         setCurrentPage('login');
@@ -365,7 +395,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [setAuthenticated, syncThemeAfterAuth]);
 
   // 3. Profile Update
   const updateStudentProfile = useCallback(
@@ -410,12 +440,14 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     async (email: string, pass: string) => {
       try {
         const { user } = await api.login({ email, password: pass });
+        setAuthenticated(true);
         setCurrentUserId(user.id);
         setStudentProfile((prev) => mapApiUserToProfile(user, prev));
         setIsLoggedIn(true);
         setLoginMethod('FORM');
         setCurrentPage('dashboard');
         closeModal();
+        syncThemeAfterAuth(user.theme);
         showToast(
           user.role === 'admin'
             ? 'ورود به عنوان مدیر سیستم (ادمین) با موفقیت انجام شد'
@@ -425,7 +457,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         throw new Error(err.message || 'خطا در ورود به حساب کاربری');
       }
     },
-    [closeModal, showToast]
+    [closeModal, setAuthenticated, showToast, syncThemeAfterAuth]
   );
 
   // 7. Register with Email/Password
@@ -438,18 +470,20 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
           name,
           studentId,
         });
+        setAuthenticated(true);
         setCurrentUserId(user.id);
         setStudentProfile((prev) => mapApiUserToProfile(user, prev));
         setIsLoggedIn(true);
         setLoginMethod('FORM');
         setCurrentPage('dashboard');
         closeModal();
+        syncThemeAfterAuth(user.theme);
         showToast(`حساب جدید با موفقیت ایجاد شد (${user.name})`);
       } catch (err: any) {
         throw new Error(err.message || 'خطا در ثبت‌نام حساب جدید');
       }
     },
-    [closeModal, showToast]
+    [closeModal, setAuthenticated, showToast, syncThemeAfterAuth]
   );
 
   // 8. Logout
@@ -459,13 +493,14 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     } catch {
       // proceed with local cleanup
     }
+    setAuthenticated(false);
     setIsLoggedIn(false);
     setCurrentUserId(null);
     setLoginMethod(null);
     setCurrentPage('login');
     setStudentProfile(defaultProfile);
     showToast('از حساب کاربری با موفقیت خارج شدید');
-  }, [showToast]);
+  }, [setAuthenticated, showToast]);
 
   // 9. SSO Login simulation (legacy fallback)
   const handleSsoLogin = useCallback(
@@ -496,18 +531,20 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         if (user.role !== 'student') {
           throw new Error('ورود از درگاه یکپارچه فقط برای نقش دانشجو مجاز است.');
         }
+        setAuthenticated(true);
         setCurrentUserId(user.id);
         setStudentProfile((prev) => mapApiUserToProfile(user, prev));
         setIsLoggedIn(true);
         setLoginMethod('SSO');
         setCurrentPage('dashboard');
         closeModal();
+        syncThemeAfterAuth(user.theme);
         showToast(`ورود با موفقیت از طریق SSO انجام شد (${user.name})`);
       } catch (err: any) {
         throw new Error(err?.message || 'خطا در ورود یکپارچه SSO');
       }
     },
-    [closeModal, showToast]
+    [closeModal, setAuthenticated, showToast, syncThemeAfterAuth]
   );
 
   // 10. Legacy Form login helper
