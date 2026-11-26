@@ -470,57 +470,117 @@
   overflow: hidden;
 }
 
-@media (max-width: 639px) {
-  html {
-    font-size: 13px;
-    overflow-x: hidden;
-  }
+html {
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
 
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+select,
+textarea {
+  font-size: 16px !important;
+}
+
+@media (max-width: 480px) {
+  html,
   body {
     font-size: 13px;
     overflow-x: hidden;
   }
 
   :root {
-    --text-xs: 12px;
-    --text-sm: 13px;
-    --text-base: 14px;
-    --text-lg: 15.5px;
-    --text-xl: 17px;
-    --text-2xl: 18px;
+    --text-xs: 11px;
+    --text-sm: 12px;
+    --text-base: 13px;
+    --text-lg: 14.5px;
+    --text-xl: 16px;
+    --text-2xl: 17.5px;
+  }
+
+  h1 {
+    font-size: 1.15rem !important;
+  }
+
+  h2 {
+    font-size: 1.05rem !important;
+  }
+
+  h3 {
+    font-size: 0.95rem !important;
   }
 
   .liquid-glass-card {
-    border-radius: 12px;
+    border-radius: 14px;
+    padding: 10px !important;
+  }
+
+  /* Form inputs & selects: exactly 16px font to prevent mobile safari/android focus zoom, ~40px touch target */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+    min-height: 40px !important;
+    height: 40px !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+
+  textarea {
+    height: auto !important;
+    min-height: 70px !important;
+  }
+
+  /* Buttons: ~40px height */
+  button:not([role="switch"]):not([class*="absolute"]):not([class*="p-2"]):not([class*="p-1.5"]) {
+    min-height: 40px !important;
+    height: 40px !important;
+  }
+
+  /* Icons 18-20px */
+  button svg, header svg, [role="dialog"] svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .fixed.inset-0.z-50 {
+    align-items: flex-start !important;
+    padding-top: 12px !important;
+    padding-bottom: 24px !important;
+    overflow-y: auto !important;
   }
 
   .fixed [class*="max-h-[85dvh]"] {
     border-radius: 14px !important;
     overflow-x: hidden !important;
+    max-height: 90dvh !important;
+    padding: 12px !important;
   }
 
   .fixed [class*="max-h-[85dvh]"].p-6,
   .fixed [class*="max-h-[85dvh]"].p-5 {
-    padding: 12px !important;
-  }
-
-  .fixed [class*="max-h-[85dvh]"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
-  .fixed [class*="max-h-[85dvh]"] select {
-    min-height: 36px;
-    font-size: 13px;
-  }
-
-  .fixed [class*="max-h-[85dvh]"] button:not([role="switch"]):not([class*="absolute"]) {
-    min-height: 34px;
+    padding: 10px !important;
   }
 
   .fixed [class*="max-h-[85dvh]"] table {
-    font-size: 12px;
+    font-size: 11.5px;
   }
 
   .fixed [class*="max-h-[85dvh]"] th,
   .fixed [class*="max-h-[85dvh]"] td {
-    padding: 6px 8px;
+    padding: 5px 6px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 639px) {
+  html,
+  body {
+    font-size: 13.5px;
+    overflow-x: hidden;
+  }
+
+  .liquid-glass-card {
+    border-radius: 18px;
   }
 }
 

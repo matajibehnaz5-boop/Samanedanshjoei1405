@@ -20,6 +20,7 @@ export function applyTheme(theme: ThemeMode): void {
   root.classList.remove('theme-dark', 'theme-light', 'dark', 'light');
   root.classList.add(theme === 'light' ? 'theme-light' : 'theme-dark');
   root.style.colorScheme = theme;
+  console.log('applyTheme className:', document.documentElement.className);
 }
 
 export function saveTheme(theme: ThemeMode): void {
