@@ -275,7 +275,7 @@
     --dashboard-welcome-glow: rgba(8, 145, 178, 0.08);
 
     /* Login Card & Turquoise Chips/Icons/Links */
-    --login-card-bg: #FFFFFF;
+    --login-card-bg: #D8ECF2;
     --login-emblem-glow: linear-gradient(90deg, rgba(8, 145, 178, 0.22), rgba(6, 182, 212, 0.24), rgba(14, 116, 144, 0.22));
     --login-icon-box-bg: #0891B2;
     --login-icon-box-border: #0891B2;
@@ -313,7 +313,7 @@
     --header-lang-inactive: #475569;
     --header-lang-sep: #94A3B8;
 
-    --menu-bg: #FFFFFF;
+    --menu-bg: #D8ECF2;
     --menu-item-bg: #F0FBFD;
     --menu-item-solid-bg: #F0FBFD;
     --menu-text: #1E293B;
@@ -334,18 +334,18 @@
     --menu-pill-badge-border: #DC2626;
     --menu-shadow: 0 12px 30px rgb(8 145 178 / 0.14);
 
-    --surface: #FFFFFF;
-    --surface-card: #FFFFFF;
-    --surface-2: #F0FBFD;
-    --surface-3: #F0FBFD;
-    --surface-header: #F0FBFD;
-    --surface-sub: #FFFFFF;
-    --surface-chat-header: #F0FBFD;
-    --surface-item: #F0FBFD;
-    --surface-hover: #E0F7FA;
-    --surface-glass: #FFFFFF;
-    --surface-glass-hover: #E0F7FA;
-    --surface-toast: #FFFFFF;
+    --surface: #D8ECF2;
+    --surface-card: #D8ECF2;
+    --surface-2: #E6F4F7;
+    --surface-3: #E6F4F7;
+    --surface-header: #E6F4F7;
+    --surface-sub: #D8ECF2;
+    --surface-chat-header: #E6F4F7;
+    --surface-item: #E6F4F7;
+    --surface-hover: #D2EEF4;
+    --surface-glass: #D8ECF2;
+    --surface-glass-hover: #D2EEF4;
+    --surface-toast: #D8ECF2;
     --backdrop: rgba(15, 23, 42, 0.35);
 
     --border: #A5E3EC;
@@ -485,90 +485,90 @@ textarea {
 @media (max-width: 480px) {
   html,
   body {
-    font-size: 13px;
+    font-size: 12px;
     overflow-x: hidden;
   }
 
   :root {
-    --text-xs: 11px;
-    --text-sm: 12px;
-    --text-base: 13px;
-    --text-lg: 14.5px;
-    --text-xl: 16px;
-    --text-2xl: 17.5px;
+    --text-xs: 10px;
+    --text-sm: 11px;
+    --text-base: 12px;
+    --text-lg: 13.5px;
+    --text-xl: 15px;
+    --text-2xl: 16.5px;
   }
 
   h1 {
-    font-size: 1.15rem !important;
+    font-size: 1.1rem !important;
   }
 
   h2 {
-    font-size: 1.05rem !important;
+    font-size: 1rem !important;
   }
 
   h3 {
-    font-size: 0.95rem !important;
+    font-size: 0.9rem !important;
   }
 
   .liquid-glass-card {
-    border-radius: 14px;
-    padding: 10px !important;
+    border-radius: 12px;
+    padding: 8px !important;
   }
 
-  /* Form inputs & selects: exactly 16px font to prevent mobile safari/android focus zoom, ~40px touch target */
+  /* Form inputs & selects: exactly 16px font to prevent mobile safari/android focus zoom, 38px height */
   input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
   select,
   textarea {
     font-size: 16px !important;
-    min-height: 40px !important;
-    height: 40px !important;
-    padding-top: 6px !important;
-    padding-bottom: 6px !important;
+    min-height: 38px !important;
+    height: 38px !important;
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
   }
 
   textarea {
     height: auto !important;
-    min-height: 70px !important;
+    min-height: 60px !important;
   }
 
-  /* Buttons: ~40px height */
+  /* Buttons: 38px height */
   button:not([role="switch"]):not([class*="absolute"]):not([class*="p-2"]):not([class*="p-1.5"]) {
-    min-height: 40px !important;
-    height: 40px !important;
+    min-height: 38px !important;
+    height: 38px !important;
   }
 
-  /* Icons 18-20px */
+  /* Icons 16-18px */
   button svg, header svg, [role="dialog"] svg {
-    width: 18px !important;
-    height: 18px !important;
+    width: 16px !important;
+    height: 16px !important;
   }
 
   .fixed.inset-0.z-50 {
     align-items: flex-start !important;
-    padding-top: 12px !important;
-    padding-bottom: 24px !important;
+    padding-top: 8px !important;
+    padding-bottom: 16px !important;
     overflow-y: auto !important;
   }
 
   .fixed [class*="max-h-[85dvh]"] {
-    border-radius: 14px !important;
+    border-radius: 12px !important;
     overflow-x: hidden !important;
-    max-height: 90dvh !important;
-    padding: 12px !important;
+    max-height: 92dvh !important;
+    padding: 10px !important;
   }
 
   .fixed [class*="max-h-[85dvh]"].p-6,
   .fixed [class*="max-h-[85dvh]"].p-5 {
-    padding: 10px !important;
+    padding: 8px !important;
   }
 
   .fixed [class*="max-h-[85dvh]"] table {
-    font-size: 11.5px;
+    font-size: 11px;
   }
 
   .fixed [class*="max-h-[85dvh]"] th,
   .fixed [class*="max-h-[85dvh]"] td {
-    padding: 5px 6px;
+    padding: 4px 5px;
   }
 }
 
@@ -795,7 +795,7 @@ html.theme-light .from-\[\#23324D\],
 html.theme-light .from-\[\#202B3C\],
 html.theme-light .from-\[\#151D2A\],
 html.theme-light .from-\[\#232D42\] {
-  background-image: linear-gradient(135deg, #FFFFFF 0%, #F0FBFD 100%) !important;
+  background-image: linear-gradient(135deg, var(--surface) 0%, #E6F4F7 100%) !important;
   border-color: var(--border) !important;
   color: var(--text) !important;
   box-shadow: var(--card-shadow);
@@ -1006,6 +1006,23 @@ html.theme-light .bg-\[\#0F172A\]\/80,
 html.theme-light .bg-black\/75,
 html.theme-light .bg-black\/60 {
   background-color: var(--backdrop) !important;
+}
+
+/* Modal Close Buttons (×) in Light Theme */
+html.theme-light .fixed [role="dialog"] button[aria-label="بستن"],
+html.theme-light .fixed [role="dialog"] button[title="بستن"],
+html.theme-light .fixed [class*="max-h-[85dvh]"] button[aria-label="بستن"],
+html.theme-light .fixed [class*="max-h-[85dvh]"] button[title="بستن"] {
+  background-color: #CFE5EA !important;
+  color: #0E7490 !important;
+  border: 1px solid #A5E3EC !important;
+}
+
+html.theme-light .fixed [role="dialog"] button[aria-label="بستن"] svg,
+html.theme-light .fixed [role="dialog"] button[title="بستن"] svg,
+html.theme-light .fixed [class*="max-h-[85dvh]"] button[aria-label="بستن"] svg,
+html.theme-light .fixed [class*="max-h-[85dvh]"] button[title="بستن"] svg {
+  color: #0E7490 !important;
 }
 
 /* Switch OFF Tracks */

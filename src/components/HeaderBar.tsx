@@ -282,10 +282,10 @@ export const HeaderBar: React.FC = React.memo(() => {
 
   return (
     <header className="w-full bg-[image:var(--header-bg)] border-b border-[var(--header-border)] shadow-[var(--header-shadow)] relative z-30">
-      <div className={`${isCompactFrame ? 'max-w-[420px]' : 'max-w-full sm:px-8'} mx-auto px-[8px] sm:px-6 h-[48px] sm:h-15 flex items-center justify-between gap-[4px] sm:gap-3 text-[var(--text)] relative transition-all duration-300`}>
+      <div className={`${isCompactFrame ? 'max-w-[420px]' : 'max-w-full sm:px-8'} mx-auto px-[6px] sm:px-6 h-[52px] sm:h-15 flex items-center justify-between gap-[4px] sm:gap-2.5 text-[var(--text)] relative transition-all duration-300`}>
         
         {/* Right Side (RTL Start): Hamburger Menu Button (☰) + Title + Status Dot */}
-        <div className="flex items-center gap-[4px] sm:gap-3 flex-1 min-w-0">
+        <div className="flex items-center gap-[4px] sm:gap-2.5 flex-1 min-w-0">
           {/* Menu Button (☰) */}
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -312,7 +312,7 @@ export const HeaderBar: React.FC = React.memo(() => {
               dir="rtl"
               title="صفحه اصلی مدیریت"
             >
-              <h1 className="text-[12px] sm:text-base font-bold text-[var(--text)] whitespace-nowrap sm:truncate sm:max-w-none leading-none">
+              <h1 className="text-[15px] sm:text-base font-bold text-[var(--text)] whitespace-normal leading-[1.3] flex-1 min-w-0">
                 {language === 'fa' ? 'سامانه مدیریت دانشجویی' : 'Student Management System'}
               </h1>
               {settings.showOnlineStatus && (
@@ -324,7 +324,7 @@ export const HeaderBar: React.FC = React.memo(() => {
             </button>
           ) : (
             <div className="flex items-center gap-[4px] sm:gap-2 flex-1 min-w-0" dir="rtl">
-              <h1 className="text-[12px] sm:text-base font-bold text-[var(--text)] whitespace-nowrap sm:truncate sm:max-w-none leading-none">
+              <h1 className="text-[15px] sm:text-base font-bold text-[var(--text)] whitespace-normal leading-[1.3] flex-1 min-w-0">
                 {language === 'fa' ? 'سامانه مدیریت دانشجویی' : 'Student Management System'}
               </h1>
               {settings.showOnlineStatus && (
