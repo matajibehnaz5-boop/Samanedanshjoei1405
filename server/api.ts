@@ -1056,6 +1056,55 @@ apiRouter.post("/admin/restore", requireAdmin, async (req: AuthenticatedRequest,
   }
 });
 
+// GET /api/user-sections - Get user sections data (cartable, educational, financial, welfare)
+apiRouter.get("/user-sections", (req: AuthenticatedRequest, res: Response): void => {
+  const db = getDb();
+  let row = db.prepare("SELECT * FROM user_sections WHERE user_id = ?").get(req.user!.id) as any;
+  if (!row) {
+    const now = new Date().toISOString();
+    db.prepare(`
+      INSERT INTO user_sections (user_id, cartable, educational, financial, welfare, updated_at)
+      VALUES (?, '{}', '{}', '{}', '{}', ?)
+    `).run(req.user!.id, now);
+    row = { user_id: req.user!.id, cartable: "{}", educational: "{}", financial: "{}", welfare: "{}" };
+  }
+  res.json({
+    cartable: JSON.parse(row.cartable || "{}"),
+    educational: JSON.parse(row.educational || "{}"),
+    financial: JSON.parse(row.financial || "{}"),
+    welfare: JSON.parse(row.welfare || "{}"),
+  });
+});
+
+// PUT /api/user-sections - Update user sections data (cartable, educational, financial, welfare)
+apiRouter.put("/user-sections", (req: AuthenticatedRequest, res: Response): void => {
+  const { cartable, educational, financial, welfare } = req.body || {};
+  const db = getDb();
+  const now = new Date().toISOString();
+
+  const current = db.prepare("SELECT * FROM user_sections WHERE user_id = ?").get(req.user!.id) as any || {
+    cartable: "{}", educational: "{}", financial: "{}", welfare: "{}"
+  };
+
+  const newCartable = cartable !== undefined ? JSON.stringify(cartable) : current.cartable;
+  const newEducational = educational !== undefined ? JSON.stringify(educational) : current.educational;
+  const newFinancial = financial !== undefined ? JSON.stringify(financial) : current.financial;
+  const newWelfare = welfare !== undefined ? JSON.stringify(welfare) : current.welfare;
+
+  db.prepare(`
+    INSERT INTO user_sections (user_id, cartable, educational, financial, welfare, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT(user_id) DO UPDATE SET
+      cartable = excluded.cartable,
+      educational = excluded.educational,
+      financial = excluded.financial,
+      welfare = excluded.welfare,
+      updated_at = excluded.updated_at
+  `).run(req.user!.id, newCartable, newEducational, newFinancial, newWelfare, now);
+
+  res.json({ success: true });
+});
+
 // --- EDUCATIONAL AFFAIRS ADMIN ROUTES (Protected by requireAdmin) ---
 
 function normalizeDigitsOnly(value: string): string {

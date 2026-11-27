@@ -62,14 +62,14 @@ const DashboardContent: React.FC = React.memo(() => {
       <div
         aria-hidden="true"
         className={`fixed inset-y-0 left-0 right-0 mx-auto w-full pointer-events-none z-[1] backdrop-blur-xl transition-all duration-300 [transform:translateZ(0)] [contain:strict] ${
-          isCompactFrame ? 'max-w-[420px]' : 'max-w-none'
+          isCompactFrame ? 'max-w-[380px]' : 'max-w-none'
         }`}
       />
 
       {/* Main Layout Container */}
       <div className={`w-full transition-all duration-300 flex flex-col min-h-screen relative z-10 ${
         isCompactFrame 
-          ? 'max-w-[420px] mx-auto border-x border-[var(--border)] shadow-2xl bg-[image:var(--bg-page-login-overlay-compact)]' 
+          ? 'max-w-[380px] mx-auto border-x border-[var(--border)] shadow-2xl bg-[image:var(--bg-page-login-overlay-compact)]' 
           : 'max-w-none bg-[image:var(--bg-page-login-overlay)]'
       }`}>
 

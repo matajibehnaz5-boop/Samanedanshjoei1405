@@ -31,7 +31,7 @@ import {
   Clock,
   ShieldAlert
 } from 'lucide-react';
-import { useAuth, useI18n, useLayoutSettings, useModalActions, useToastActions } from '../context/DashboardContext';
+import { useAuth, useDashboard, useI18n, useLayoutSettings, useModalActions, useToastActions } from '../context/DashboardContext';
 import { HeaderBar } from '../components/HeaderBar';
 import { Footer } from '../components/Footer';
 import { UserAvatar } from '../components/UserAvatar';
@@ -43,7 +43,7 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
   const { showToast } = useToastActions();
   const { instituteName, isCompactFrame } = useLayoutSettings();
   const { setActiveModal } = useModalActions();
-  const { t, language } = useI18n();
+  const { t, language, saveStatus, retrySave } = useDashboard();
 
   const handleItemClick = (title: string, category: string) => {
     showToast(`${title} (${category})`);
@@ -118,13 +118,13 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
       <div
         aria-hidden="true"
         className={`fixed inset-y-0 left-0 right-0 w-full mx-auto pointer-events-none z-[1] backdrop-blur-xl transition-all duration-300 [transform:translateZ(0)] [contain:strict] ${
-          isCompactFrame ? 'max-w-[420px]' : 'max-w-none'
+          isCompactFrame ? 'max-w-[380px]' : 'max-w-none'
         }`}
       />
 
       {/* Main Layout Container */}
       <div className={`w-full mx-auto bg-[image:var(--bg-page-dashboard-overlay)] flex flex-col min-h-screen relative z-10 transition-all duration-300 ${
-        isCompactFrame ? 'max-w-[420px] border-x border-[var(--border)] shadow-2xl' : 'max-w-none'
+        isCompactFrame ? 'max-w-[380px] border-x border-[var(--border)] shadow-2xl' : 'max-w-none'
       }`}>
 
         {/* Top Header Bar */}
@@ -231,9 +231,33 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
               </div>
             </div>
 
-            {/* Date line directly under welcome text / info */}
-            <div className="pt-2 sm:pt-2.5 border-t border-[var(--border)] flex items-center justify-start text-[11px] sm:text-sm text-[var(--text-2)] font-normal text-right relative z-10" dir="rtl">
+            {/* Date line & Database save status indicator directly under welcome text / info */}
+            <div className="pt-2 sm:pt-2.5 border-t border-[var(--border)] flex items-center justify-between text-[11px] sm:text-sm text-[var(--text-2)] font-normal text-right relative z-10 flex-wrap gap-2" dir="rtl">
               <span>📅 {language === 'fa' ? `امروز: ${getJalaliDateFormatted()}` : `Today: ${getJalaliDateFormatted()}`}</span>
+
+              <div className="flex items-center gap-1.5">
+                {saveStatus === 'saving' && (
+                  <span className="text-[10px] sm:text-xs text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                    <span>{language === 'fa' ? 'در حال ذخیره در پایگاه داده...' : 'Saving to database...'}</span>
+                  </span>
+                )}
+                {saveStatus === 'saved' && (
+                  <span className="text-[10px] sm:text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
+                    <span>✓</span>
+                    <span>{language === 'fa' ? 'ذخیره شد' : 'Saved'}</span>
+                  </span>
+                )}
+                {saveStatus === 'error' && (
+                  <button
+                    onClick={retrySave}
+                    className="text-[10px] sm:text-xs text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20 flex items-center gap-1 cursor-pointer hover:bg-rose-500/20"
+                    title={language === 'fa' ? 'خطا در ذخیره‌سازی. برای تلاش مجدد کلیک کنید.' : 'Save error. Click to retry.'}
+                  >
+                    <span>⚠️ {language === 'fa' ? 'خطا در ذخیره (تلاش مجدد)' : 'Error saving (Retry)'}</span>
+                  </button>
+                )}
+              </div>
             </div>
           </motion.div>
 

@@ -160,4 +160,15 @@ export interface DashboardContextType {
   setLanguage: (lang: 'fa' | 'en') => void;
   toggleLanguage: () => void;
   t: (key: any, params?: Record<string, string | number>) => string;
+  cartableData: Record<string, any>;
+  updateCartableData: (updater: Record<string, any> | ((prev: Record<string, any>) => Record<string, any>)) => void;
+  educationalData: Record<string, any>;
+  updateEducationalData: (updater: Record<string, any> | ((prev: Record<string, any>) => Record<string, any>)) => void;
+  financialData: Record<string, any>;
+  updateFinancialData: (updater: Record<string, any> | ((prev: Record<string, any>) => Record<string, any>)) => void;
+  welfareData: Record<string, any>;
+  updateWelfareData: (updater: Record<string, any> | ((prev: Record<string, any>) => Record<string, any>)) => void;
+  saveStatus: 'idle' | 'saving' | 'saved' | 'error';
+  saveErrorMessage: string | null;
+  retrySave: () => void;
 }

@@ -857,4 +857,18 @@ export const api = {
       body: JSON.stringify(params),
     });
   },
+
+  // User Sections Data Persistence
+  async getUserSections(): Promise<{ cartable: any; educational: any; financial: any; welfare: any }> {
+    return request<{ cartable: any; educational: any; financial: any; welfare: any }>('/api/user-sections', {
+      method: 'GET',
+    });
+  },
+
+  async updateUserSections(sections: { cartable?: any; educational?: any; financial?: any; welfare?: any }): Promise<{ success: boolean }> {
+    return request<{ success: boolean }>('/api/user-sections', {
+      method: 'PUT',
+      body: JSON.stringify(sections),
+    });
+  },
 };

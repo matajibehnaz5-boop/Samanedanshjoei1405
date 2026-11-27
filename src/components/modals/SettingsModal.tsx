@@ -233,7 +233,7 @@ export const SettingsModal: React.FC = () => {
                 <div className="min-w-0">
                   <h4 className="text-sm font-bold text-[var(--text)]">حالت نمایش قاب موبایل</h4>
                   <p className="text-[11px] text-[var(--text-2)]">
-                    تغییر عرض صفحه در دسکتاپ (ستون ۴۲۰px / تمام‌عرض)
+                    تغییر عرض صفحه در دسکتاپ (ستون ۳۸۰px / تمام‌عرض)
                   </p>
                 </div>
               </div>

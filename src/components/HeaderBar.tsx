@@ -282,7 +282,7 @@ export const HeaderBar: React.FC = React.memo(() => {
 
   return (
     <header className="w-full bg-[image:var(--header-bg)] border-b border-[var(--header-border)] shadow-[var(--header-shadow)] relative z-30">
-      <div className={`${isCompactFrame ? 'max-w-[420px]' : 'max-w-full sm:px-8'} mx-auto px-[6px] sm:px-6 h-[52px] sm:h-15 flex items-center justify-between gap-[4px] sm:gap-2.5 text-[var(--text)] relative transition-all duration-300`}>
+      <div className={`${isCompactFrame ? 'max-w-[380px]' : 'max-w-full sm:px-8'} mx-auto px-[6px] sm:px-6 h-[52px] sm:h-15 flex items-center justify-between gap-[4px] sm:gap-2.5 text-[var(--text)] relative transition-all duration-300`}>
         
         {/* Right Side (RTL Start): Hamburger Menu Button (☰) + Title + Status Dot */}
         <div className="flex items-center gap-[4px] sm:gap-2.5 flex-1 min-w-0">

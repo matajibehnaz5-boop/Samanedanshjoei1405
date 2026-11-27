@@ -212,7 +212,7 @@ export const StudentChatbot: React.FC = React.memo(() => {
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className={`fixed z-50 bottom-16 sm:bottom-24 ${
               isFa ? 'left-2.5 sm:left-6' : 'right-2.5 sm:right-6'
-            } w-[calc(100vw-1.25rem)] sm:w-[420px] max-w-full h-[460px] sm:h-[540px] max-h-[82dvh] bg-[var(--chat-window-bg)] border border-[var(--chat-window-border)] rounded-xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col text-[var(--text)] font-['Vazirmatn',sans-serif]`}
+            } w-[calc(100vw-1.25rem)] sm:w-[380px] max-w-full h-[460px] sm:h-[540px] max-h-[82dvh] bg-[var(--chat-window-bg)] border border-[var(--chat-window-border)] rounded-xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col text-[var(--text)] font-['Vazirmatn',sans-serif]`}
             dir={isFa ? 'rtl' : 'ltr'}
           >
             {/* Top Decorative Bar */}

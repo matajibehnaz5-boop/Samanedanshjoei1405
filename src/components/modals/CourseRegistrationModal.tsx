@@ -383,51 +383,51 @@ const CourseSelectionItem = React.memo<{
     <motion.div
       whileHover={{ scale: 1.002 }}
       onClick={() => onToggle(course.id)}
-      className={`p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer relative ${
+      className={`p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer relative ${
         hasConflictWithThis && isSelected
           ? 'bg-rose-950/30 border-rose-500/50 hover:border-rose-500'
           : isSelected
-          ? 'bg-[#1E293B] border-sky-500/40 shadow-lg shadow-sky-950/20'
+          ? 'bg-[#1E293B] border-sky-500/40 shadow-md shadow-sky-950/20'
           : 'bg-[#1C2436]/80 hover:bg-[#212B3E] border-white/[0.06] hover:border-white/[0.12]'
       }`}
     >
-      <div className="flex items-start gap-3.5">
+      <div className="flex items-start gap-2.5">
         {/* Custom Checkbox */}
-        <div className={`w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 mt-1 transition-colors ${
+        <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
           isSelected
             ? hasConflictWithThis
               ? 'bg-rose-500 border-rose-400 text-white'
               : 'bg-sky-500 border-sky-400 text-white'
             : 'border-slate-500/50 bg-[#232D42]'
         }`}>
-          {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
         </div>
 
         {/* Course Details */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-[#232D42] text-sky-300 border border-sky-500/20">
+          <div className="flex items-center justify-between gap-1.5 flex-wrap mb-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#232D42] text-sky-300 border border-sky-500/20">
                 {course.code}
               </span>
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                 {course.credits} {t('creditsLabel')}
               </span>
               {course.category === 'general' ? (
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                   {t('generalBadge')}
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
                   {t('specializedBadge')}
                 </span>
               )}
             </div>
 
             {/* Capacity Pill */}
-            <span className={`text-[11px] font-medium flex items-center gap-1 ${
+            <span className={`text-[10px] sm:text-[11px] font-medium flex items-center gap-1 ${
               course.capacityRemaining <= 3 
-                ? 'text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20' 
+                ? 'text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded-full border border-rose-500/20' 
                 : 'text-slate-400'
             }`}>
               <Users className="w-3 h-3 text-slate-400" />
@@ -435,24 +435,24 @@ const CourseSelectionItem = React.memo<{
             </span>
           </div>
 
-          <h4 className="text-xs sm:text-sm font-bold text-white mb-2">
+          <h4 className="text-xs sm:text-sm font-bold text-white mb-1 leading-tight">
             {name}
           </h4>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] sm:text-xs text-slate-300 leading-[1.3]">
             <div className="flex items-center gap-1.5 text-slate-400">
-              <User className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+              <User className="w-3 h-3 text-sky-400 shrink-0" />
               <span className="truncate">{t('instructorLabel')} <strong className="text-slate-200">{instructor}</strong></span>
             </div>
             <div className="flex items-center gap-1.5 text-slate-400">
-              <Clock className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+              <Clock className="w-3 h-3 text-sky-400 shrink-0" />
               <span className="truncate">{t('scheduleLabel')} <strong className="text-slate-200">{schedule}</strong></span>
             </div>
           </div>
 
           {hasConflictWithThis && isSelected && (
-            <div className="mt-2 text-[11px] text-rose-400 font-medium flex items-center gap-1 bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20">
-              <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+            <div className="mt-1 text-[10px] text-rose-400 font-medium flex items-center gap-1 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
+              <AlertTriangle className="w-3 h-3 text-rose-400 shrink-0" />
               <span>{t('scheduleConflictHeader')}</span>
             </div>
           )}
@@ -540,26 +540,26 @@ export const CourseRegistrationModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[#0F172A]/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 pb-[10vh] sm:pb-[8vh] bg-[#0F172A]/80 backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, y: 50, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 50, scale: 0.96 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="w-full max-w-3xl bg-[#1C2436] border border-white/[0.08] rounded-[30px] shadow-2xl text-white flex flex-col max-h-[85dvh] sm:h-[85dvh] sm:max-h-[min(800px,85dvh)] overflow-y-auto"
+          className="w-full max-w-3xl bg-[#1C2436] border border-white/[0.08] rounded-2xl shadow-2xl text-white flex flex-col max-h-[88dvh] sm:h-[85dvh] sm:max-h-[min(800px,88dvh)] overflow-y-auto"
           dir={isFa ? 'rtl' : 'ltr'}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-5 sm:p-6 border-b border-white/[0.08] shrink-0 bg-[#1C2436]/90">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 bg-sky-500/20 border border-sky-500/30 rounded-2xl flex items-center justify-center shrink-0">
-                <CheckSquare className="w-6 h-6 text-[#38BDF8] stroke-[2]" />
+          <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-4 border-b border-white/[0.08] shrink-0 bg-[#1C2436]/90">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 bg-sky-500/20 border border-sky-500/30 rounded-xl flex items-center justify-center shrink-0">
+                <CheckSquare className="w-5 h-5 text-[#38BDF8] stroke-[2]" />
               </div>
               <div>
-                <h2 className="text-base sm:text-lg font-bold text-white">
+                <h2 className="text-sm sm:text-base font-bold text-white">
                   {t('courseRegistrationTitle')}
                 </h2>
-                <p className="text-xs text-[#BBC1D1] mt-0.5">
+                <p className="text-[11px] text-[#BBC1D1] leading-tight">
                   {t('courseRegistrationSub')}
                 </p>
               </div>
@@ -567,55 +567,55 @@ export const CourseRegistrationModal: React.FC = () => {
 
             <button
               onClick={closeModal}
-              className="p-2 rounded-2xl hover:bg-white/10 text-[#BBC1D1] hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl hover:bg-white/10 text-[#BBC1D1] hover:text-white transition-colors cursor-pointer"
             >
-              <X className="w-5 h-5 text-white stroke-[2]" />
+              <X className="w-4 h-4 text-white stroke-[2]" />
             </button>
           </div>
 
           {/* Registration Status Banner */}
-          <div className="p-4 sm:p-5 border-b border-white/[0.08] bg-[#1E2738]/60 shrink-0 space-y-3">
+          <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-white/[0.08] bg-[#1E2738]/60 shrink-0 space-y-2">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
                   {t('statusActiveLabel')}
                 </span>
               </div>
 
-              <div className="flex items-center gap-1.5 text-xs text-amber-300 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-                <Clock className="w-3.5 h-3.5 text-amber-400" />
+              <div className="flex items-center gap-1 text-[11px] text-amber-300 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+                <Clock className="w-3 h-3 text-amber-400" />
                 <span>{t('remainingDaysText')}</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-slate-300 flex-wrap gap-2 pt-1">
+            <div className="flex items-center justify-between text-[11px] sm:text-xs text-slate-300 flex-wrap gap-2">
               <div className="flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-sky-400" />
+                <Calendar className="w-3.5 h-3.5 text-sky-400" />
                 <span>{t('registrationPeriodLabel')} <strong className="text-white">{t('registrationDatesVal')}</strong></span>
               </div>
-              <div className="flex items-center gap-1 text-[11px] text-slate-400">
-                <Info className="w-3.5 h-3.5 text-slate-400" />
-                <span>{isFa ? 'سقف مجاز: ۲۰ واحد در این ترم' : 'Maximum allowed: 20 credits this term'}</span>
+              <div className="flex items-center gap-1 text-[10px] sm:text-[11px] text-slate-400">
+                <Info className="w-3 h-3 text-slate-400" />
+                <span>{isFa ? 'سقف مجاز: ۲۰ واحد' : 'Maximum: 20 credits'}</span>
               </div>
             </div>
           </div>
 
           {/* Main List of Offered Courses */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
-            <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
+          <div className="flex-1 overflow-y-auto px-3 py-3 sm:px-5 sm:py-4 space-y-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
               <h3 className="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
-                <BookOpen className="w-4 h-4 text-sky-400" />
+                <BookOpen className="w-3.5 h-3.5 text-sky-400" />
                 <span>{t('offeredCoursesTitle')}</span>
               </h3>
             </div>
 
             {/* Category Filter Tabs */}
-            <div className="flex items-center gap-1.5 p-1 bg-[#151D2A] rounded-2xl border border-white/[0.06] mb-3">
+            <div className="flex items-center gap-1 p-1 bg-[#151D2A] rounded-xl border border-white/[0.06] mb-2">
               <button
                 type="button"
                 onClick={() => setActiveCategoryFilter('all')}
-                className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                className={`flex-1 py-1 px-2.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer text-center ${
                   activeCategoryFilter === 'all'
                     ? 'bg-sky-500 text-white shadow-md shadow-sky-500/20'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -627,7 +627,7 @@ export const CourseRegistrationModal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveCategoryFilter('specialized')}
-                className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                className={`flex-1 py-1 px-2.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer text-center ${
                   activeCategoryFilter === 'specialized'
                     ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -639,7 +639,7 @@ export const CourseRegistrationModal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveCategoryFilter('general')}
-                className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                className={`flex-1 py-1 px-2.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer text-center ${
                   activeCategoryFilter === 'general'
                     ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -667,14 +667,14 @@ export const CourseRegistrationModal: React.FC = () => {
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mx-4 sm:mx-5 p-3 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2.5 shrink-0"
+              className="mx-3 sm:mx-5 p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2 shrink-0"
             >
-              <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0" />
+              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
               <div>
-                <strong className="block font-bold">
+                <strong className="block font-bold text-[11px]">
                   {hasConflict ? t('scheduleConflictHeader') : (isFa ? 'تعداد واحدهای غیرمجاز!' : 'Exceeding Credit Limit!')}
                 </strong>
-                <span>
+                <span className="text-[10px] sm:text-[11px]">
                   {hasConflict 
                     ? t('conflictDetailMsg') 
                     : (isFa ? 'مجموع واحدهای انتخابی شما فراتر از سقف مجاز (۲۰ واحد) می‌باشد.' : 'Your total selected credits exceed the maximum allowed limit (20 credits).')}
@@ -684,16 +684,16 @@ export const CourseRegistrationModal: React.FC = () => {
           )}
 
           {/* Bottom Summary Bar */}
-          <div className="p-4 sm:p-5 border-t border-white/[0.08] bg-[#1E2738]/90 shrink-0 flex items-center justify-between gap-4 flex-wrap">
+          <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-t border-white/[0.08] bg-[#1E2738]/90 shrink-0 flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <div className="text-xs text-slate-400">
+              <div className="text-[11px] text-slate-400">
                 {t('selectedCreditsLabel')}
               </div>
-              <div className="text-base sm:text-lg font-black text-white flex items-baseline gap-1 mt-0.5">
+              <div className="text-sm sm:text-base font-black text-white flex items-baseline gap-1 mt-0.5">
                 <span className={isOverLimit ? 'text-rose-400 font-bold' : 'text-sky-400'}>
                   {totalSelectedCredits}
                 </span>
-                <span className="text-xs text-slate-400 font-normal">
+                <span className="text-[11px] text-slate-400 font-normal">
                   {t('allowedCreditsLabel')}
                 </span>
               </div>
@@ -702,7 +702,7 @@ export const CourseRegistrationModal: React.FC = () => {
             <button
               onClick={handleFinalize}
               disabled={selectedCourseIds.length === 0 || hasConflict || isOverLimit}
-              className={`px-6 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-lg flex items-center gap-2 ${
+              className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md flex items-center gap-1.5 ${
                 hasConflict || isOverLimit || selectedCourseIds.length === 0
                   ? 'bg-slate-700/50 text-slate-400 cursor-not-allowed border border-white/[0.06]'
                   : 'bg-[image:var(--cta-gradient)] hover:bg-[image:var(--cta-gradient-hover)] text-[var(--on-accent)] shadow-lg cursor-pointer'

@@ -770,6 +770,160 @@ const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 };
 
+// --- User Sections Persistence Context ---
+
+interface UserSectionsContextType {
+  cartableData: Record<string, any>;
+  updateCartableData: (updater: Record<string, any> | ((prev: Record<string, any>) => Record<string, any>)) => void;
+  educationalData: Record<string, any>;
+  updateEducationalData: (updater: Record<string, any> | ((prev: Record<string, any>) => Record<string, any>)) => void;
+  financialData: Record<string, any>;
+  updateFinancialData: (updater: Record<string, any> | ((prev: Record<string, any>) => Record<string, any>)) => void;
+  welfareData: Record<string, any>;
+  updateWelfareData: (updater: Record<string, any> | ((prev: Record<string, any>) => Record<string, any>)) => void;
+  saveStatus: 'idle' | 'saving' | 'saved' | 'error';
+  saveErrorMessage: string | null;
+  retrySave: () => void;
+}
+
+const UserSectionsContext = createContext<UserSectionsContextType | undefined>(undefined);
+
+const UserSectionsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isLoggedIn, currentUserId } = useAuth();
+  const { showToast } = useToastActions();
+
+  const [cartableData, setCartableData] = useState<Record<string, any>>({});
+  const [educationalData, setEducationalData] = useState<Record<string, any>>({});
+  const [financialData, setFinancialData] = useState<Record<string, any>>({});
+  const [welfareData, setWelfareData] = useState<Record<string, any>>({});
+
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+
+  const isInitialMount = useRef(true);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!isLoggedIn || !currentUserId) {
+      setCartableData({});
+      setEducationalData({});
+      setFinancialData({});
+      setWelfareData({});
+      isInitialMount.current = true;
+      return;
+    }
+
+    async function fetchSections() {
+      try {
+        const res = await api.getUserSections();
+        if (!isMounted) return;
+        setCartableData(res.cartable || {});
+        setEducationalData(res.educational || {});
+        setFinancialData(res.financial || {});
+        setWelfareData(res.welfare || {});
+        isInitialMount.current = false;
+      } catch (err: any) {
+        if (!isMounted) return;
+        console.error('Failed to load user sections:', err);
+      }
+    }
+
+    fetchSections();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoggedIn, currentUserId]);
+
+  const saveToServer = useCallback(async (cartable: any, educational: any, financial: any, welfare: any) => {
+    if (!isLoggedIn || !currentUserId) return;
+    setSaveStatus('saving');
+    setSaveErrorMessage(null);
+    try {
+      await api.updateUserSections({ cartable, educational, financial, welfare });
+      setSaveStatus('saved');
+      setTimeout(() => {
+        setSaveStatus((prev) => (prev === 'saved' ? 'idle' : prev));
+      }, 2500);
+    } catch (err: any) {
+      const msg = err?.message || 'خطا در ذخیره‌سازی داده‌ها در پایگاه داده';
+      setSaveStatus('error');
+      setSaveErrorMessage(msg);
+      showToast(msg);
+    }
+  }, [isLoggedIn, currentUserId, showToast]);
+
+  useEffect(() => {
+    if (isInitialMount.current || !isLoggedIn || !currentUserId) {
+      return;
+    }
+
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+
+    saveTimerRef.current = setTimeout(() => {
+      saveToServer(cartableData, educationalData, financialData, welfareData);
+    }, 600);
+
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [cartableData, educationalData, financialData, welfareData, isLoggedIn, currentUserId, saveToServer]);
+
+  const retrySave = useCallback(() => {
+    saveToServer(cartableData, educationalData, financialData, welfareData);
+  }, [saveToServer, cartableData, educationalData, financialData, welfareData]);
+
+  const updateCartableData = useCallback((updater: any) => {
+    setCartableData((prev) => (typeof updater === 'function' ? updater(prev) : { ...prev, ...updater }));
+  }, []);
+
+  const updateEducationalData = useCallback((updater: any) => {
+    setEducationalData((prev) => (typeof updater === 'function' ? updater(prev) : { ...prev, ...updater }));
+  }, []);
+
+  const updateFinancialData = useCallback((updater: any) => {
+    setFinancialData((prev) => (typeof updater === 'function' ? updater(prev) : { ...prev, ...updater }));
+  }, []);
+
+  const updateWelfareData = useCallback((updater: any) => {
+    setWelfareData((prev) => (typeof updater === 'function' ? updater(prev) : { ...prev, ...updater }));
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      cartableData,
+      updateCartableData,
+      educationalData,
+      updateEducationalData,
+      financialData,
+      updateFinancialData,
+      welfareData,
+      updateWelfareData,
+      saveStatus,
+      saveErrorMessage,
+      retrySave,
+    }),
+    [
+      cartableData,
+      updateCartableData,
+      educationalData,
+      updateEducationalData,
+      financialData,
+      updateFinancialData,
+      welfareData,
+      updateWelfareData,
+      saveStatus,
+      saveErrorMessage,
+      retrySave,
+    ]
+  );
+
+  return <UserSectionsContext.Provider value={value}>{children}</UserSectionsContext.Provider>;
+};
+
 export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <I18nProvider>
@@ -778,9 +932,11 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           <ModalProvider>
             <LayoutSettingsProvider>
               <AuthProvider>
-                <NotificationsProvider>
-                  <ChatProvider>{children}</ChatProvider>
-                </NotificationsProvider>
+                <UserSectionsProvider>
+                  <NotificationsProvider>
+                    <ChatProvider>{children}</ChatProvider>
+                  </NotificationsProvider>
+                </UserSectionsProvider>
               </AuthProvider>
             </LayoutSettingsProvider>
           </ModalProvider>
@@ -834,6 +990,12 @@ export const useAuth = () => {
   return ctx;
 };
 
+export const useUserSections = () => {
+  const ctx = useContext(UserSectionsContext);
+  if (!ctx) throw new Error('useUserSections must be used within a DashboardProvider');
+  return ctx;
+};
+
 export const useNotifications = () => {
   const ctx = useContext(NotificationsContext);
   if (!ctx) throw new Error('useNotifications must be used within a DashboardProvider');
@@ -857,6 +1019,7 @@ export const useDashboard = (): DashboardContextType => {
   const auth = useAuth();
   const notif = useNotifications();
   const chat = useChat();
+  const userSections = useUserSections();
 
   return useMemo(
     () => ({
@@ -894,7 +1057,18 @@ export const useDashboard = (): DashboardContextType => {
       setLanguage: i18n.setLanguage,
       toggleLanguage: i18n.toggleLanguage,
       t: i18n.t,
+      cartableData: userSections.cartableData,
+      updateCartableData: userSections.updateCartableData,
+      educationalData: userSections.educationalData,
+      updateEducationalData: userSections.updateEducationalData,
+      financialData: userSections.financialData,
+      updateFinancialData: userSections.updateFinancialData,
+      welfareData: userSections.welfareData,
+      updateWelfareData: userSections.updateWelfareData,
+      saveStatus: userSections.saveStatus,
+      saveErrorMessage: userSections.saveErrorMessage,
+      retrySave: userSections.retrySave,
     }),
-    [modalState, modalActions, notif, chat, auth, toastState, toastActions, layout, i18n]
+    [modalState, modalActions, notif, chat, auth, toastState, toastActions, layout, i18n, userSections]
   );
 };

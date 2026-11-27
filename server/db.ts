@@ -240,6 +240,15 @@ export function getDb(): DatabaseSync {
         done_at TEXT
       );
 
+      CREATE TABLE IF NOT EXISTS user_sections (
+        user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        cartable TEXT NOT NULL DEFAULT '{}',
+        educational TEXT NOT NULL DEFAULT '{}',
+        financial TEXT NOT NULL DEFAULT '{}',
+        welfare TEXT NOT NULL DEFAULT '{}',
+        updated_at TEXT NOT NULL
+      );
+
       CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at ON chat_messages(created_at);
       CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
       CREATE INDEX IF NOT EXISTS idx_employees_group_id ON employees(group_id);
