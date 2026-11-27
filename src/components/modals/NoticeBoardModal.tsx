@@ -249,13 +249,24 @@ export const NoticeBoardModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[#0F172A]/80 backdrop-blur-md">
+      <div
+        dir={isFa ? 'rtl' : 'ltr'}
+        data-modal-backdrop
+        onClick={(e) => {
+          if (e.target === e.currentTarget) closeModal();
+        }}
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-2 sm:p-4 bg-[#0F172A]/80 backdrop-blur-md"
+      >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          data-modal-panel
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, y: 50, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 50, scale: 0.96 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="w-full max-w-3xl bg-[#1C2436] border border-white/[0.08] rounded-[30px] shadow-2xl text-white flex flex-col max-h-[85dvh] sm:h-[85dvh] sm:max-h-[min(800px,85dvh)] overflow-y-auto"
+          className="w-full max-w-3xl bg-[#1C2436] border border-white/[0.08] rounded-[30px] shadow-2xl text-white flex flex-col h-[calc(var(--vvh,100dvh)-16px)] max-h-[calc(var(--vvh,100dvh)-16px)] sm:h-[min(800px,calc(var(--vvh,100dvh)-16px))] max-w-[calc(100vw-16px)] overflow-hidden"
           dir={isFa ? 'rtl' : 'ltr'}
         >
           {/* Header */}
@@ -297,14 +308,14 @@ export const NoticeBoardModal: React.FC = () => {
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 overflow-hidden flex flex-col">
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
             {selectedAnnouncement ? (
               /* Detail View */
               <motion.div 
                 initial={{ opacity: 0, x: isFa ? -20 : 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: isFa ? 20 : -20 }}
-                className="flex-1 overflow-y-auto p-5 sm:p-6 flex flex-col justify-between"
+                className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-5 sm:p-6 flex flex-col justify-between"
               >
                 <div className="space-y-5">
                   {/* Back button & Category badge */}
@@ -371,7 +382,7 @@ export const NoticeBoardModal: React.FC = () => {
               </motion.div>
             ) : (
               /* List View */
-              <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                 {/* Search & Filters Header */}
                 <div className="p-4 sm:p-5 border-b border-white/[0.08] bg-[#1E2738]/50 space-y-3 shrink-0">
                   {/* Search Bar */}
@@ -424,7 +435,7 @@ export const NoticeBoardModal: React.FC = () => {
                 </div>
 
                 {/* Announcement Cards List */}
-                <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
+                <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 sm:p-5 space-y-3">
                   {filteredAnnouncements.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center p-8 text-slate-400">
                       <div className="w-16 h-16 rounded-3xl bg-[#232D42] border border-white/[0.08] flex items-center justify-center mb-4">

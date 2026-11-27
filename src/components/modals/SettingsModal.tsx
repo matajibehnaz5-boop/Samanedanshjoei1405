@@ -135,19 +135,24 @@ export const SettingsModal: React.FC = () => {
     <AnimatePresence>
       <div
         dir="rtl"
+        data-modal-backdrop
         onClick={(e) => {
           if (e.target === e.currentTarget) handleCloseWithoutSave();
         }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[var(--backdrop)] backdrop-blur-sm"
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-2 sm:p-4 bg-[var(--backdrop)] backdrop-blur-sm"
       >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          data-modal-panel
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
-          className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-strong)] rounded-[28px] p-6 shadow-[var(--card-shadow)] text-[var(--text-strong)] max-h-[85dvh] overflow-y-auto overflow-x-hidden"
+          className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-strong)] rounded-[28px] shadow-[var(--card-shadow)] text-[var(--text-strong)] flex flex-col max-h-[calc(var(--vvh,100dvh)-16px)] max-w-[calc(100vw-16px)] overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-[var(--border)]">
+          <div className="flex items-center justify-between px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4 border-b border-[var(--border)] shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-[var(--surface-2)] text-[var(--text-strong)] rounded-xl border border-[var(--border)]">
                 <Settings className="w-6 h-6" />
@@ -167,7 +172,7 @@ export const SettingsModal: React.FC = () => {
             </button>
           </div>
 
-          <div className="mt-5 space-y-4">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-5 space-y-4">
             {/* 1. Suggestion Banner */}
             <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center gap-3 text-amber-200/90 shadow-sm">
               <div className="p-2 bg-amber-500/20 text-amber-400 rounded-xl shrink-0">
@@ -255,32 +260,33 @@ export const SettingsModal: React.FC = () => {
               </button>
             </div>
 
-            {/* Actions: Save & Reset to Default */}
-            <div className="pt-3 space-y-2.5">
-              <div className="flex flex-col sm:flex-row gap-2">
-                <button
-                  type="button"
-                  onClick={handleSaveSettings}
-                  className="flex-1 py-3 px-4 rounded-2xl bg-[image:var(--cta-gradient)] hover:bg-[image:var(--cta-gradient-hover)] text-[var(--on-accent)] text-sm font-bold transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
-                >
-                  <Save className="w-5 h-5" />
-                  <span>ذخیره تنظیمات</span>
-                </button>
+          </div>
 
-                <button
-                  type="button"
-                  onClick={handleResetDefaults}
-                  className="py-3 px-4 rounded-2xl bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-strong)] text-xs sm:text-sm font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>بازنشانی به پیش‌فرض</span>
-                </button>
-              </div>
+          {/* Actions: Save & Reset to Default */}
+          <div className="px-4 pb-4 pt-3 sm:px-6 sm:pb-6 sm:pt-4 border-t border-[var(--border)] space-y-2.5 shrink-0">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={handleSaveSettings}
+                className="flex-1 py-3 px-4 rounded-2xl bg-[image:var(--cta-gradient)] hover:bg-[image:var(--cta-gradient-hover)] text-[var(--on-accent)] text-sm font-bold transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+              >
+                <Save className="w-5 h-5" />
+                <span>ذخیره تنظیمات</span>
+              </button>
 
-              <p className="text-center text-xs text-[var(--text-muted)]">
-                در صورت بستن بدون ذخیره، تغییرات به حالت قبلی بازمی‌گردند
-              </p>
+              <button
+                type="button"
+                onClick={handleResetDefaults}
+                className="py-3 px-4 rounded-2xl bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-strong)] text-xs sm:text-sm font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>بازنشانی به پیش‌فرض</span>
+              </button>
             </div>
+
+            <p className="text-center text-xs text-[var(--text-muted)]">
+              در صورت بستن بدون ذخیره، تغییرات به حالت قبلی بازمی‌گردند
+            </p>
           </div>
         </motion.div>
       </div>

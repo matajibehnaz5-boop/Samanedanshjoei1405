@@ -540,13 +540,24 @@ export const CourseRegistrationModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 pb-[10vh] sm:pb-[8vh] bg-[#0F172A]/80 backdrop-blur-md">
+      <div
+        dir={isFa ? 'rtl' : 'ltr'}
+        data-modal-backdrop
+        onClick={(e) => {
+          if (e.target === e.currentTarget) closeModal();
+        }}
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-2 sm:p-4 bg-[#0F172A]/80 backdrop-blur-md"
+      >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          data-modal-panel
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, y: 50, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 50, scale: 0.96 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="w-full max-w-3xl bg-[#1C2436] border border-white/[0.08] rounded-2xl shadow-2xl text-white flex flex-col max-h-[88dvh] sm:h-[85dvh] sm:max-h-[min(800px,88dvh)] overflow-y-auto"
+          className="w-full max-w-3xl bg-[#1C2436] border border-white/[0.08] rounded-2xl shadow-2xl text-white flex flex-col h-[calc(var(--vvh,100dvh)-16px)] max-h-[calc(var(--vvh,100dvh)-16px)] sm:h-[min(800px,calc(var(--vvh,100dvh)-16px))] max-w-[calc(100vw-16px)] overflow-hidden"
           dir={isFa ? 'rtl' : 'ltr'}
         >
           {/* Header */}
@@ -602,7 +613,7 @@ export const CourseRegistrationModal: React.FC = () => {
           </div>
 
           {/* Main List of Offered Courses */}
-          <div className="flex-1 overflow-y-auto px-3 py-3 sm:px-5 sm:py-4 space-y-2">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-3 sm:px-5 sm:py-4 space-y-2">
             <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
               <h3 className="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
                 <BookOpen className="w-3.5 h-3.5 text-sky-400" />

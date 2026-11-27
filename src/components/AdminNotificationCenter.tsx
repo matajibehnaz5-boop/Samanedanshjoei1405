@@ -180,9 +180,9 @@ export const AdminNotificationCenter: React.FC<AdminNotificationCenterProps> = R
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.16, ease: 'easeOut' }}
-            className={`fixed inset-x-2 top-[54px] sm:inset-x-auto sm:absolute sm:top-full sm:mt-2 ${
+            className={`fixed inset-x-2 top-[calc(var(--vv-top,0px)+54px)] sm:inset-x-auto sm:absolute sm:top-full sm:mt-2 ${
               isRtlLayout ? 'sm:left-6 sm:right-auto' : 'sm:right-6 sm:left-auto'
-            } sm:w-[390px] max-h-[70dvh] bg-[var(--surface)] border border-[var(--border)] rounded-xl sm:rounded-2xl shadow-2xl text-right text-[var(--text)] z-50 flex flex-col overflow-hidden`}
+            } sm:w-[390px] max-w-[calc(100vw-16px)] max-h-[calc(var(--vvh,100dvh)-70px)] bg-[var(--surface)] border border-[var(--border)] rounded-xl sm:rounded-2xl shadow-2xl text-right text-[var(--text)] z-[var(--z-toast)] flex flex-col overflow-hidden`}
           >
             {/* Header */}
             <div className="px-3 py-2.5 sm:px-4 sm:py-3 border-b border-[var(--border)] bg-[var(--surface-header)] flex items-center justify-between gap-2 shrink-0">

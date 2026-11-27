@@ -13,7 +13,7 @@ const DashboardContent: React.FC = React.memo(() => {
   const { isCompactFrame } = useLayoutSettings();
 
   return (
-    <div className="min-h-screen bg-[image:var(--bg-page-login)] text-[var(--text)] flex flex-col justify-between font-['Vazirmatn',sans-serif] selection:bg-[var(--accent)] selection:text-white relative overflow-hidden">
+    <div className="min-h-[var(--vvh,100dvh)] bg-[image:var(--bg-page-login)] text-[var(--text)] flex flex-col justify-between font-['Vazirmatn',sans-serif] selection:bg-[var(--accent)] selection:text-white relative overflow-hidden">
       
       {/* Floating Animated Background Ambient Blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 isolate [contain:strict] [transform:translateZ(0)]">
@@ -67,7 +67,7 @@ const DashboardContent: React.FC = React.memo(() => {
       />
 
       {/* Main Layout Container */}
-      <div className={`w-full transition-all duration-300 flex flex-col min-h-screen relative z-10 ${
+      <div className={`w-full transition-all duration-300 flex flex-col min-h-[var(--vvh,100dvh)] relative z-10 ${
         isCompactFrame 
           ? 'max-w-[380px] mx-auto border-x border-[var(--border)] shadow-2xl bg-[image:var(--bg-page-login-overlay-compact)]' 
           : 'max-w-none bg-[image:var(--bg-page-login-overlay)]'
@@ -126,7 +126,7 @@ export default function App() {
       if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
         setTimeout(() => {
           target.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        }, 300);
+        }, 280);
       }
     };
     window.addEventListener('focusin', handleFocusIn);

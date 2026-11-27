@@ -20,7 +20,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useAuth, useI18n, useLayoutSettings, useModalActions, useModalState, useNotifications, useSettings, useToastActions } from '../context/DashboardContext';
+import { useAuth, useI18n, useLayerActions, useLayerState, useLayoutSettings, useModalActions, useModalState, useNotifications, useSettings, useToastActions } from '../context/DashboardContext';
 import { UserAvatar } from './UserAvatar';
 import { AdminNotificationCenter } from './AdminNotificationCenter';
 import { api } from '../lib/api';
@@ -29,13 +29,15 @@ import { AdminNotificationItem } from '../types';
 export const HeaderBar: React.FC = React.memo(() => {
   const { setActiveModal, closeModal } = useModalActions();
   const { activeModal } = useModalState();
+  const { activeLayer } = useLayerState();
+  const { openMenu, closeMenu, closeActiveLayer } = useLayerActions();
   const { instituteName, isCompactFrame } = useLayoutSettings();
   const { isLoggedIn, studentProfile, handleLogout, setCurrentPage } = useAuth();
   const { language, toggleLanguage, t } = useI18n();
   const { notificationCount: unreadCount } = useNotifications();
   const { showToast } = useToastActions();
   const { settings, userStorageScope } = useSettings();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const isDrawerOpen = activeLayer === 'menu';
   const [isEduOpen, setIsEduOpen] = useState(false);
   const [isProfOpen, setIsProfOpen] = useState(false);
   const [isStudentOpen, setIsStudentOpen] = useState(false);
@@ -130,10 +132,19 @@ export const HeaderBar: React.FC = React.memo(() => {
     }
   }, [isDrawerOpen, isAdminUser, fetchAdminCartableCount]);
 
+  useEffect(() => {
+    if (activeLayer !== 'none') {
+      setIsAdminNotifOpen(false);
+    }
+  }, [activeLayer]);
+
   const handleToggleAdminNotifs = () => {
     setIsAdminNotifOpen((prev) => {
       const next = !prev;
       if (next) {
+        if (activeLayer !== 'none') {
+          closeActiveLayer();
+        }
         fetchAdminNotifications(true);
       }
       return next;
@@ -267,21 +278,8 @@ export const HeaderBar: React.FC = React.memo(() => {
 
   const displayedBellCount = isAdminUser ? visibleAdminUnreadCount : unreadCount;
 
-  // Close drawer on ESC key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsDrawerOpen(false);
-      }
-    };
-    if (isDrawerOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isDrawerOpen]);
-
   return (
-    <header className="w-full bg-[image:var(--header-bg)] border-b border-[var(--header-border)] shadow-[var(--header-shadow)] relative z-30">
+    <header className="w-full bg-[image:var(--header-bg)] border-b border-[var(--header-border)] shadow-[var(--header-shadow)] relative z-[var(--z-header)]">
       <div className={`${isCompactFrame ? 'max-w-[380px]' : 'max-w-full sm:px-8'} mx-auto px-[6px] sm:px-6 h-[52px] sm:h-15 flex items-center justify-between gap-[4px] sm:gap-2.5 text-[var(--text)] relative transition-all duration-300`}>
         
         {/* Right Side (RTL Start): Hamburger Menu Button (☰) + Title + Status Dot */}
@@ -290,7 +288,7 @@ export const HeaderBar: React.FC = React.memo(() => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setIsDrawerOpen(true)}
+            onClick={openMenu}
             aria-label={t('topMenu')}
             title={t('topMenu')}
             className="w-[32px] h-[32px] sm:w-8 sm:h-8 rounded-lg bg-[var(--header-btn-bg)] hover:bg-[var(--header-btn-hover)] border border-[var(--header-btn-border)] flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
@@ -416,46 +414,50 @@ export const HeaderBar: React.FC = React.memo(() => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
-              onClick={() => setIsDrawerOpen(false)}
-              className="fixed inset-0 z-50 bg-[var(--backdrop)] backdrop-blur-md [transform:translateZ(0)]"
+              onClick={closeMenu}
+              className="fixed inset-x-0 top-[var(--vv-top,0px)] h-[var(--vvh,100dvh)] z-[var(--z-menu)] bg-[var(--backdrop)] backdrop-blur-md [transform:translateZ(0)]"
             />
 
             {/* Drawer Panel (Slide-in) */}
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label={t('topMenu')}
               initial={{ x: language === 'fa' ? '100%' : '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: language === 'fa' ? '100%' : '-100%' }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className={`fixed top-0 ${language === 'fa' ? 'right-0 border-l' : 'left-0 border-r'} bottom-0 z-50 w-[270px] sm:w-80 max-w-[85vw] bg-[var(--menu-bg)] border-[var(--menu-border)] p-[12px] sm:p-6 shadow-[var(--menu-shadow)] flex flex-col justify-between text-[var(--menu-text)] overflow-y-auto overflow-x-hidden will-change-transform [transform:translateZ(0)]`}
+              onClick={(e) => e.stopPropagation()}
+              className={`fixed top-[var(--vv-top,0px)] ${language === 'fa' ? 'right-0 border-l' : 'left-0 border-r'} h-[var(--vvh,100dvh)] max-h-[var(--vvh,100dvh)] z-[var(--z-menu)] w-[270px] sm:w-80 max-w-[85vw] bg-[var(--menu-bg)] border-[var(--menu-border)] shadow-[var(--menu-shadow)] flex flex-col text-[var(--menu-text)] overflow-hidden will-change-transform [transform:translateZ(0)]`}
             >
-              <div>
-                {/* Drawer Header */}
-                <div className="flex items-center justify-between pb-2.5 mb-3 sm:pb-4 sm:mb-6 border-b border-[var(--menu-border)]">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--menu-icon-box-bg)] border border-[var(--menu-icon-box-border)] flex items-center justify-center shadow-sm">
-                      <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--menu-icon)]" />
-                    </div>
-                    <h3 className="text-[15px] sm:text-base font-bold text-[var(--menu-text)]">
-                      {t('topMenu')}
-                    </h3>
+              {/* Fixed Drawer Header */}
+              <div className="shrink-0 px-[12px] pt-[12px] pb-2.5 sm:px-6 sm:pt-6 sm:pb-4 border-b border-[var(--menu-border)] flex items-center justify-between">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--menu-icon-box-bg)] border border-[var(--menu-icon-box-border)] flex items-center justify-center shadow-sm">
+                    <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--menu-icon)]" />
                   </div>
-                  <button
-                    onClick={() => setIsDrawerOpen(false)}
-                    className="min-w-[34px] min-h-[34px] sm:min-w-0 sm:min-h-0 flex items-center justify-center p-1.5 sm:p-2 rounded-xl hover:bg-[var(--menu-hover-bg)] text-[var(--menu-sub-text)] hover:text-[var(--menu-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-colors cursor-pointer"
-                  >
-                    <X className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </button>
+                  <h3 className="text-[15px] sm:text-base font-bold text-[var(--menu-text)]">
+                    {t('topMenu')}
+                  </h3>
                 </div>
+                <button
+                  onClick={closeMenu}
+                  aria-label="بستن"
+                  className="min-w-[34px] min-h-[34px] sm:min-w-0 sm:min-h-0 flex items-center justify-center p-1.5 sm:p-2 rounded-xl hover:bg-[var(--menu-hover-bg)] text-[var(--menu-sub-text)] hover:text-[var(--menu-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+              </div>
 
-                {/* Drawer Menu Items */}
-                <div className="space-y-1.5 sm:space-y-3">
+              {/* Scrollable Drawer Menu Items */}
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-[12px] py-3 sm:px-6 sm:py-4 space-y-1.5 sm:space-y-3">
                   {/* Auth Button at top of Drawer */}
                   <button
                     onClick={() => {
                       if (isLoggedIn) {
+                        closeMenu();
                         handleLogout();
                       } else {
-                        setIsDrawerOpen(false);
                         setActiveModal('form_login');
                       }
                     }}
@@ -486,7 +488,6 @@ export const HeaderBar: React.FC = React.memo(() => {
                       <button
                         type="button"
                         onClick={() => {
-                          setIsDrawerOpen(false);
                           setActiveModal('admin_cartable');
                         }}
                         className={`w-full flex items-center justify-between gap-2 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
@@ -519,7 +520,6 @@ export const HeaderBar: React.FC = React.memo(() => {
                       <button
                         type="button"
                         onClick={() => {
-                          setIsDrawerOpen(false);
                           setActiveModal('thesis_list');
                         }}
                         className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
@@ -545,7 +545,6 @@ export const HeaderBar: React.FC = React.memo(() => {
                       <button
                         type="button"
                         onClick={() => {
-                          setIsDrawerOpen(false);
                           setActiveModal('professor_capacity');
                         }}
                         className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
@@ -571,7 +570,6 @@ export const HeaderBar: React.FC = React.memo(() => {
                       <button
                         type="button"
                         onClick={() => {
-                          setIsDrawerOpen(false);
                           setActiveModal('defense_sessions');
                         }}
                         className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
@@ -630,8 +628,7 @@ export const HeaderBar: React.FC = React.memo(() => {
                                   key={modalKey}
                                   type="button"
                                   onClick={() => {
-                                    setIsDrawerOpen(false);
-                                    setActiveModal(modalKey);
+                                                                        setActiveModal(modalKey);
                                   }}
                                   className={`w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all cursor-pointer ${
                                     isActive
@@ -684,8 +681,7 @@ export const HeaderBar: React.FC = React.memo(() => {
                                   key={modalKey}
                                   type="button"
                                   onClick={() => {
-                                    setIsDrawerOpen(false);
-                                    setActiveModal(modalKey);
+                                                                        setActiveModal(modalKey);
                                   }}
                                   className={`w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all cursor-pointer ${
                                     isActive
@@ -738,8 +734,7 @@ export const HeaderBar: React.FC = React.memo(() => {
                                   key={modalKey}
                                   type="button"
                                   onClick={() => {
-                                    setIsDrawerOpen(false);
-                                    setActiveModal(modalKey);
+                                                                        setActiveModal(modalKey);
                                   }}
                                   className={`w-full text-right px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all cursor-pointer ${
                                     isActive
@@ -759,7 +754,6 @@ export const HeaderBar: React.FC = React.memo(() => {
                       <button
                         type="button"
                         onClick={() => {
-                          setIsDrawerOpen(false);
                           setActiveModal('thesis_affairs');
                         }}
                         className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
@@ -785,7 +779,6 @@ export const HeaderBar: React.FC = React.memo(() => {
                       <button
                         type="button"
                         onClick={() => {
-                          setIsDrawerOpen(false);
                           setActiveModal('admin_users');
                         }}
                         className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
@@ -811,7 +804,6 @@ export const HeaderBar: React.FC = React.memo(() => {
                       <button
                         type="button"
                         onClick={() => {
-                          setIsDrawerOpen(false);
                           setActiveModal('settings');
                         }}
                         className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
@@ -837,7 +829,6 @@ export const HeaderBar: React.FC = React.memo(() => {
                       <button
                         type="button"
                         onClick={() => {
-                          setIsDrawerOpen(false);
                           setActiveModal('chat');
                         }}
                         className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
@@ -865,8 +856,7 @@ export const HeaderBar: React.FC = React.memo(() => {
                       {isLoggedIn && (
                         <button
                           onClick={() => {
-                            setIsDrawerOpen(false);
-                            setActiveModal('profile');
+                                                        setActiveModal('profile');
                           }}
                           className={`w-full flex items-center justify-between p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm text-right ${
                             activeModal === 'profile'
@@ -894,7 +884,6 @@ export const HeaderBar: React.FC = React.memo(() => {
 
                       <button
                         onClick={() => {
-                          setIsDrawerOpen(false);
                           setActiveModal('analytics');
                         }}
                         className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
@@ -918,7 +907,6 @@ export const HeaderBar: React.FC = React.memo(() => {
 
                       <button
                         onClick={() => {
-                          setIsDrawerOpen(false);
                           setActiveModal('analytics');
                         }}
                         className="w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[var(--menu-item-bg)] hover:bg-[var(--menu-hover-bg)] border border-[var(--menu-border)] hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all text-xs sm:text-sm font-bold text-[var(--menu-text)] text-right cursor-pointer group shadow-sm"
@@ -934,7 +922,6 @@ export const HeaderBar: React.FC = React.memo(() => {
 
                       <button
                         onClick={() => {
-                          setIsDrawerOpen(false);
                           setActiveModal('settings');
                         }}
                         className={`w-full flex items-center gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all text-xs sm:text-sm font-bold text-right cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm ${
@@ -957,11 +944,10 @@ export const HeaderBar: React.FC = React.memo(() => {
                       </button>
                     </>
                   )}
-                </div>
               </div>
 
-              {/* Drawer Footer */}
-              <div className="pt-3 sm:pt-4 border-t border-[var(--menu-border)] text-center text-[11px] sm:text-xs text-[var(--menu-sub-text)]">
+              {/* Fixed Drawer Footer */}
+              <div className="shrink-0 px-[12px] pt-3 pb-[calc(12px+env(safe-area-inset-bottom,0px))] sm:px-6 sm:pt-4 sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] border-t border-[var(--menu-border)] text-center text-[11px] sm:text-xs text-[var(--menu-sub-text)]">
                 <p className="font-semibold text-[var(--menu-text)]">{instituteName}</p>
                 <p className="mt-1 text-[11px] text-[var(--menu-sub-text)]">سامانه مدیریت دانشجویی - نسخه v2.0</p>
               </div>

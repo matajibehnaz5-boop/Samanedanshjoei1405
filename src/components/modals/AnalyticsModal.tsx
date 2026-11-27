@@ -10,15 +10,26 @@ export const AnalyticsModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[var(--backdrop)] backdrop-blur-sm">
+      <div
+        dir="rtl"
+        data-modal-backdrop
+        onClick={(e) => {
+          if (e.target === e.currentTarget) closeModal();
+        }}
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-2 sm:p-4 bg-[var(--backdrop)] backdrop-blur-sm"
+      >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          data-modal-panel
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
-          className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-strong)] rounded-[28px] p-6 shadow-2xl text-[var(--text)] max-h-[85dvh] overflow-y-auto"
+          className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-strong)] rounded-[28px] shadow-2xl text-[var(--text)] flex flex-col max-h-[calc(var(--vvh,100dvh)-16px)] max-w-[calc(100vw-16px)] overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-[var(--border)]">
+          <div className="flex items-center justify-between px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4 border-b border-[var(--border)] shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-[var(--dash-sky-bg)] text-[var(--dash-sky-text)] rounded-xl border border-[var(--dash-sky-border)]">
                 <BarChart3 className="w-6 h-6" />
@@ -29,15 +40,18 @@ export const AnalyticsModal: React.FC = () => {
               </div>
             </div>
             <button
+              type="button"
               onClick={closeModal}
+              aria-label="بستن"
               className="p-2 rounded-full hover:bg-[var(--surface-hover)] text-[var(--text-2)] hover:text-[var(--text)] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Stats Grid */}
-          <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-5 space-y-5">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-3">
             
             {/* Stat 1: GPA */}
             <div className="p-4 bg-[var(--surface-item)] rounded-2xl border border-[var(--border)] flex flex-col gap-1">
@@ -116,10 +130,12 @@ export const AnalyticsModal: React.FC = () => {
                 در حال ارزیابی
               </span>
             </div>
+            </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-[var(--border)] flex justify-end">
+          <div className="px-4 pb-4 pt-3 sm:px-6 sm:pb-6 sm:pt-4 border-t border-[var(--border)] flex justify-end shrink-0">
             <button
+              type="button"
               onClick={closeModal}
               className="px-5 py-2.5 bg-[var(--surface-2)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-strong)] rounded-xl text-sm font-bold transition-colors cursor-pointer"
             >

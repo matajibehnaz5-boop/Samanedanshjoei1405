@@ -1,3 +1,5 @@
+export type ActiveLayer = 'none' | 'menu' | 'modal' | 'chat';
+
 export type ActiveModal = 
   | null 
   | 'sparkles' 
@@ -129,6 +131,13 @@ export interface DashboardContextType {
   activeModal: ActiveModal;
   setActiveModal: (modal: ActiveModal) => void;
   closeModal: () => void;
+  activeLayer: ActiveLayer;
+  openMenu: () => void;
+  closeMenu: () => void;
+  openChat: () => void;
+  closeChat: () => void;
+  closeActiveLayer: () => void;
+  isKeyboardOpen: boolean;
   notificationCount: number;
   chatCount: number;
   notifications: NotificationItem[];

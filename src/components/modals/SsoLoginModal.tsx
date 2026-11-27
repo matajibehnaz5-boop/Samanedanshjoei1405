@@ -72,16 +72,24 @@ export const SsoLoginModal: React.FC = () => {
     <AnimatePresence>
       <div
         dir="rtl"
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[var(--backdrop)] backdrop-blur-md"
+        data-modal-backdrop
+        onClick={(e) => {
+          if (e.target === e.currentTarget) closeModal();
+        }}
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-2 sm:p-4 bg-[var(--backdrop)] backdrop-blur-md"
       >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          data-modal-panel
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 50 }}
-          className="w-full max-w-lg bg-[var(--surface-card)] border border-[var(--border)] rounded-xl sm:rounded-[30px] p-[14px] sm:p-6 shadow-2xl text-[var(--text)] max-h-[85dvh] overflow-y-auto overflow-x-hidden"
+          className="w-full max-w-lg bg-[var(--surface-card)] border border-[var(--border)] rounded-xl sm:rounded-[30px] shadow-2xl text-[var(--text)] flex flex-col max-h-[calc(var(--vvh,100dvh)-16px)] max-w-[calc(100vw-16px)] overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between gap-2 pb-3 sm:pb-4 border-b border-[var(--border)]">
+          <div className="flex items-center justify-between gap-2 px-[14px] pt-[14px] pb-3 sm:px-6 sm:pt-6 sm:pb-4 border-b border-[var(--border)] shrink-0">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
               <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--surface-2)] rounded-xl sm:rounded-2xl border border-[var(--border)] flex items-center justify-center shrink-0">
                 <ShieldCheck className="w-5 h-5 stroke-[2] icon-white-glow" />
@@ -106,7 +114,7 @@ export const SsoLoginModal: React.FC = () => {
           {step === 'idp' ? (
             <>
               {/* Step 1: Single IdP Selection */}
-              <div className="mt-3 sm:mt-5 space-y-2 sm:space-y-3">
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-[14px] py-3 sm:px-6 sm:py-5 space-y-2 sm:space-y-3">
                 <p className="text-[11px] sm:text-xs font-bold text-[var(--text-2)] uppercase tracking-wider">
                   سرویس‌دهنده هویت یکپارچه را انتخاب کنید:
                 </p>
@@ -131,7 +139,6 @@ export const SsoLoginModal: React.FC = () => {
                     className="w-4 h-4 accent-[#35D07F] shrink-0"
                   />
                 </label>
-              </div>
 
               {/* User Account Profile Preview (Only if profile exists) */}
               {studentProfile.name ? (
@@ -144,8 +151,10 @@ export const SsoLoginModal: React.FC = () => {
                 </div>
               ) : null}
 
+              </div>
+
               {/* Continue Action Button */}
-              <div className="mt-5 sm:mt-6 pt-3 sm:pt-4 border-t border-[var(--border)] flex items-center justify-between gap-2.5 sm:gap-3">
+              <div className="px-[14px] pb-[14px] pt-3 sm:px-6 sm:pb-6 sm:pt-4 border-t border-[var(--border)] flex items-center justify-between gap-2.5 sm:gap-3 shrink-0">
                 <button
                   type="button"
                   onClick={closeModal}
@@ -167,7 +176,8 @@ export const SsoLoginModal: React.FC = () => {
             </>
           ) : (
             /* Step 2: Student Username & Password Form (Always empty by default) */
-            <form onSubmit={handleSubmitCredentials} autoComplete="off" className="mt-4 sm:mt-5 space-y-3 sm:space-y-4">
+            <form onSubmit={handleSubmitCredentials} autoComplete="off" className="flex-1 min-h-0 flex flex-col overflow-hidden">
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-[14px] py-4 sm:px-6 sm:py-5 space-y-3 sm:space-y-4">
               {errorMsg && (
                 <div className="p-2.5 sm:p-3 rounded-xl bg-[var(--status-red-bg)] border border-[var(--status-red-border)] text-[var(--status-red-text)] text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-[var(--status-red-text)] shrink-0" />
@@ -219,7 +229,9 @@ export const SsoLoginModal: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-5 pt-3 sm:pt-4 border-t border-[var(--border)] flex items-center justify-between gap-2.5 sm:gap-3">
+              </div>
+
+              <div className="px-[14px] pb-[14px] pt-3 sm:px-6 sm:pb-6 sm:pt-4 border-t border-[var(--border)] flex items-center justify-between gap-2.5 sm:gap-3 shrink-0">
                 <button
                   type="button"
                   onClick={() => {

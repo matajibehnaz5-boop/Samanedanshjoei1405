@@ -244,14 +244,22 @@ export const AdminCartableModal: React.FC = () => {
     <AnimatePresence>
       <div
         dir="rtl"
-        className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 pb-[10vh] sm:pb-[6vh] bg-[var(--backdrop)] backdrop-blur-sm"
+        data-modal-backdrop
+        onClick={(e) => {
+          if (e.target === e.currentTarget) closeModal();
+        }}
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-2 sm:p-4 bg-[var(--backdrop)] backdrop-blur-sm"
       >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          data-modal-panel
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, y: 40, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 40, scale: 0.97 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="w-full max-w-4xl bg-[var(--surface)] border border-[var(--border-strong)] rounded-[24px] sm:rounded-[28px] shadow-2xl text-[var(--text)] flex flex-col max-h-[86dvh] overflow-hidden"
+          className="w-full max-w-4xl bg-[var(--surface)] border border-[var(--border-strong)] rounded-[24px] sm:rounded-[28px] shadow-2xl text-[var(--text)] flex flex-col max-h-[calc(var(--vvh,100dvh)-16px)] max-w-[calc(100vw-16px)] overflow-hidden"
         >
           {/* Header */}
           <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-[var(--border)] bg-[var(--surface-header)] flex items-center justify-between gap-3 shrink-0">

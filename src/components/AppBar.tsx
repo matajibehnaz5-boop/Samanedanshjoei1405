@@ -7,7 +7,7 @@ export const AppBar: React.FC = React.memo(() => {
   const { showToast } = useToastActions();
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-[var(--bg)] border-b border-[var(--border)] px-4 py-2.5 shadow-md">
+    <header className="sticky top-0 z-[var(--z-header)] w-full bg-[var(--bg)] border-b border-[var(--border)] px-4 py-2.5 shadow-md">
       <div className="max-w-md mx-auto flex items-center justify-between">
         
         {/* Left Side: Close (X) Icon */}

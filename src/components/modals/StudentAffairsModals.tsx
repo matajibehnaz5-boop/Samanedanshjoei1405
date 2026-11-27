@@ -434,16 +434,24 @@ export const StudentAffairsModals: React.FC = () => {
     <AnimatePresence>
       <div
         dir="rtl"
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-slate-950/80 backdrop-blur-sm"
+        data-modal-backdrop
+        onClick={(e) => {
+          if (e.target === e.currentTarget) closeModal();
+        }}
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm"
       >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          data-modal-panel
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
-          className="w-full max-w-2xl bg-[#1E293B] border border-slate-700/80 rounded-xl sm:rounded-[28px] p-[12px] sm:p-6 shadow-2xl text-slate-100 max-h-[85dvh] overflow-y-auto overflow-x-hidden"
+          className="w-full max-w-2xl bg-[#1E293B] border border-slate-700/80 rounded-xl sm:rounded-[28px] shadow-2xl text-slate-100 flex flex-col max-h-[calc(var(--vvh,100dvh)-16px)] max-w-[calc(100vw-16px)] overflow-hidden"
         >
           {/* Modal Header */}
-          <div className="flex items-center justify-between gap-2 pb-3 sm:pb-4 border-b border-slate-700/60">
+          <div className="flex items-center justify-between gap-2 px-[12px] pt-[12px] pb-3 sm:px-6 sm:pt-6 sm:pb-4 border-b border-slate-700/60 shrink-0">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
               <div className="p-2 sm:p-2.5 bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/30 shrink-0">
                 {headerConfig.icon}
@@ -464,6 +472,7 @@ export const StudentAffairsModals: React.FC = () => {
             </button>
           </div>
 
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-[12px] pb-[12px] sm:px-6 sm:pb-6">
           {/* 1) BULK REGISTER MODAL */}
           {activeModal === 'student_bulk_register' && (
             <div className="mt-3 sm:mt-5 space-y-3.5 sm:space-y-5 min-w-0">
@@ -964,6 +973,7 @@ export const StudentAffairsModals: React.FC = () => {
               )}
             </div>
           )}
+          </div>
         </motion.div>
       </div>
     </AnimatePresence>

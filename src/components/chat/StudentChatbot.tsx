@@ -8,12 +8,9 @@ import {
   Trash2, 
   User, 
   Loader2, 
-  MessageSquare,
-  HelpCircle,
-  RefreshCw,
-  ChevronDown
+  HelpCircle 
 } from 'lucide-react';
-import { useI18n } from '../../context/DashboardContext';
+import { useI18n, useLayerActions, useLayerState, useViewport } from '../../context/DashboardContext';
 
 export interface ChatMessage {
   id: string;
@@ -24,9 +21,12 @@ export interface ChatMessage {
 
 export const StudentChatbot: React.FC = React.memo(() => {
   const { language, t } = useI18n();
+  const { activeLayer } = useLayerState();
+  const { openChat, closeChat } = useLayerActions();
+  const { isKeyboardOpen } = useViewport();
   const isFa = language === 'fa';
 
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const isOpen = activeLayer === 'chat';
   const [inputMessage, setInputMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
@@ -38,20 +38,27 @@ export const StudentChatbot: React.FC = React.memo(() => {
     }
   ]);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll to bottom on new message
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // Auto-scroll only the messages container to bottom on new message, open, or keyboard toggle
+  const scrollToBottom = useCallback((smooth = true) => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    requestAnimationFrame(() => {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto',
+      });
+    });
   }, []);
 
   useEffect(() => {
     if (isOpen) {
-      scrollToBottom();
+      scrollToBottom(messages.length > 1);
       setTimeout(() => inputRef.current?.focus(), 150);
     }
-  }, [isOpen, messages, scrollToBottom]);
+  }, [isOpen, messages.length, isLoading, isKeyboardOpen, scrollToBottom]);
 
   // Suggested questions
   const SUGGESTED_QUESTIONS = [
@@ -75,9 +82,9 @@ export const StudentChatbot: React.FC = React.memo(() => {
     setMessages(prev => [...prev, userMsg]);
     setInputMessage('');
     setIsLoading(true);
+    scrollToBottom();
 
     try {
-      // Build conversation history for API (excluding initial welcome greeting)
       const apiMessages = [...messages.filter(m => m.id !== 'welcome_1'), userMsg].map(m => ({
         role: m.role,
         text: m.text
@@ -103,6 +110,7 @@ export const StudentChatbot: React.FC = React.memo(() => {
           timestamp: new Date().toLocaleTimeString(isFa ? 'fa-IR' : 'en-US', { hour: '2-digit', minute: '2-digit' })
         };
         setMessages(prev => [...prev, errorMsg]);
+        scrollToBottom();
         return;
       }
 
@@ -116,6 +124,7 @@ export const StudentChatbot: React.FC = React.memo(() => {
       };
 
       setMessages(prev => [...prev, botMsg]);
+      scrollToBottom();
     } catch (err) {
       console.error('Failed to communicate with Gemini chatbot:', err);
       const errorMsg: ChatMessage = {
@@ -125,6 +134,7 @@ export const StudentChatbot: React.FC = React.memo(() => {
         timestamp: new Date().toLocaleTimeString(isFa ? 'fa-IR' : 'en-US', { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, errorMsg]);
+      scrollToBottom();
     } finally {
       setIsLoading(false);
     }
@@ -141,11 +151,9 @@ export const StudentChatbot: React.FC = React.memo(() => {
     ]);
   };
 
-  // Simple renderer for formatting basic markdown/bold/lists
   const renderFormattedText = (text: string) => {
     const lines = text.split('\n');
     return lines.map((line, idx) => {
-      // Bold text replacements
       const parts = line.split(/(\*\*.*?\*\*)/g);
       const renderedParts = parts.map((part, pIdx) => {
         if (part.startsWith('**') && part.endsWith('**')) {
@@ -174,198 +182,219 @@ export const StudentChatbot: React.FC = React.memo(() => {
 
   return (
     <>
-      {/* FLOATING ACTION BUTTON (FAB) */}
-      <div 
-        className={`fixed z-40 bottom-3 sm:bottom-6 ${isFa ? 'left-3 sm:left-6' : 'right-3 sm:right-6'} will-change-transform [transform:translateZ(0)] [contain:layout_style]`}
-        dir={isFa ? 'rtl' : 'ltr'}
-      >
-        <motion.button
-          onClick={() => setIsOpen(!isOpen)}
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.95 }}
-          className="relative w-[44px] h-[44px] sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 shadow-2xl shadow-amber-500/40 border-2 border-amber-300/40 flex items-center justify-center cursor-pointer transition-all group"
-          aria-label={t('chatbotTitle')}
+      {/* FLOATING ACTION BUTTON (FAB) - shown only when no layer is open and keyboard is closed */}
+      {activeLayer === 'none' && !isKeyboardOpen && (
+        <div 
+          className={`fixed z-[var(--z-fab)] bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] ${isFa ? 'left-3 sm:left-6' : 'right-3 sm:right-6'} will-change-transform [transform:translateZ(0)]`}
+          dir={isFa ? 'rtl' : 'ltr'}
         >
-          {/* Animated Glow Halo */}
-          <span className="absolute -inset-0.5 sm:-inset-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 opacity-40 blur-md group-hover:opacity-75 transition-opacity" />
+          <motion.button
+            onClick={openChat}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative w-[44px] h-[44px] sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 shadow-2xl shadow-amber-500/40 border-2 border-amber-300/40 flex items-center justify-center cursor-pointer transition-all group"
+            aria-label={t('chatbotTitle')}
+          >
+            <span className="absolute -inset-0.5 sm:-inset-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 opacity-40 blur-md group-hover:opacity-75 transition-opacity" />
+            <div className="relative z-10 flex items-center justify-center">
+              <Bot className="w-[18px] h-[18px] sm:w-6 sm:h-6 text-slate-950" />
+              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 rounded-full bg-emerald-400 border-2 border-[#101726] animate-pulse" />
+            </div>
+          </motion.button>
+        </div>
+      )}
 
-          <div className="relative z-10 flex items-center justify-center">
-            {isOpen ? (
-              <X className="w-[18px] h-[18px] sm:w-6 sm:h-6 text-slate-950" />
-            ) : (
-              <>
-                <Bot className="w-[18px] h-[18px] sm:w-6 sm:h-6 text-slate-950" />
-                <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 rounded-full bg-emerald-400 border-2 border-[#101726] animate-pulse" />
-              </>
-            )}
-          </div>
-        </motion.button>
-      </div>
-
-      {/* FLOATING CHAT WINDOW */}
+      {/* FLOATING CHAT WINDOW + BACKDROP OVERLAY */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            className={`fixed z-50 bottom-16 sm:bottom-24 ${
-              isFa ? 'left-2.5 sm:left-6' : 'right-2.5 sm:right-6'
-            } w-[calc(100vw-1.25rem)] sm:w-[380px] max-w-full h-[460px] sm:h-[540px] max-h-[82dvh] bg-[var(--chat-window-bg)] border border-[var(--chat-window-border)] rounded-xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col text-[var(--text)] font-['Vazirmatn',sans-serif]`}
-            dir={isFa ? 'rtl' : 'ltr'}
-          >
-            {/* Top Decorative Bar */}
-            <div className="h-1 bg-[image:var(--chat-topbar-bg)] w-full shrink-0" />
+          <>
+            {/* Independent Backdrop Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={closeChat}
+              className="fixed inset-x-0 top-[var(--vv-top,0px)] h-[var(--vvh,100dvh)] z-[var(--z-chat)] bg-[var(--backdrop)] backdrop-blur-sm"
+            />
 
-            {/* CHAT HEADER */}
-            <div className="p-2.5 sm:p-4 bg-[var(--surface-chat-header)] border-b border-[var(--border)] flex items-center justify-between gap-2 sm:gap-3 shrink-0">
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[var(--status-amber-bg)] border border-[var(--status-amber-border)] flex items-center justify-center text-[var(--status-amber-text)] shrink-0 shadow-inner">
-                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-[14px] sm:text-sm font-bold text-[var(--text)] flex items-center gap-1.5 truncate">
-                    <span className="truncate">{t('chatbotTitle')}</span>
-                    <span className="px-1.5 py-0.5 rounded-md bg-[var(--status-amber-bg)] text-[var(--status-amber-text)] text-[10px] font-mono border border-[var(--status-amber-border)] shrink-0">
-                      Gemini AI
-                    </span>
-                  </h3>
-                  <p className="text-[11px] text-[var(--text-2)] truncate">{t('chatbotSubtitle')}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  onClick={handleClearHistory}
-                  className="min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center p-1.5 sm:p-2 rounded-xl text-[var(--text-muted)] hover:text-rose-400 hover:bg-white/5 transition-colors cursor-pointer"
-                  title={t('chatbotClearHistory')}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center p-1.5 sm:p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-white/5 transition-colors cursor-pointer"
-                  title={t('close')}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* CHAT THREAD MESSAGES */}
-            <div className="flex-1 p-2.5 sm:p-4 overflow-y-auto space-y-2.5 sm:space-y-4 custom-scrollbar bg-[var(--chat-window-bg)]">
-              {messages.map((msg) => {
-                const isUser = msg.role === 'user';
-
-                return (
-                  <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`flex items-start gap-2.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
-                  >
-                    {/* Avatar */}
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${
-                      isUser
-                        ? 'bg-[var(--status-info-bg)] border-[var(--status-info-border)] text-[var(--accent)]'
-                        : 'bg-[var(--chat-bot-bg)] border-[var(--chat-bot-border)] text-amber-400'
-                    }`}>
-                      {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                    </div>
-
-                    {/* Bubble */}
-                    <div className={`max-w-[80%] rounded-2xl p-3 text-xs leading-relaxed ${
-                      isUser
-                        ? 'chat-user-bubble bg-[image:var(--chat-user-bg)] border border-[var(--chat-user-border)] text-[var(--chat-user-text)] rounded-tr-none'
-                        : 'bg-[var(--chat-bot-bg)] border border-[var(--chat-bot-border)] text-[var(--chat-bot-text)] rounded-tl-none shadow-md'
-                    }`}>
-                      <div className="whitespace-pre-wrap">
-                        {renderFormattedText(msg.text)}
-                      </div>
-
-                      <div className={`text-[10px] opacity-75 mt-1.5 flex items-center ${isUser ? 'justify-start' : 'justify-end'}`}>
-                        <span>{msg.timestamp}</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-
-              {/* Typing Indicator */}
-              {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-start gap-2.5"
-                >
-                  <div className="w-8 h-8 rounded-xl bg-[var(--chat-bot-bg)] border border-[var(--chat-bot-border)] flex items-center justify-center text-amber-400 shrink-0">
-                    <Bot className="w-4 h-4 animate-spin" />
-                  </div>
-
-                  <div className="bg-[var(--chat-bot-bg)] border border-[var(--chat-bot-border)] rounded-2xl rounded-tl-none p-3 text-xs text-amber-300 flex items-center gap-2">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
-                    <span>{t('chatbotThinking')}</span>
-                  </div>
-                </motion.div>
-              )}
-
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* SUGGESTED QUESTIONS PILLS */}
-            {messages.length <= 3 && !isLoading && (
-              <div className="p-2.5 bg-[var(--surface-chat-header)] border-t border-[var(--border)] space-y-1.5 shrink-0">
-                <div className="text-[10px] font-bold text-amber-400 flex items-center gap-1">
-                  <HelpCircle className="w-3 h-3" />
-                  <span>{t('chatbotQuickQuestions')}</span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {SUGGESTED_QUESTIONS.map((q, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSendMessage(q)}
-                      className="px-2.5 py-1 rounded-lg bg-[var(--chat-bot-bg)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[11px] text-[var(--text-2)] hover:text-[var(--text)] transition-all cursor-pointer text-start truncate max-w-full"
-                    >
-                      {q}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* CHAT INPUT AREA */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSendMessage();
-              }}
-              className="p-2 sm:p-3 bg-[var(--surface-chat-header)] border-t border-[var(--border)] flex items-center gap-2 shrink-0"
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label={t('chatbotTitle')}
+              data-chatbot-window
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              onClick={(e) => e.stopPropagation()}
+              className={`fixed z-[var(--z-chat)] inset-x-[8px] sm:inset-x-auto ${
+                isFa ? 'sm:left-6' : 'sm:right-6'
+              } w-auto sm:w-[380px] max-w-[calc(100vw-16px)] bg-[var(--chat-window-bg)] border border-[var(--chat-window-border)] rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col text-[var(--text)] font-['Vazirmatn',sans-serif]`}
+              dir={isFa ? 'rtl' : 'ltr'}
             >
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder={t('chatbotInputPlaceholder')}
-                disabled={isLoading}
-                className="flex-1 h-[36px] sm:h-auto bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2.5 text-sm sm:text-xs text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--accent)] transition-colors min-w-0"
-              />
+              {/* Top Decorative Bar */}
+              <div className="h-[3px] bg-[image:var(--chat-topbar-bg)] w-full shrink-0" />
 
-              <button
-                type="submit"
-                disabled={!inputMessage.trim() || isLoading}
-                className={`w-[36px] h-[36px] sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-bold transition-all shrink-0 cursor-pointer ${
-                  inputMessage.trim() && !isLoading
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:scale-105 active:scale-95 shadow-md shadow-amber-500/20'
-                    : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
+              {/* CHAT HEADER (fixed compact ~56px) */}
+              <div className="h-[53px] min-h-[53px] px-2.5 sm:px-3.5 bg-[var(--surface-chat-header)] border-b border-[var(--border)] flex items-center justify-between gap-2 shrink-0">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[var(--status-amber-bg)] border border-[var(--status-amber-border)] flex items-center justify-center text-[var(--status-amber-text)] shrink-0 shadow-inner">
+                    <Sparkles className="w-4 h-4 animate-pulse" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-xs sm:text-sm font-bold text-[var(--text)] flex items-center gap-1.5 truncate leading-tight">
+                      <span className="truncate">{t('chatbotTitle')}</span>
+                      <span className="px-1.5 py-0.2 rounded bg-[var(--status-amber-bg)] text-[var(--status-amber-text)] text-[9px] font-mono border border-[var(--status-amber-border)] shrink-0">
+                        Gemini
+                      </span>
+                    </h3>
+                    <p className="text-[10px] text-[var(--text-2)] truncate leading-tight mt-0.5">{t('chatbotSubtitle')}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleClearHistory}
+                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-rose-400 hover:bg-white/5 transition-colors cursor-pointer"
+                    title={t('chatbotClearHistory')}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={closeChat}
+                    aria-label="بستن"
+                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-white/5 transition-colors cursor-pointer"
+                    title={t('close')}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* CHAT THREAD MESSAGES (flex: 1, min-height: 0, overflow-y: auto) */}
+              <div
+                ref={messagesContainerRef}
+                data-chatbot-messages
+                className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-2.5 sm:p-3 space-y-2 custom-scrollbar bg-[var(--chat-window-bg)] ${
+                  !isKeyboardOpen ? 'min-h-[140px]' : ''
                 }`}
               >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              </button>
-            </form>
-          </motion.div>
+                {messages.map((msg) => {
+                  const isUser = msg.role === 'user';
+
+                  return (
+                    <motion.div
+                      key={msg.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`flex items-start gap-2 min-w-0 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
+                    >
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
+                        isUser
+                          ? 'bg-[var(--status-info-bg)] border-[var(--status-info-border)] text-[var(--accent)]'
+                          : 'bg-[var(--chat-bot-bg)] border-[var(--chat-bot-border)] text-amber-400'
+                      }`}>
+                        {isUser ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
+                      </div>
+
+                      <div className={`max-w-[82%] min-w-0 rounded-xl p-2 sm:p-2.5 text-xs leading-relaxed break-words [overflow-wrap:anywhere] ${
+                        isUser
+                          ? 'chat-user-bubble bg-[image:var(--chat-user-bg)] border border-[var(--chat-user-border)] text-[var(--chat-user-text)] rounded-tr-none'
+                          : 'bg-[var(--chat-bot-bg)] border border-[var(--chat-bot-border)] text-[var(--chat-bot-text)] rounded-tl-none shadow-sm'
+                      }`}>
+                        <div className="whitespace-pre-wrap">
+                          {renderFormattedText(msg.text)}
+                        </div>
+
+                        <div className={`text-[9px] opacity-75 mt-1 flex items-center ${isUser ? 'justify-start' : 'justify-end'}`}>
+                          <span>{msg.timestamp}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+
+                {isLoading && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-start gap-2"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-[var(--chat-bot-bg)] border border-[var(--chat-bot-border)] flex items-center justify-center text-amber-400 shrink-0">
+                      <Bot className="w-3.5 h-3.5 animate-spin" />
+                    </div>
+
+                    <div className="bg-[var(--chat-bot-bg)] border border-[var(--chat-bot-border)] rounded-xl rounded-tl-none p-2 text-xs text-amber-300 flex items-center gap-1.5">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                      <span>{t('chatbotThinking')}</span>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* SUGGESTED QUESTIONS PILLS - single compact horizontal row, hidden when keyboard is open */}
+              {messages.length <= 3 && !isLoading && !isKeyboardOpen && (
+                <div
+                  data-chatbot-suggestions
+                  aria-label={t('chatbotQuickQuestions')}
+                  className="px-2 py-1.5 bg-[var(--surface-chat-header)] border-t border-[var(--border)] shrink-0"
+                >
+                  <div className="flex items-center overflow-x-auto gap-1.5 no-scrollbar whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400 shrink-0 pe-0.5">
+                      <HelpCircle className="w-3 h-3 shrink-0" />
+                    </span>
+                    {SUGGESTED_QUESTIONS.map((q, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        data-compact-chip
+                        onClick={() => handleSendMessage(q)}
+                        className="h-[26px] px-2.5 py-1 rounded-lg bg-[var(--chat-bot-bg)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[11px] leading-none text-[var(--text-2)] hover:text-[var(--text)] transition-all cursor-pointer shrink-0 flex items-center"
+                      >
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* CHAT INPUT AREA (fixed compact ~52px, flex-shrink: 0) */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendMessage();
+                }}
+                className="min-h-[52px] px-[8px] py-[7px] pb-[calc(7px+env(safe-area-inset-bottom,0px))] sm:px-2.5 sm:py-[7px] sm:pb-[calc(7px+env(safe-area-inset-bottom,0px))] bg-[var(--surface-chat-header)] border-t border-[var(--border)] flex items-center gap-2 shrink-0"
+              >
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder={t('chatbotInputPlaceholder')}
+                  disabled={isLoading}
+                  onFocus={() => setTimeout(() => scrollToBottom(false), 250)}
+                  className="flex-1 h-[38px] bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-3 py-1.5 text-xs sm:text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--accent)] transition-colors min-w-0"
+                />
+
+                <button
+                  type="submit"
+                  disabled={!inputMessage.trim() || isLoading}
+                  className={`w-[38px] h-[38px] rounded-xl flex items-center justify-center font-bold transition-all shrink-0 cursor-pointer ${
+                    inputMessage.trim() && !isLoading
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:scale-105 active:scale-95 shadow-md shadow-amber-500/20'
+                      : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
+                  }`}
+                >
+                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                </button>
+              </form>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>

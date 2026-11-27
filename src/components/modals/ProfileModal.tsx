@@ -47,15 +47,26 @@ export const ProfileModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[var(--backdrop)] backdrop-blur-sm">
+      <div
+        dir="rtl"
+        data-modal-backdrop
+        onClick={(e) => {
+          if (e.target === e.currentTarget) closeModal();
+        }}
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-2 sm:p-4 bg-[var(--backdrop)] backdrop-blur-sm"
+      >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          data-modal-panel
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
-          className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-strong)] rounded-[28px] p-6 shadow-2xl text-[var(--text)] max-h-[85dvh] overflow-y-auto"
+          className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-strong)] rounded-[28px] shadow-2xl text-[var(--text)] flex flex-col max-h-[calc(var(--vvh,100dvh)-16px)] max-w-[calc(100vw-16px)] overflow-hidden"
         >
           {/* Modal Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-[var(--border)]">
+          <div className="flex items-center justify-between px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4 border-b border-[var(--border)] shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-[var(--accent-soft-bg)] text-[var(--accent-soft-text)] rounded-xl border border-[var(--accent-soft-border)]">
                 <User className="w-6 h-6" />
@@ -66,15 +77,20 @@ export const ProfileModal: React.FC = () => {
               </div>
             </div>
             <button
+              type="button"
               onClick={closeModal}
+              aria-label="بستن"
               className="p-2 rounded-full hover:bg-[var(--surface-hover)] text-[var(--text-2)] hover:text-[var(--text)] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Profile Summary Card */}
-          <div className="mt-5 p-4 bg-[var(--surface-item)] rounded-2xl border border-[var(--border)] flex items-center gap-4">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-5 space-y-4">
+              {/* Profile Summary Card */}
+              <div className="p-4 bg-[var(--surface-item)] rounded-2xl border border-[var(--border)] flex items-center gap-4">
             <UserAvatar size="lg" allowUpload={true} name={name} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -94,11 +110,8 @@ export const ProfileModal: React.FC = () => {
               <p className="text-xs text-[var(--text-2)] mt-0.5 truncate">
                 {field} • شماره دانشجویی: {studentId}
               </p>
+              </div>
             </div>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="mt-5 space-y-4">
             {/* Field 1: Name */}
             <div>
               <label className="text-xs font-semibold text-[var(--text-strong)] block mb-1.5">
@@ -188,8 +201,10 @@ export const ProfileModal: React.FC = () => {
               </div>
             </div>
 
+            </div>
+
             {/* Action Buttons */}
-            <div className="pt-4 border-t border-[var(--border)] flex items-center justify-between gap-3">
+            <div className="px-4 pb-4 pt-3 sm:px-6 sm:pb-6 sm:pt-4 border-t border-[var(--border)] flex items-center justify-between gap-3 shrink-0">
               <button
                 type="button"
                 onClick={closeModal}

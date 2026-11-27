@@ -26,15 +26,26 @@ export const TopMenuModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[var(--backdrop)] backdrop-blur-sm">
+      <div
+        dir="rtl"
+        data-modal-backdrop
+        onClick={(e) => {
+          if (e.target === e.currentTarget) closeModal();
+        }}
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-2 sm:p-4 bg-[var(--backdrop)] backdrop-blur-sm"
+      >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          data-modal-panel
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.95, y: -10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: -10 }}
-          className="w-full max-w-sm bg-[var(--menu-bg)] border border-[var(--menu-border)] rounded-2xl p-5 shadow-[var(--menu-shadow)] text-[var(--menu-text)] max-h-[85dvh] overflow-y-auto"
+          className="w-full max-w-sm bg-[var(--menu-bg)] border border-[var(--menu-border)] rounded-2xl shadow-[var(--menu-shadow)] text-[var(--menu-text)] flex flex-col max-h-[calc(var(--vvh,100dvh)-16px)] max-w-[calc(100vw-16px)] overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-[var(--menu-border)]">
+          <div className="flex items-center justify-between px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-3 border-b border-[var(--menu-border)] shrink-0">
             <h3 className="text-sm font-bold text-[var(--menu-text)] flex items-center gap-2">
               {activeModal === 'dropdown' ? (
                 <>
@@ -48,16 +59,19 @@ export const TopMenuModal: React.FC = () => {
               )}
             </h3>
             <button
+              type="button"
               onClick={closeModal}
+              aria-label="بستن"
               className="p-1.5 rounded-full hover:bg-[var(--menu-hover-bg)] text-[var(--menu-sub-text)] hover:text-[var(--menu-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Content for Dropdown Modal (Institute Switcher) */}
-          {activeModal === 'dropdown' && (
-            <div className="mt-3 space-y-2">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-3 sm:px-5 sm:py-4">
+            {/* Content for Dropdown Modal (Institute Switcher) */}
+            {activeModal === 'dropdown' && (
+              <div className="space-y-2">
               <p className="text-xs text-[var(--menu-sub-text)] mb-2">
                 موسسه یا دانشگاه مورد نظر را جهت مشاهده پرونده انتخاب کنید:
               </p>
@@ -82,9 +96,9 @@ export const TopMenuModal: React.FC = () => {
             </div>
           )}
 
-          {/* Content for Three-Dot Menu */}
-          {activeModal === 'three_dot' && (
-            <div className="mt-3 space-y-2">
+            {/* Content for Three-Dot Menu */}
+            {activeModal === 'three_dot' && (
+              <div className="space-y-2">
               
               {isLoggedIn ? (
                 <div className="p-3 bg-[var(--status-green-bg)] border border-[var(--status-green-border)] rounded-xl mb-3 flex items-center justify-between text-xs">
@@ -139,7 +153,8 @@ export const TopMenuModal: React.FC = () => {
                 <span>راهنما و پشتیبانی</span>
               </button>
             </div>
-          )}
+            )}
+          </div>
         </motion.div>
       </div>
     </AnimatePresence>

@@ -49,17 +49,22 @@ export const LoginHelpModals: React.FC = () => {
     <AnimatePresence>
       <div
         dir="rtl"
+        data-modal-backdrop
         onClick={(e) => {
           if (e.target === e.currentTarget) closeModal();
         }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[10vh] sm:pb-[6vh] bg-[var(--backdrop)] backdrop-blur-sm"
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-2 sm:p-4 bg-[var(--backdrop)] backdrop-blur-sm"
       >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          data-modal-panel
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, y: 36, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 36, scale: 0.97 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-strong)] rounded-[24px] sm:rounded-[28px] shadow-2xl text-[var(--text)] flex flex-col max-h-[85dvh] overflow-hidden"
+          className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-strong)] rounded-[24px] sm:rounded-[28px] shadow-2xl text-[var(--text)] flex flex-col max-h-[calc(var(--vvh,100dvh)-16px)] max-w-[calc(100vw-16px)] overflow-hidden"
         >
           {activeModal === 'forgot_password' ? (
             <>

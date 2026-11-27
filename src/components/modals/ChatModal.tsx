@@ -21,15 +21,26 @@ export const ChatModal: React.FC = React.memo(() => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[var(--backdrop)] backdrop-blur-sm">
+      <div
+        dir="rtl"
+        data-modal-backdrop
+        onClick={(e) => {
+          if (e.target === e.currentTarget) closeModal();
+        }}
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-2 sm:p-4 bg-[var(--backdrop)] backdrop-blur-sm"
+      >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          data-modal-panel
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
-          className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-strong)] rounded-[28px] p-6 shadow-2xl text-[var(--text)] max-h-[85dvh] overflow-y-auto flex flex-col"
+          className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-strong)] rounded-[28px] shadow-2xl text-[var(--text)] flex flex-col max-h-[calc(var(--vvh,100dvh)-16px)] max-w-[calc(100vw-16px)] overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-[var(--border)] shrink-0">
+          <div className="flex items-center justify-between px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4 border-b border-[var(--border)] shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-[var(--surface-2)] text-[var(--text-strong)] rounded-xl border border-[var(--border)]">
                 <MessageSquare className="w-6 h-6" />
@@ -40,7 +51,9 @@ export const ChatModal: React.FC = React.memo(() => {
               </div>
             </div>
             <button
+              type="button"
               onClick={closeModal}
+              aria-label="بستن"
               className="p-2 rounded-full hover:bg-[var(--surface-hover)] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
@@ -48,7 +61,7 @@ export const ChatModal: React.FC = React.memo(() => {
           </div>
 
           {/* Messages Stream */}
-          <div className="flex-1 my-4 space-y-3 overflow-y-auto max-h-[50vh] pr-1">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-4 space-y-3">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -90,7 +103,7 @@ export const ChatModal: React.FC = React.memo(() => {
           </div>
 
           {/* Send Input */}
-          <div className="pt-3 border-t border-[var(--border)] flex items-center gap-2 shrink-0">
+          <div className="px-4 pb-4 pt-3 sm:px-6 sm:pb-6 sm:pt-3 border-t border-[var(--border)] flex items-center gap-2 shrink-0">
             <input
               type="text"
               value={inputText}

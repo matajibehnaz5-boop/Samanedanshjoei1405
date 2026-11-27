@@ -164,20 +164,31 @@ export const StudentIdCardModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-black/75 backdrop-blur-md">
+      <div
+        dir={isFa ? 'rtl' : 'ltr'}
+        data-modal-backdrop
+        onClick={(e) => {
+          if (e.target === e.currentTarget) closeModal();
+        }}
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-2 sm:p-4 bg-black/75 backdrop-blur-md"
+      >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          data-modal-panel
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="relative w-full max-w-2xl bg-[#1A2332] border border-[#F59E0B]/30 rounded-3xl shadow-2xl max-h-[85dvh] overflow-y-auto flex flex-col text-white font-['Vazirmatn',sans-serif]"
+          className="relative w-full max-w-2xl bg-[#1A2332] border border-[#F59E0B]/30 rounded-3xl shadow-2xl max-h-[calc(var(--vvh,100dvh)-16px)] max-w-[calc(100vw-16px)] overflow-hidden flex flex-col text-white font-['Vazirmatn',sans-serif]"
           dir={isFa ? 'rtl' : 'ltr'}
         >
           {/* Top Decorative Amber Line */}
-          <div className="h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 w-full" />
+          <div className="h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 w-full shrink-0" />
 
           {/* Modal Header */}
-          <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between gap-3 bg-[#151D2A]">
+          <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between gap-3 bg-[#151D2A] shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-[#F59E0B]/20 border border-[#F59E0B]/40 flex items-center justify-center text-[#F59E0B]">
                 <CreditCard className="w-5 h-5" />
@@ -200,7 +211,7 @@ export const StudentIdCardModal: React.FC = () => {
           </div>
 
           {/* Modal Body */}
-          <div className="p-4 sm:p-6 space-y-6 max-h-[78vh] overflow-y-auto custom-scrollbar">
+          <div className="p-4 sm:p-6 space-y-6 flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar">
 
             {/* VIRTUAL STUDENT ID CARD DISPLAY */}
             <div className="relative bg-gradient-to-br from-[#202B3C] via-[#1A2332] to-[#121824] border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-xl overflow-hidden">
@@ -447,7 +458,7 @@ export const StudentIdCardModal: React.FC = () => {
           </div>
 
           {/* Modal Footer */}
-          <div className="p-3 sm:p-4 bg-[#151D2A] border-t border-white/10 flex items-center justify-end">
+          <div className="p-3 sm:p-4 bg-[#151D2A] border-t border-white/10 flex items-center justify-end shrink-0">
             <button
               onClick={closeModal}
               className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-colors cursor-pointer"

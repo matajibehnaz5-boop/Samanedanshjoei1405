@@ -75,7 +75,7 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
   };
 
   return (
-    <div className="min-h-screen bg-[image:var(--bg-page-dashboard)] text-[var(--text)] flex flex-col justify-between font-['Vazirmatn',sans-serif] selection:bg-[var(--accent)] selection:text-white relative overflow-hidden">
+    <div className="min-h-[var(--vvh,100dvh)] bg-[image:var(--bg-page-dashboard)] text-[var(--text)] flex flex-col justify-between font-['Vazirmatn',sans-serif] selection:bg-[var(--accent)] selection:text-white relative overflow-hidden">
       
       {/* Floating Animated Background Ambient Blobs (Identical to Login Page) */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 isolate [contain:strict] [transform:translateZ(0)]">
@@ -123,7 +123,7 @@ export const StudentDashboardPage: React.FC = React.memo(() => {
       />
 
       {/* Main Layout Container */}
-      <div className={`w-full mx-auto bg-[image:var(--bg-page-dashboard-overlay)] flex flex-col min-h-screen relative z-10 transition-all duration-300 ${
+      <div className={`w-full mx-auto bg-[image:var(--bg-page-dashboard-overlay)] flex flex-col min-h-[var(--vvh,100dvh)] relative z-10 transition-all duration-300 ${
         isCompactFrame ? 'max-w-[380px] border-x border-[var(--border)] shadow-2xl' : 'max-w-none'
       }`}>
 

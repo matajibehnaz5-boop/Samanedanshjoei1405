@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { ActiveModal, DashboardContextType, NotificationItem, ChatMessage, StudentProfile } from '../types';
+import { ActiveLayer, ActiveModal, DashboardContextType, NotificationItem, ChatMessage, StudentProfile } from '../types';
 import { api, type ApiUser, type ApiChatMessage } from '../lib/api';
 import { translations, Language } from '../lib/translations';
 import { SettingsProvider, useSettings } from './SettingsContext';
+import { useViewportHeight, type ViewportHeightState } from '../hooks/useViewportHeight';
 
 export { useSettings };
 
@@ -138,6 +139,18 @@ interface ModalStateContextType {
   activeModal: ActiveModal;
 }
 
+interface LayerStateContextType {
+  activeLayer: ActiveLayer;
+}
+
+interface LayerActionsContextType {
+  openMenu: () => void;
+  closeMenu: () => void;
+  openChat: () => void;
+  closeChat: () => void;
+  closeActiveLayer: () => void;
+}
+
 interface LayoutSettingsContextType {
   instituteName: string;
   setInstituteName: (name: string) => void;
@@ -181,6 +194,9 @@ const ToastActionsContext = createContext<ToastActionsContextType | undefined>(u
 const ToastStateContext = createContext<ToastStateContextType | undefined>(undefined);
 const ModalActionsContext = createContext<ModalActionsContextType | undefined>(undefined);
 const ModalStateContext = createContext<ModalStateContextType | undefined>(undefined);
+const LayerStateContext = createContext<LayerStateContextType | undefined>(undefined);
+const LayerActionsContext = createContext<LayerActionsContextType | undefined>(undefined);
+const ViewportContext = createContext<ViewportHeightState | undefined>(undefined);
 const LayoutSettingsContext = createContext<LayoutSettingsContextType | undefined>(undefined);
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
@@ -262,9 +278,16 @@ const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 };
 
 const ModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+  const viewport = useViewportHeight();
+  const [activeModal, setActiveModalState] = useState<ActiveModal>(null);
+  const [activeLayer, setActiveLayerState] = useState<ActiveLayer>('none');
   const { discardPreview } = useSettings();
   const prevModalRef = useRef<ActiveModal>(null);
+  const activeLayerRef = useRef<ActiveLayer>('none');
+  const hasHistoryEntryRef = useRef<boolean>(false);
+  const isClosingViaPopstateRef = useRef<boolean>(false);
+
+  activeLayerRef.current = activeLayer;
 
   useEffect(() => {
     if (prevModalRef.current === 'settings' && activeModal !== 'settings') {
@@ -273,15 +296,131 @@ const ModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     prevModalRef.current = activeModal;
   }, [activeModal, discardPreview]);
 
-  const closeModal = useCallback(() => setActiveModal(null), []);
+  const setActiveModal = useCallback((modal: ActiveModal) => {
+    if (modal === null) {
+      setActiveModalState(null);
+      setActiveLayerState((prev) => (prev === 'modal' ? 'none' : prev));
+    } else {
+      setActiveModalState(modal);
+      setActiveLayerState('modal');
+    }
+  }, []);
 
-  const actionsValue = useMemo(() => ({ setActiveModal, closeModal }), [closeModal]);
+  const closeModal = useCallback(() => {
+    setActiveModalState(null);
+    setActiveLayerState((prev) => (prev === 'modal' ? 'none' : prev));
+  }, []);
+
+  const openMenu = useCallback(() => {
+    setActiveModalState(null);
+    setActiveLayerState('menu');
+  }, []);
+
+  const closeMenu = useCallback(() => {
+    setActiveLayerState((prev) => (prev === 'menu' ? 'none' : prev));
+  }, []);
+
+  const openChat = useCallback(() => {
+    setActiveModalState(null);
+    setActiveLayerState('chat');
+  }, []);
+
+  const closeChat = useCallback(() => {
+    setActiveLayerState((prev) => (prev === 'chat' ? 'none' : prev));
+  }, []);
+
+  const closeActiveLayer = useCallback(() => {
+    setActiveModalState(null);
+    setActiveLayerState('none');
+  }, []);
+
+  // Lock page background scroll whenever any overlay layer is active
+  useEffect(() => {
+    if (activeLayer !== 'none') {
+      document.body.classList.add('layer-scroll-lock');
+      document.documentElement.classList.add('layer-scroll-lock');
+    } else {
+      document.body.classList.remove('layer-scroll-lock');
+      document.documentElement.classList.remove('layer-scroll-lock');
+    }
+    return () => {
+      document.body.classList.remove('layer-scroll-lock');
+      document.documentElement.classList.remove('layer-scroll-lock');
+    };
+  }, [activeLayer]);
+
+  // Browser Back button support for active layer (menu / modal / chat)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (activeLayer !== 'none') {
+      if (!hasHistoryEntryRef.current) {
+        try {
+          window.history.pushState({ activeLayerOverlay: true }, '');
+          hasHistoryEntryRef.current = true;
+        } catch {
+          // ignore sandbox history errors
+        }
+      }
+    } else {
+      if (hasHistoryEntryRef.current && !isClosingViaPopstateRef.current) {
+        hasHistoryEntryRef.current = false;
+        try {
+          window.history.back();
+        } catch {
+          // ignore
+        }
+      }
+      isClosingViaPopstateRef.current = false;
+    }
+  }, [activeLayer]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handlePopState = () => {
+      if (activeLayerRef.current !== 'none') {
+        isClosingViaPopstateRef.current = true;
+        hasHistoryEntryRef.current = false;
+        setActiveModalState(null);
+        setActiveLayerState('none');
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && activeLayerRef.current !== 'none') {
+        setActiveModalState(null);
+        setActiveLayerState('none');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  const actionsValue = useMemo(() => ({ setActiveModal, closeModal }), [setActiveModal, closeModal]);
   const stateValue = useMemo(() => ({ activeModal }), [activeModal]);
+  const layerStateValue = useMemo(() => ({ activeLayer }), [activeLayer]);
+  const layerActionsValue = useMemo(
+    () => ({ openMenu, closeMenu, openChat, closeChat, closeActiveLayer }),
+    [openMenu, closeMenu, openChat, closeChat, closeActiveLayer]
+  );
 
   return (
-    <ModalActionsContext.Provider value={actionsValue}>
-      <ModalStateContext.Provider value={stateValue}>{children}</ModalStateContext.Provider>
-    </ModalActionsContext.Provider>
+    <ViewportContext.Provider value={viewport}>
+      <LayerActionsContext.Provider value={layerActionsValue}>
+        <LayerStateContext.Provider value={layerStateValue}>
+          <ModalActionsContext.Provider value={actionsValue}>
+            <ModalStateContext.Provider value={stateValue}>{children}</ModalStateContext.Provider>
+          </ModalActionsContext.Provider>
+        </LayerStateContext.Provider>
+      </LayerActionsContext.Provider>
+    </ViewportContext.Provider>
   );
 };
 
@@ -1008,6 +1147,24 @@ export const useChat = () => {
   return ctx;
 };
 
+export const useLayerState = () => {
+  const ctx = useContext(LayerStateContext);
+  if (!ctx) throw new Error('useLayerState must be used within a DashboardProvider');
+  return ctx;
+};
+
+export const useLayerActions = () => {
+  const ctx = useContext(LayerActionsContext);
+  if (!ctx) throw new Error('useLayerActions must be used within a DashboardProvider');
+  return ctx;
+};
+
+export const useViewport = () => {
+  const ctx = useContext(ViewportContext);
+  if (!ctx) throw new Error('useViewport must be used within a DashboardProvider');
+  return ctx;
+};
+
 // --- Backward-Compatible Unified Hook ---
 export const useDashboard = (): DashboardContextType => {
   const i18n = useI18n();
@@ -1015,6 +1172,9 @@ export const useDashboard = (): DashboardContextType => {
   const toastState = useToastState();
   const modalActions = useModalActions();
   const modalState = useModalState();
+  const layerState = useLayerState();
+  const layerActions = useLayerActions();
+  const viewport = useViewport();
   const layout = useLayoutSettings();
   const auth = useAuth();
   const notif = useNotifications();
@@ -1026,6 +1186,13 @@ export const useDashboard = (): DashboardContextType => {
       activeModal: modalState.activeModal,
       setActiveModal: modalActions.setActiveModal,
       closeModal: modalActions.closeModal,
+      activeLayer: layerState.activeLayer,
+      openMenu: layerActions.openMenu,
+      closeMenu: layerActions.closeMenu,
+      openChat: layerActions.openChat,
+      closeChat: layerActions.closeChat,
+      closeActiveLayer: layerActions.closeActiveLayer,
+      isKeyboardOpen: viewport.isKeyboardOpen,
       notificationCount: notif.notificationCount,
       chatCount: chat.chatCount,
       notifications: notif.notifications,
@@ -1069,6 +1236,6 @@ export const useDashboard = (): DashboardContextType => {
       saveErrorMessage: userSections.saveErrorMessage,
       retrySave: userSections.retrySave,
     }),
-    [modalState, modalActions, notif, chat, auth, toastState, toastActions, layout, i18n, userSections]
+    [modalState, modalActions, layerState, layerActions, viewport, notif, chat, auth, toastState, toastActions, layout, i18n, userSections]
   );
 };

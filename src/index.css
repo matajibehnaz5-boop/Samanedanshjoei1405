@@ -19,6 +19,16 @@
   html.theme-dark {
     color-scheme: dark;
 
+    /* Global Viewport & Unified Layer Z-Index System */
+    --vvh: 100dvh;
+    --vv-top: 0px;
+    --z-header: 40;
+    --z-fab: 50;
+    --z-chat: 60;
+    --z-modal: 70;
+    --z-menu: 80;
+    --z-toast: 90;
+
     /* Tailwind @theme runtime tokens (exact dark values) */
     --primary: #6750A4;
     --on-primary: #FFFFFF;
@@ -456,6 +466,24 @@
     color: var(--text);
     overflow-x: hidden;
   }
+
+  html.layer-scroll-lock,
+  body.layer-scroll-lock {
+    overflow: hidden !important;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Unified Modal & Panel Constraints */
+[data-modal-backdrop] {
+  top: var(--vv-top, 0px);
+  height: var(--vvh, 100dvh);
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+}
+
+[data-modal-panel] {
+  max-height: calc(var(--vvh, 100dvh) - 16px);
+  max-width: calc(100vw - 16px);
 }
 
 /* Card Styling */
@@ -532,7 +560,7 @@ textarea {
   }
 
   /* Buttons: 38px height */
-  button:not([role="switch"]):not([class*="absolute"]):not([class*="p-2"]):not([class*="p-1.5"]) {
+  button:not([role="switch"]):not([class*="absolute"]):not([class*="p-2"]):not([class*="p-1.5"]):not([data-compact-chip]) {
     min-height: 38px !important;
     height: 38px !important;
   }
@@ -543,31 +571,32 @@ textarea {
     height: 16px !important;
   }
 
-  .fixed.inset-0.z-50 {
+  [data-modal-backdrop] {
     align-items: flex-start !important;
     padding-top: 8px !important;
-    padding-bottom: 16px !important;
-    overflow-y: auto !important;
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important;
+    overflow: hidden !important;
   }
 
-  .fixed [class*="max-h-[85dvh]"] {
+  [data-modal-panel] {
     border-radius: 12px !important;
     overflow-x: hidden !important;
-    max-height: 92dvh !important;
-    padding: 10px !important;
+    overflow-y: hidden !important;
+    max-height: calc(var(--vvh, 100dvh) - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
   }
 
-  .fixed [class*="max-h-[85dvh]"].p-6,
-  .fixed [class*="max-h-[85dvh]"].p-5 {
+  [data-modal-panel].p-6,
+  [data-modal-panel].p-5 {
     padding: 8px !important;
   }
 
-  .fixed [class*="max-h-[85dvh]"] table {
+  [data-modal-panel] table {
     font-size: 11px;
   }
 
-  .fixed [class*="max-h-[85dvh]"] th,
-  .fixed [class*="max-h-[85dvh]"] td {
+  [data-modal-panel] th,
+  [data-modal-panel] td {
     padding: 4px 5px;
   }
 }
@@ -644,6 +673,38 @@ textarea {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
+}
+
+/* Hide scrollbars while keeping horizontal/vertical scroll functional */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Compact Student Chatbot Window & Keyboard-Open Layout */
+[data-chatbot-window] {
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  height: min(520px, calc(var(--vvh, 100dvh) * 0.6));
+  max-height: calc(var(--vvh, 100dvh) - 96px);
+}
+
+html.keyboard-open [data-chatbot-window] {
+  top: calc(var(--vv-top, 0px) + 8px);
+  bottom: auto;
+  height: calc(var(--vvh, 100dvh) - 16px);
+  max-height: calc(var(--vvh, 100dvh) - 16px);
+}
+
+html.keyboard-open [data-chatbot-suggestions] {
+  display: none !important;
+}
+
+html.keyboard-open [data-chatbot-messages] {
+  min-height: 0 !important;
 }
 
 /* =========================================================
@@ -1011,8 +1072,8 @@ html.theme-light .bg-black\/60 {
 /* Modal Close Buttons (×) in Light Theme */
 html.theme-light .fixed [role="dialog"] button[aria-label="بستن"],
 html.theme-light .fixed [role="dialog"] button[title="بستن"],
-html.theme-light .fixed [class*="max-h-[85dvh]"] button[aria-label="بستن"],
-html.theme-light .fixed [class*="max-h-[85dvh]"] button[title="بستن"] {
+html.theme-light [data-modal-panel] button[aria-label="بستن"],
+html.theme-light [data-modal-panel] button[title="بستن"] {
   background-color: #CFE5EA !important;
   color: #0E7490 !important;
   border: 1px solid #A5E3EC !important;
@@ -1020,8 +1081,8 @@ html.theme-light .fixed [class*="max-h-[85dvh]"] button[title="بستن"] {
 
 html.theme-light .fixed [role="dialog"] button[aria-label="بستن"] svg,
 html.theme-light .fixed [role="dialog"] button[title="بستن"] svg,
-html.theme-light .fixed [class*="max-h-[85dvh]"] button[aria-label="بستن"] svg,
-html.theme-light .fixed [class*="max-h-[85dvh]"] button[title="بستن"] svg {
+html.theme-light [data-modal-panel] button[aria-label="بستن"] svg,
+html.theme-light [data-modal-panel] button[title="بستن"] svg {
   color: #0E7490 !important;
 }
 

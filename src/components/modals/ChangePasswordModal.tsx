@@ -181,17 +181,28 @@ export const ChangePasswordModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 pb-[12vh] sm:pb-[8vh] bg-[#0F172A]/80 backdrop-blur-md">
+      <div
+        dir={isFa ? 'rtl' : 'ltr'}
+        data-modal-backdrop
+        onClick={(e) => {
+          if (e.target === e.currentTarget) closeModal();
+        }}
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-2 sm:p-4 bg-[#0F172A]/80 backdrop-blur-md"
+      >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          data-modal-panel
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, y: 50, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 50, scale: 0.95 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="w-full max-w-lg bg-[#1C2436] border border-white/[0.08] rounded-[30px] p-6 shadow-2xl text-white max-h-[85dvh] overflow-y-auto"
+          className="w-full max-w-lg bg-[#1C2436] border border-white/[0.08] rounded-[30px] shadow-2xl text-white flex flex-col max-h-[calc(var(--vvh,100dvh)-16px)] max-w-[calc(100vw-16px)] overflow-hidden"
           dir={isFa ? 'rtl' : 'ltr'}
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+          <div className="flex items-center justify-between px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4 border-b border-white/[0.08] shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#232D42] rounded-2xl border border-white/[0.08] flex items-center justify-center shrink-0">
                 <Lock className="w-5 h-5 text-[#818CF8] stroke-[2] icon-white-glow" />
@@ -214,7 +225,8 @@ export const ChangePasswordModal: React.FC = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="mt-5 space-y-4" noValidate>
+          <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex flex-col overflow-hidden" noValidate>
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-5 space-y-4">
             {/* Field 1: Current Password */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-[#BBC1D1]">
@@ -321,8 +333,10 @@ export const ChangePasswordModal: React.FC = () => {
               )}
             </div>
 
+            </div>
+
             {/* Buttons */}
-            <div className="pt-4 flex items-center justify-end gap-3 border-t border-white/[0.08]">
+            <div className="px-4 pb-4 pt-3 sm:px-6 sm:pb-6 sm:pt-4 flex items-center justify-end gap-3 border-t border-white/[0.08] shrink-0">
               <button
                 type="button"
                 onClick={closeModal}
